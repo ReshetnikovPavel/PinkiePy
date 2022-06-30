@@ -1,3 +1,4 @@
+import rply
 from rply import LexerGenerator
 import re
 
@@ -64,7 +65,7 @@ keywords = [
             (r'\b(?:(?:is)|(?:was)|(?:were)) less than\b', 'LESS_THAN_INFIX'),
             (r'\b(?:(?:had)|(?:has)) more than\b', 'GREATER_THAN_INFIX'),
             (r'\b(?:(?:had)|(?:has)) less than\b', 'LESS_THAN_INFIX'),
-            (r'\bthe difference between(?=.+?)(?![.,!?‽…:])(?=.+?)(?:(?:and)|(?:from))\b', 'SUBTRACTION_PREFIX'),
+            (r'\bthe difference between(?=.+?)(?![.,!?‽…:])(?=.+?(?:(?:and)|(?:from))\b', 'SUBTRACTION_PREFIX'),
             (r'\bYour faithful student\b', 'END_REPORT'),
             (r'\bThere was one less\b', 'DECREMENT_PREFIX'),
             (r'\bThere was one more\b', 'INCREMENT_PREFIX'),

@@ -73,7 +73,7 @@ if __name__ == '__main__':
                      ("Did", "you", "know", "that")),
         KeywordMaker('RETURNED_VARIABLE_TYPE_DEFINITION',
                      ("to", "get")),
-        KeywordMaker('RETURNED_VARIABLE_TYPE_DEFINITION',
+        KeywordMaker('RETURNED_VARIABLE_TYPE_DEFINIeTION',
                      ("with",)),
     ]
 
