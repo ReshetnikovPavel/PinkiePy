@@ -1,3 +1,4 @@
+import re
 from enum import Enum
 from io import StringIO
 
@@ -265,6 +266,7 @@ class Lexer:
          'EQUAL', Block.NONE, Suffix.INFIX),
     ]
 
-    def lex(self):
-        for i in range(len(self.source)):
-            self.global_position = i
+
+    def remove_comments(self, text):
+        return re.sub()
+
