@@ -100,14 +100,14 @@ keywords = [
             (r'\bI read\b', 'READLINE'),
             (r'\bis now\b', 'VARIABLE_VALUE_ASSIGNMENT'),
             (r'\b(?:(?:many )|(?:the ))?sentences\b', 'CHAR_ARRAY_OF_ARRAYS_TYPE'),
-            (r'\b(?:(?:many )|(?:the ))?numbers\b', 'NUMBER_64_ARRAY_TYPE'),
+            (r'\b(?:(?:many )|(?:the ))?numbers\b', 'NUMBER_ARRAY_TYPE'),
             (r'\b(?:(?:many )|(?:the ))?phrases\b', 'CHAR_ARRAY_OF_ARRAYS_TYPE'),
             (r'\b(?:(?:an )|(?:the ))?argument\b', 'BOOLEAN_TYPE'),
             (r'\b(?:(?:a )|(?:the ))?character\b', 'CHAR_TYPE'),
             (r'\b(?:(?:many )|(?:the ))?quotes\b', 'CHAR_ARRAY_OF_ARRAYS_TYPE'),
             (r'\b(?:(?:many )|(?:the ))?words\b', 'CHAR_ARRAY_OF_ARRAYS_TYPE'),
             (r'\b(?:(?:a )|(?:the ))?sentence\b', 'CHAR_ARRAY_TYPE'),
-            (r'\b(?:(?:a )|(?:the ))?number\b', 'NUMBER_64_TYPE'),
+            (r'\b(?:(?:a )|(?:the ))?number\b', 'NUMBER_TYPE'),
             (r'\b(?:(?:a )|(?:the ))?letter\b', 'CHAR_TYPE'),
             (r'\b(?:(?:a )|(?:the ))?phrase\b', 'CHAR_ARRAY_TYPE'),
             (r'\b(?:(?:a )|(?:the ))?quote\b', 'CHAR_ARRAY_TYPE'),
@@ -152,9 +152,10 @@ keywords = [
             (r'\bis\b', 'VARIABLE_INITIALIZATION-EQUAL_INFIX'),
             ]
 
+
 lg = LexerGenerator()
 lg.ignore(r"\s")
-lg.ignore(r"(P.)+S.+\n")
+lg.ignore(r"(P\.)+S\..*\n")
 lg.ignore(r"\(.*\)")
 for keyword in literals:
     lg.add(keyword[1], keyword[0])

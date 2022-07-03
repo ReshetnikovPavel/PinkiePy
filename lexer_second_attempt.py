@@ -151,7 +151,7 @@ class Lexer:
         (r'\b(?:(?:many )|(?:the ))?sentences\b',
          'CHAR_ARRAY_OF_ARRAYS_TYPE', Block.NONE, Suffix.PREFIX),
         (r'\b(?:(?:many )|(?:the ))?numbers\b',
-         'NUMBER_64_ARRAY_TYPE', Block.NONE, Suffix.PREFIX),
+         'NUMBER_ARRAY_TYPE', Block.NONE, Suffix.PREFIX),
         (r'\b(?:(?:many )|(?:the ))?phrases\b',
          'CHAR_ARRAY_OF_ARRAYS_TYPE', Block.NONE, Suffix.PREFIX),
         (r'\b(?:(?:an )|(?:the ))?argument\b',
