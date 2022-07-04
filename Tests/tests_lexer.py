@@ -623,10 +623,231 @@ class TestOperators(Base):
         self.assert_tokens(
             '10 is not greater than the number jugs of cider on the wall',
             ('NUMBER', '10'),
-            ('LESS_THAN_OR_EQUAL','is not greater than'),
+            ('LESS_THAN_OR_EQUAL', 'is not greater than'),
             ('NAME', 'the number jugs of cider on the wall'))
 
-    # TODO more tests
+    def testGreaterThan(self):
+        self.assert_tokens(
+            'Did you know that truth is the argument anything Trixie can do '
+            'is greater than anything you can do?',
+            ('VAR', 'Did you know that'),
+            ('NAME', 'truth'),
+            ('BOOLEAN_TYPE', 'the argument'),
+            ('NAME', 'anything Trixie can do'),
+            ('GREATER_THAN', 'is greater than'),
+            ('NAME', 'anything you can do'),
+            ('PUNCTUATION', '?'))
+
+    def testGreaterThanIf(self):
+        self.assert_tokens(
+            'If Spike’s crush on Rarity is more than Scootaloo’s crush on '
+            'Rainbow Dash then: I said “It’s Tuesday”.',
+            ('IF', 'If'),
+            ('NAME', 'Spike’s crush on Rarity'),
+            ('GREATER_THAN', 'is more than'),
+            ('NAME', 'Scootaloo’s crush on Rainbow Dash'),
+            ('IF', 'then'),
+            ('PUNCTUATION', ':'),
+            ('PRINT', 'I said'),
+            ('STRING', 'It’s Tuesday'),
+            ('PUNCTUATION', '.'))
+
+    def testGreaterThanOrEqual(self):
+        self.assert_tokens(
+            'If Celestia’s greatness is no less than Luna’s greatness then: I '
+            'would praise Luna some more.',
+            ('IF', 'If'),
+            ('NAME', 'Celestia’s greatness'),
+            ('LESS_THAN_OR_EQUAL', 'is no less than'),
+            ('NAME', 'Luna’s greatness'),
+            ('IF', 'then'),
+            ('PUNCTUATION', ':'),
+            ('RUN', 'I would'),
+            ('NAME', 'praise Luna some more'),
+            ('PUNCTUATION', '.'))
+
+    def testGreaterThanOrEqual2(self):
+        self.assert_tokens(
+            'Chrysalis’ greatness isn’t less than Twilight Sparkle’s greatness',
+            ('NAME', 'Chrysalis’ greatness'),
+            ('LESS_THAN_OR_EQUAL', 'isn’t less than'),
+            ('NAME', 'Twilight Sparkle’s greatness'))
+
+    def testAnd(self):
+        self.assert_tokens(
+            'Did you know that whether I went outside is the argument the sky '
+            'is clear and Pinkie’s tail is still?',
+            ('VAR', 'Did you know that'),
+            ('NAME', 'whether I went outside'),
+            ('BOOLEAN_TYPE', 'the argument'),
+            ('NAME', 'the sky is clear'),
+            ('AND', 'and'),
+            ('NAME', 'Pinkie’s tail is still'),
+            ('PUNCTUATION', '?'))
+
+    def testAnd2(self):
+        self.assert_tokens(
+            'If I have no pants and I must scream then: I would scream '
+            'without pants.',
+            ('IF', 'If'),
+            ('NAME', 'I have no pants'),
+            ('AND', 'and'),
+            ('NAME', 'I must scream'),
+            ('IF', 'then'),
+            ('PUNCTUATION', ':'),
+            ('RUN', 'I would'),
+            ('NAME', 'scream without pants'),
+            ('PUNCTUATION', '.'))
+
+    def testNot(self):
+        self.assert_tokens(
+            'As long as it’s not the case that Applejack has 5 (apples), I said “Keep going!”.',
+            ('WHILE', 'As long as'),
+            ('NOT', 'it’s not the case that'),
+            ('NAME', 'Applejack'),
+            ('NAME', 'has'),
+            ('NUMBER', '5'),
+            ('PUNCTUATION', ','),
+            ('PRINT', 'I said'),
+            ('STRING', 'Keep going!'),
+            ('PUNCTUATION', '.'))
+
+
+class TestBranchingStatements(Base):
+    def testIf(self):
+        self.assert_tokens('If Spike was 10 then:',
+                           ('IF', 'If'),
+                           ('NAME', 'Spike'),
+                           ('EQUAL', 'was'),
+                           ('NUMBER', '10'),
+                           ('IF', 'then'),
+                           ('PUNCTUATION', ':'))
+
+    def testIf2(self):
+        self.assert_tokens('When 10 was not the number:',
+                           ('IF', 'When'),
+                           ('NUMBER', '10'),
+                           ('NOT_EQUAL', 'was not'),
+                           ('NAME', 'the number'),
+                           ('PUNCTUATION', ':'))
+
+    def testSwitch(self):
+        self.assert_tokens('In regards to Pinkie’s Tail:'
+                           '\nOn the 1st hoof...'
+                           '\nI said “That’s impossible!”.'
+                           '\nOn the 2nd hoof...'
+                           '\nI said “There must be a scientific explanation”.'
+                           '\nOn the 3rd hoof...'
+                           '\nI said “There must be an explanation”.'
+                           '\nOn the 4th hoof...'
+                           '\nI said “Why does this happen?!”.'
+                           '\nI would flail.'
+                           '\nIf all else fails...'
+                           '\nI said “She’s just being Pinkie Pie.”.'
+                           '\nThat’s what I did.',
+                           ('SWITCH', 'In regards to'),
+                           ('NAME', 'Pinkie’s Tail'),
+                           ('PUNCTUATION', ':'),
+                           ('CASE', 'On the'),
+                           ('NUMBER', '1'),
+                           ('CASE', 'st hoof'),
+                           ('PUNCTUATION', '...'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'That’s impossible!'),
+                           ('CASE', 'On the'),
+                           ('NUMBER', '2'),
+                           ('CASE', 'nd hoof'),
+                           ('PUNCTUATION', '...'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'There must be a scientific explanation'),
+                           ('CASE', 'On the'),
+                           ('NUMBER', '3'),
+                           ('CASE', 'rd hoof'),
+                           ('PUNCTUATION', '...'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'There must be an explanation'),
+                           ('CASE', 'On the'),
+                           ('NUMBER', '4'),
+                           ('CASE', 'th hoof'),
+                           ('PUNCTUATION', '...'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'Why does this happen?!'),
+                           ('RUN', 'I would'),
+                           ('NAME', 'flail'),
+                           ('DEFAULT', 'If all else fails'),
+                           ('PUNCTUATION', '...'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'She’s just being Pinkie Pie.'),
+                           ('PUNCTUATION', '.'),
+                           ('RUN', 'That’s what I did.'))
+
+    def testFor(self):
+        self.assert_tokens('For every number x from 1 to 100,'
+                           '\nI said x!'
+                           '\nThat’s what I did.',
+                           ('FOR', 'For every'),
+                           ('NUMBER_TYPE', 'number'),
+                           ('NAME', 'x'),
+                           ('FROM', 'from'),
+                           ('NUMBER', '1'),
+                           ('TO', 'to'),
+                           ('NUMBER', '100'),
+                           ('PUNCTUATION', ','),
+                           ('PRINT', 'I said'),
+                           ('NAME', 'x'),
+                           ('PUNCTUATION', '!'),
+                           ('FOR', 'That’s what I did.'))
+
+    def testFor2(self):
+        self.assert_tokens(
+            'Did you know that Berry Punch likes the phrase “Cheerwine”?'
+            '\nFor every character c in Berry Punch...'
+            '\nI said c.'
+            '\nThat’s what I did.',
+            ('VAR', 'Did you know that'),
+            ('NAME', 'Berry Punch'),
+            ('VARIABLE_VALUE_ASSIGNMENT', 'likes'),
+            ('STRING_TYPE', 'the phrase'),
+            ('STRING', '“Cheerwine”'),
+            ('PUNCTUATION', '?'),
+            ('FOR', 'For every'),
+            ('CHARACTER_TYPE', 'character'),
+            ('NAME', 'c'),
+            ('IN', 'in'),
+            ('NAME', 'Berry Punch'),
+            ('PUNCTUATION', '...'),
+            ('PRINT', 'I said'),
+            ('NAME', 'c'),
+            ('PUNCTUATION', '.'),
+            ('FOR', 'That’s what I did.'))
+
+
+class TestPrograms(Base):
+    def testHelloWorld(self):
+        self.assert_tokens('\nDear Princess Celestia: Hello World!'
+                           '\n'
+                           '\nToday I learned how to say Hello World!'
+                           '\nI said “Hello World”!'
+                           '\nThat’s all about how to say Hello World!'
+                           '\n'
+                           '\nYour faithful student, Kyli Rouge.',
+                           ('REPORT', 'Dear'),
+                           ('NAME', 'Princess Celestia'),
+                           ('PUNCTUATION', ':'),
+                           ('NAME', 'Hello World'),
+                           ('PUNCTUATION', '!'),
+                           ('MANE_PARAGRAPH', 'Today I learned'),
+                           ('NAME', 'how to say Hello World'),
+                           ('PUNCTUATION', '!'),
+                           ('PRINT', 'I said'),
+                           ('STRING', 'Hello World'),
+                           ('PUNCTUATION', '!'),
+                           ('REPORT', 'That’s all about'),
+                           ('NAME', 'how to say Hello World'),
+                           ('PUNCTUATION', '!'),
+                           ('PARAGRAPH', 'Your faithful student'),
+                           ('NAME', 'Kyli Rouge'),
+                           ('PUNCTUATION', '.'))
 
 
 if __name__ == '__main__':
