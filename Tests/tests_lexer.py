@@ -1,14 +1,14 @@
 import unittest
-import lexer
-import lexer_second_attempt
+from lexer_second_attempt import Lexer
 
 
 class Base(unittest.TestCase):
     def setUp(self):
-        self.lex = lexer.lex
+        pass
 
     def get_tokens(self, program):
-        return list(self.lex(program))
+        lexer = Lexer(program)
+        return list(lexer.lex())
 
     def assert_no_tokens(self, program):
         tokens = self.get_tokens(program)
@@ -29,6 +29,7 @@ def tokens_are(tokens, tuples):
             if not (tuples[i][0] in str(tokens[i]) and tuples[i][1] in str(
                     tokens[i])):
                 return False
+        print(len(tokens), len(tuples))
         return len(tokens) == len(tuples)
     except IndexError:
         return False
@@ -37,18 +38,25 @@ def tokens_are(tokens, tuples):
 class TestComments(Base):
 
     def testSingleLineComment(self):
-        self.assert_no_tokens('P.S. I don’t know how well this will go')
+        self.assert_tokens(
+            'P.S. I don’t know how well this will go',
+            ('COMMENT', 'P.S. I don’t know how well this will go'))
 
     def testSingleLineComment_MultipleS(self):
-        self.assert_no_tokens('P.P.S. That said, I’m pretty excited!')
+        self.assert_tokens('P.P.S. That said, I’m pretty excited!',
+                           ('COMMENT', 'P.P.S. That said, I’m pretty excited!'))
 
     def testSingleLine_AnotherSInsideCommentedString(self):
-        self.assert_no_tokens('P.S.You don’t need a space after the “S.”.')
+        self.assert_tokens(
+            'P.S.You don’t need a space after the “S.”.',
+            ('COMMENT', 'P.S.You don’t need a space after the “S.”.'))
 
     def testSingleLine_UnusedCode(self):
-        self.assert_no_tokens(
+        self.assert_tokens(
             'P.S.I said “something else”! <= old, unused code kept for '
-            'reference')
+            'reference',
+            ('COMMENT', 'P.S.I said “something else”! <= old, unused code '
+                        'kept for reference'))
 
     def testSingleLine_CodeAndComment(self):
         self.assert_tokens(
@@ -56,17 +64,21 @@ class TestComments(Base):
             'variable.',
             ('PRINT', 'I said'),
             ('STRING', '“something”'),
-            ('PUNCTUATION', '!'))
+            ('PUNCTUATION', '!'),
+            ('COMMENT', 'P.S. replace “something” with the actual variable.'))
 
     def testBlock(self):
-        self.assert_no_tokens('(I can say anything I want in here!)')
+        self.assert_tokens('(I can say anything I want in here!)',
+                           ('COMMENT', '(I can say anything I want in here!)'))
 
     def testBlock_WithCode(self):
         self.assert_tokens(
-            'I said “something”! (replace “something” with the actual variable)',
+            'I said “something”! '
+            '(replace “something” with the actual variable)',
             ('PRINT', 'I said'),
             ('STRING', '“something”'),
-            ('PUNCTUATION', '!'))
+            ('PUNCTUATION', '!'),
+            ('COMMENT', '(replace “something” with the actual variable)'))
 
     def testBlock_InsideCode(self):
         self.assert_tokens(
@@ -74,6 +86,7 @@ class TestComments(Base):
             'Hey, Celly!',
             ('REPORT', 'Dear'),
             ('NAME', 'Princess Celestia'),
+            ('COMMENT', '( and Princess Luna and Princess Cadence)'),
             ('PUNCTUATION', ':'),
             ('NAME', 'Hey, Celly'),
             ('PUNCTUATION', '!'))
@@ -104,7 +117,7 @@ class TestClasses(Base):
     def testEnding(self):
         self.assert_tokens('Your faithful student, Twilight Sparkle.',
                            ('REPORT', 'Your faithful student'),
-                           ('PUNCTUATION', ','),
+
                            ('NAME', 'Twilight Sparkle'),
                            ('PUNCTUATION', '.'))
 
@@ -229,8 +242,28 @@ class TestVariablesAndConstants(Base):
                            ('VAR', 'Did you know that'),
                            ('NAME', 'cake'),
                            ('VAR', 'has'),
-                           ('ARRAY_STRING', 'many names'),
-                           ('PUNCTUATION', '?'))
+                           ('STRING_ARRAY', 'many names'),
+                           ('PUNCTUATION', '?'),
+                           ('NAME', 'cake'),
+                           ('NUMBER', '1'),
+                           ('VAR', 'is'),
+                            ('STRING', 'chocolate'),
+                            ('PUNCTUATION', '.'),
+                            ('NAME', 'cake'),
+                            ('NUMBER', '2'),
+                            ('VAR', 'is'),
+                            ('STRING', 'apple cinnamon'),
+                            ('PUNCTUATION', '.'),
+                            ('NAME', 'cake'),
+                            ('NUMBER', '3'),
+                            ('VAR', 'is'),
+                            ('STRING', 'fruit'),
+                            ('PUNCTUATION', '.'),
+                            ('PRINT', 'I said'),
+                            ('NAME', 'cake'),
+                            ('NUMBER', '2'),
+                            ('PUNCTUATION', '.'))
+
 
     def testDataArrays2(self):
         self.assert_tokens('Did you know that cake has the names “chocolate” '
@@ -238,12 +271,13 @@ class TestVariablesAndConstants(Base):
                            ('VAR', 'Did you know that'),
                            ('NAME', 'cake'),
                            ('VAR', 'has'),
-                           ('ARRAY_STRING', 'the names'),
+                           ('STRING_ARRAY', 'the names'),
                            ('STRING', '“chocolate”'),
                            ('AND', 'and'),
                            ('STRING', '“apple cinnamon”'),
                            ('AND', 'and'),
-                           ('STRING', '“fruit”'))
+                           ('STRING', '“fruit”'),
+                           ('PUNCTUATION', '?'))
 
     def testDeclaration(self):
         self.assert_tokens(
@@ -261,7 +295,8 @@ class TestVariablesAndConstants(Base):
             ('NAME', 'Trixie'),
             ('VAR', 'has'),
             ('STRING_TYPE', 'the name'),
-            ('STRING', '“Trixie Lulamoon”'))
+            ('STRING', '“Trixie Lulamoon”'),
+            ('PUNCTUATION', '?'))
 
     def testDeclaration3(self):
         self.assert_tokens(
@@ -272,8 +307,9 @@ class TestVariablesAndConstants(Base):
             ('VAR', 'likes'),
             ('STRING_TYPE', 'the phrase'),
             ('STRING', '“inventing an esoteric programming language based on '
-                       'MLP:FiM is fun”')
-        )
+                       'MLP:FiM is fun”'),
+            ('PUNCTUATION', '?'))
+
 
     def testDeclaration4(self):
         self.assert_tokens('Did you know that Spike’s age is the number 10?',
@@ -399,7 +435,8 @@ class TestOperators(Base):
 
     def testSubtraction2(self):
         self.assert_tokens(
-            'Did you know that Spike’s age is Rarity’s age minus Applebloom’s Age?',
+            'Did you know that Spike’s age is Rarity’s age minus Applebloom’s '
+            'Age?',
             ('VAR', 'Did you know that'),
             ('NAME', 'Spike’s age'),
             ('EQUAL', 'is'),
@@ -701,13 +738,14 @@ class TestOperators(Base):
 
     def testNot(self):
         self.assert_tokens(
-            'As long as it’s not the case that Applejack has 5 (apples), I said “Keep going!”.',
+            'As long as it’s not the case that Applejack has 5 (apples), '
+            'I said “Keep going!”.',
             ('WHILE', 'As long as'),
             ('NOT', 'it’s not the case that'),
             ('NAME', 'Applejack'),
             ('NAME', 'has'),
             ('NUMBER', '5'),
-            ('PUNCTUATION', ','),
+
             ('PRINT', 'I said'),
             ('STRING', 'Keep going!'),
             ('PUNCTUATION', '.'))
@@ -788,15 +826,15 @@ class TestBranchingStatements(Base):
                            ('FOR', 'For every'),
                            ('NUMBER_TYPE', 'number'),
                            ('NAME', 'x'),
-                           ('FROM', 'from'),
+                           ('ITER', 'from'),
                            ('NUMBER', '1'),
-                           ('TO', 'to'),
+                           ('ITER', 'to'),
                            ('NUMBER', '100'),
-                           ('PUNCTUATION', ','),
                            ('PRINT', 'I said'),
                            ('NAME', 'x'),
                            ('PUNCTUATION', '!'),
-                           ('FOR', 'That’s what I did.'))
+                           ('FOR', 'That’s what I did'),
+                           ('PUNCTUATION', '.'))
 
     def testFor2(self):
         self.assert_tokens(
@@ -811,7 +849,7 @@ class TestBranchingStatements(Base):
             ('STRING', '“Cheerwine”'),
             ('PUNCTUATION', '?'),
             ('FOR', 'For every'),
-            ('CHARACTER_TYPE', 'character'),
+            ('CHAR_TYPE', 'character'),
             ('NAME', 'c'),
             ('IN', 'in'),
             ('NAME', 'Berry Punch'),
@@ -819,7 +857,8 @@ class TestBranchingStatements(Base):
             ('PRINT', 'I said'),
             ('NAME', 'c'),
             ('PUNCTUATION', '.'),
-            ('FOR', 'That’s what I did.'))
+            ('FOR', 'That’s what I did'),
+            ('PUNCTUATION', '.'))
 
 
 class TestPrograms(Base):
@@ -842,10 +881,10 @@ class TestPrograms(Base):
                            ('PRINT', 'I said'),
                            ('STRING', 'Hello World'),
                            ('PUNCTUATION', '!'),
-                           ('REPORT', 'That’s all about'),
+                           ('PARAGRAPH', 'That’s all about'),
                            ('NAME', 'how to say Hello World'),
                            ('PUNCTUATION', '!'),
-                           ('PARAGRAPH', 'Your faithful student'),
+                           ('REPORT', 'Your faithful student,'),
                            ('NAME', 'Kyli Rouge'),
                            ('PUNCTUATION', '.'))
 
