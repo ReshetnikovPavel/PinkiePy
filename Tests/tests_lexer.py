@@ -145,7 +145,7 @@ class TestMethods(Base):
                            ('PARAGRAPH', 'I learned'),
                            ('NAME', 'how to do math'),
                            ('RETURNED_VARIABLE_TYPE_DEFINITION', 'with'),
-                           ('NUMBER_TYPE', 'a number'),
+                           ('NAME', 'a number'),
                            ('PUNCTUATION', '.'))
 
     def testDeclarationArguments(self):
@@ -155,10 +155,9 @@ class TestMethods(Base):
             ('PARAGRAPH', 'I learned'),
             ('NAME', 'how to take the sum of a set of numbers'),
             ('RETURNED_VARIABLE_TYPE_DEFINITION', 'with'),
-            ('NUMBER_64_TYPE', 'a number'),
+            ('NAME', 'a number'),
             ('LISTING_PARAGRAPH_PARAMETERS', 'using'),
-            ('NUMBER_64_ARRAY_TYPE', 'the numbers'),
-            ('NAME', 'X'),
+            ('NAME', 'the numbers X'),
             ('PUNCTUATION', '.'))
 
     def testReturn(self):
@@ -183,7 +182,7 @@ class TestMethods(Base):
         self.assert_tokens('Did you know that Spike was Spike’s age?',
                            ('VAR', 'Did you know that'),
                            ('NAME', 'Spike'),
-                           ('EQUAL', 'was'),
+                           ('VAR', 'was'),
                            ('NAME', 'Spike’s age'),
                            ('PUNCTUATION', '?'))
 
@@ -210,7 +209,7 @@ class TestVariablesAndConstants(Base):
     def testCorrectNames(self):
         names = ['Applejack',
                  'Applejack’s hat',
-                 'Team Fortress 2'
+                 'Team Fortress 2',
                  'Somepony’s true identity']
         tokens_list = [self.get_tokens(name) for name in names]
         for tokens, name in zip(tokens_list, names):
@@ -242,28 +241,23 @@ class TestVariablesAndConstants(Base):
                            ('VAR', 'Did you know that'),
                            ('NAME', 'cake'),
                            ('VAR', 'has'),
-                           ('STRING_ARRAY', 'many names'),
+                           ('NAME', 'many names'),
                            ('PUNCTUATION', '?'),
-                           ('NAME', 'cake'),
-                           ('NUMBER', '1'),
-                           ('VAR', 'is'),
-                            ('STRING', 'chocolate'),
-                            ('PUNCTUATION', '.'),
-                            ('NAME', 'cake'),
-                            ('NUMBER', '2'),
-                            ('VAR', 'is'),
-                            ('STRING', 'apple cinnamon'),
-                            ('PUNCTUATION', '.'),
-                            ('NAME', 'cake'),
-                            ('NUMBER', '3'),
-                            ('VAR', 'is'),
-                            ('STRING', 'fruit'),
-                            ('PUNCTUATION', '.'),
-                            ('PRINT', 'I said'),
-                            ('NAME', 'cake'),
-                            ('NUMBER', '2'),
-                            ('PUNCTUATION', '.'))
-
+                           ('NAME', 'cake 1'),
+                           ('EQUAL', 'is'),
+                           ('STRING', 'chocolate'),
+                           ('PUNCTUATION', '.'),
+                           ('NAME', 'cake 2'),
+                           ('EQUAL', 'is'),
+                           ('STRING', 'apple cinnamon'),
+                           ('PUNCTUATION', '.'),
+                           ('NAME', 'cake 3'),
+                           ('EQUAL', 'is'),
+                           ('STRING', 'fruit'),
+                           ('PUNCTUATION', '.'),
+                           ('PRINT', 'I said'),
+                           ('NAME', 'cake 2'),
+                           ('PUNCTUATION', '.'))
 
     def testDataArrays2(self):
         self.assert_tokens('Did you know that cake has the names “chocolate” '
@@ -271,7 +265,7 @@ class TestVariablesAndConstants(Base):
                            ('VAR', 'Did you know that'),
                            ('NAME', 'cake'),
                            ('VAR', 'has'),
-                           ('STRING_ARRAY', 'the names'),
+                           ('NAME', 'the names'),
                            ('STRING', '“chocolate”'),
                            ('AND', 'and'),
                            ('STRING', '“apple cinnamon”'),
@@ -285,7 +279,7 @@ class TestVariablesAndConstants(Base):
             ('VAR', 'Did you know that'),
             ('NAME', 'Applejack'),
             ('VAR', 'likes'),
-            ('NUMBER_ARRAY_TYPE', 'numbers'),
+            ('NAME', 'numbers'),
             ('PUNCTUATION', '?'))
 
     def testDeclaration2(self):
@@ -294,8 +288,7 @@ class TestVariablesAndConstants(Base):
             ('VAR', 'Did you know that'),
             ('NAME', 'Trixie'),
             ('VAR', 'has'),
-            ('STRING_TYPE', 'the name'),
-            ('STRING', '“Trixie Lulamoon”'),
+            ('STRING', 'the name “Trixie Lulamoon”'),
             ('PUNCTUATION', '?'))
 
     def testDeclaration3(self):
@@ -305,19 +298,17 @@ class TestVariablesAndConstants(Base):
             ('VAR', 'Did you know that'),
             ('NAME', 'Kyli Rouge'),
             ('VAR', 'likes'),
-            ('STRING_TYPE', 'the phrase'),
-            ('STRING', '“inventing an esoteric programming language based on '
-                       'MLP:FiM is fun”'),
+            ('STRING',
+             'the phrase “inventing an esoteric programming language based on '
+             'MLP:FiM is fun”'),
             ('PUNCTUATION', '?'))
-
 
     def testDeclaration4(self):
         self.assert_tokens('Did you know that Spike’s age is the number 10?',
                            ('VAR', 'Did you know that'),
                            ('NAME', 'Spike’s age'),
-                           ('EQUAL', 'is'),
-                           ('NUMBER_TYPE', 'the number'),
-                           ('NUMBER', '10'),
+                           ('VAR', 'is'),
+                           ('NUMBER', 'the number 10'),
                            ('PUNCTUATION', '?'))
 
     def testDeclaration5(self):
@@ -327,8 +318,7 @@ class TestVariablesAndConstants(Base):
             ('NAME', 'Princess Luna'),
             ('VAR', 'is'),
             ('CONST', 'always'),
-            ('STRING_TYPE', 'the phrase'),
-            ('STRING', '“awesome”'),
+            ('STRING', 'the phrase “awesome”'),
             ('PUNCTUATION', '?'))
 
 
@@ -347,8 +337,7 @@ class TestLiterals(Base):
 
     def testNumbers5(self):
         self.assert_tokens('the number 99.',
-                           ('NUMBER_TYPE', 'the number'),
-                           ('NUMBER', '99'),
+                           ('NUMBER', 'the number 99'),
                            ('PUNCTUATION', '.'))
 
     def testCharacters(self):
@@ -362,8 +351,7 @@ class TestLiterals(Base):
 
     def testCharacters4(self):
         self.assert_tokens('the letter ‘T’.',
-                           ('CHAR_TYPE', 'the letter'),
-                           ('CHAR', '‘T’'),
+                           ('CHAR', 'the letter ‘T’'),
                            ('PUNCTUATION', '.'))
 
     def testStrings(self):
@@ -371,8 +359,7 @@ class TestLiterals(Base):
 
     def testStrings2(self):
         self.assert_tokens('the word "adorable".',
-                           ('STRING_TYPE', 'the word'),
-                           ('STRING', '"adorable"'),
+                           ('STRING', 'the word "adorable"'),
                            ('PUNCTUATION', '.'))
 
     def testStrings3(self):
@@ -401,7 +388,7 @@ class TestOperators(Base):
         self.assert_tokens('Did you know that twelve is 2 plus ten?',
                            ('VAR', 'Did you know that'),
                            ('NAME', 'twelve'),
-                           ('EQUAL', 'is'),
+                           ('VAR', 'is'),
                            ('NUMBER', '2'),
                            ('ADD', 'plus'),
                            ('NAME', 'ten'),
@@ -411,7 +398,7 @@ class TestOperators(Base):
         self.assert_tokens('I wrote 8 and 7 plus 3 added to 19.',
                            ('PRINT', 'I wrote'),
                            ('NUMBER', '8'),
-                           ('ADD', 'and'),
+                           ('AND', 'and'),
                            ('NUMBER', '7'),
                            ('ADD', 'plus'),
                            ('NUMBER', '3'),
@@ -428,10 +415,10 @@ class TestOperators(Base):
     def testSubtraction(self):
         self.assert_tokens('I said subtract 5 and 7',
                            ('PRINT', 'I said'),
-                           ('SUBTRACT', 'subtract'),
-                           ('NUMBER', '2'),
-                           ('SUBTRACT', 'and'),
-                           ('NUMBER', '3'))
+                           ('SUBTRACTION', 'subtract'),
+                           ('NUMBER', '5'),
+                           ('SUBTRACTION', 'and'),
+                           ('NUMBER', '7'))
 
     def testSubtraction2(self):
         self.assert_tokens(
@@ -439,7 +426,7 @@ class TestOperators(Base):
             'Age?',
             ('VAR', 'Did you know that'),
             ('NAME', 'Spike’s age'),
-            ('EQUAL', 'is'),
+            ('VAR', 'is'),
             ('NAME', 'Rarity’s age'),
             ('SUBTRACT', 'minus'),
             ('NAME', 'Applebloom’s Age'),
@@ -466,9 +453,9 @@ class TestOperators(Base):
     def testMultiplication(self):
         self.assert_tokens('I said multiply 8 and 16!',
                            ('PRINT', 'I said'),
-                           ('MULTIPLY', 'multiply'),
+                           ('MULTIPLICATION', 'multiply'),
                            ('NUMBER', '8'),
-                           ('MULTIPLY', 'and'),
+                           ('MULTIPLICATION', 'and'),
                            ('NUMBER', '16'),
                            ('PUNCTUATION', '!'))
 
@@ -477,9 +464,9 @@ class TestOperators(Base):
                            'Junebug’s hourly wage times 8?',
                            ('VAR', 'Did you know that'),
                            ('NAME', 'Junebug’s daily profits'),
-                           ('EQUAL', 'is'),
+                           ('VAR', 'is'),
                            ('NAME', 'Junebug’s hourly wage'),
-                           ('MULTIPLY', 'times'),
+                           ('MULTIPLICATION', 'times'),
                            ('NUMBER', '8'),
                            ('PUNCTUATION', '?'))
 
@@ -487,16 +474,16 @@ class TestOperators(Base):
         self.assert_tokens('I wrote my favorite number times 100.',
                            ('PRINT', 'I wrote'),
                            ('NAME', 'my favorite number'),
-                           ('MULTIPLY', 'times'),
+                           ('MULTIPLICATION', 'times'),
                            ('NUMBER', '100'),
                            ('PUNCTUATION', '.'))
 
     def testDivision(self):
         self.assert_tokens('I said divide 8 and 2.',
                            ('PRINT', 'I said'),
-                           ('DIVIDE', 'divide'),
+                           ('DIVISION', 'divide'),
                            ('NUMBER', '8'),
-                           ('DIVIDE', 'and'),
+                           ('DIVISION', 'and'),
                            ('NUMBER', '2'),
                            ('PUNCTUATION', '.'))
 
@@ -505,18 +492,18 @@ class TestOperators(Base):
             'Did you know that Spike’s age is my age divided by 2?',
             ('VAR', 'Did you know that'),
             ('NAME', 'Spike’s age'),
-            ('EQUAL', 'is'),
+            ('VAR', 'is'),
             ('NAME', 'my age'),
-            ('DIVIDE', 'divided by'),
+            ('DIVISION', 'divided by'),
             ('NUMBER', '2'),
             ('PUNCTUATION', '?'))
 
     def testDivision3(self):
         self.assert_tokens('I wrote divide 2 by 9.',
                            ('PRINT', 'I wrote'),
-                           ('DIVIDE', 'divide'),
+                           ('DIVISION', 'divide'),
                            ('NUMBER', '2'),
-                           ('DIVIDE', 'by'),
+                           ('DIVISION', 'by'),
                            ('NUMBER', '9'),
                            ('PUNCTUATION', '.'))
 
@@ -557,7 +544,7 @@ class TestOperators(Base):
     def testOutput3(self):
         self.assert_tokens('I sang Winter Wrap-Up!',
                            ('PRINT', 'I sang'),
-                           ('STRING', 'Winter Wrap-Up'),
+                           ('NAME', 'Winter Wrap-Up'),
                            ('PUNCTUATION', '!'))
 
     def testOutput4(self):
@@ -669,8 +656,8 @@ class TestOperators(Base):
             'is greater than anything you can do?',
             ('VAR', 'Did you know that'),
             ('NAME', 'truth'),
-            ('BOOLEAN_TYPE', 'the argument'),
-            ('NAME', 'anything Trixie can do'),
+            ('VAR', 'is'),
+            ('NAME', 'the argument anything Trixie can do'),
             ('GREATER_THAN', 'is greater than'),
             ('NAME', 'anything you can do'),
             ('PUNCTUATION', '?'))
@@ -695,7 +682,7 @@ class TestOperators(Base):
             'would praise Luna some more.',
             ('IF', 'If'),
             ('NAME', 'Celestia’s greatness'),
-            ('LESS_THAN_OR_EQUAL', 'is no less than'),
+            ('GREATER_THAN_OR_EQUAL', 'is no less than'),
             ('NAME', 'Luna’s greatness'),
             ('IF', 'then'),
             ('PUNCTUATION', ':'),
@@ -707,7 +694,7 @@ class TestOperators(Base):
         self.assert_tokens(
             'Chrysalis’ greatness isn’t less than Twilight Sparkle’s greatness',
             ('NAME', 'Chrysalis’ greatness'),
-            ('LESS_THAN_OR_EQUAL', 'isn’t less than'),
+            ('GREATER_THAN_OR_EQUAL', 'isn’t less than'),
             ('NAME', 'Twilight Sparkle’s greatness'))
 
     def testAnd(self):
@@ -716,25 +703,32 @@ class TestOperators(Base):
             'is clear and Pinkie’s tail is still?',
             ('VAR', 'Did you know that'),
             ('NAME', 'whether I went outside'),
-            ('BOOLEAN_TYPE', 'the argument'),
-            ('NAME', 'the sky is clear'),
+            ('VAR', 'is'),
+            ('NAME', 'the argument the sky'),
+            ('EQUAL', 'is'),
+            ('NAME', 'clear'),
             ('AND', 'and'),
-            ('NAME', 'Pinkie’s tail is still'),
+            ('NAME', 'Pinkie’s tail'),
+            ('EQUAL', 'is'),
+            ('NAME', 'still'),
             ('PUNCTUATION', '?'))
 
-    def testAnd2(self):
-        self.assert_tokens(
-            'If I have no pants and I must scream then: I would scream '
-            'without pants.',
-            ('IF', 'If'),
-            ('NAME', 'I have no pants'),
-            ('AND', 'and'),
-            ('NAME', 'I must scream'),
-            ('IF', 'then'),
-            ('PUNCTUATION', ':'),
-            ('RUN', 'I would'),
-            ('NAME', 'scream without pants'),
-            ('PUNCTUATION', '.'))
+    # TODO: 'without' in method name makes no sense
+    #  because there is operator with the same name
+    #
+    # def testAnd2(self):
+    #     self.assert_tokens(
+    #         'If I have no pants and I must scream then: I would scream '
+    #         'without pants.',
+    #         ('IF', 'If'),
+    #         ('NAME', 'I have no pants'),
+    #         ('AND', 'and'),
+    #         ('NAME', 'I must scream'),
+    #         ('IF', 'then'),
+    #         ('PUNCTUATION', ':'),
+    #         ('RUN', 'I would'),
+    #         ('NAME', 'scream without pants'),
+    #         ('PUNCTUATION', '.'))
 
     def testNot(self):
         self.assert_tokens(
@@ -743,9 +737,9 @@ class TestOperators(Base):
             ('WHILE', 'As long as'),
             ('NOT', 'it’s not the case that'),
             ('NAME', 'Applejack'),
-            ('NAME', 'has'),
+            ('EQUAL', 'has'),
             ('NUMBER', '5'),
-
+            ('COMMENT', '(apples)'),
             ('PRINT', 'I said'),
             ('STRING', 'Keep going!'),
             ('PUNCTUATION', '.'))
@@ -788,44 +782,49 @@ class TestBranchingStatements(Base):
                            ('PUNCTUATION', ':'),
                            ('CASE', 'On the'),
                            ('NUMBER', '1'),
-                           ('CASE', 'st hoof'),
+                           ('CASE', 'hoof'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
                            ('STRING', 'That’s impossible!'),
+                           ('PUNCTUATION', '.'),
                            ('CASE', 'On the'),
                            ('NUMBER', '2'),
-                           ('CASE', 'nd hoof'),
+                           ('CASE', 'hoof'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
                            ('STRING', 'There must be a scientific explanation'),
+                           ('PUNCTUATION', '.'),
                            ('CASE', 'On the'),
                            ('NUMBER', '3'),
-                           ('CASE', 'rd hoof'),
+                           ('CASE', 'hoof'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
                            ('STRING', 'There must be an explanation'),
+                           ('PUNCTUATION', '.'),
                            ('CASE', 'On the'),
                            ('NUMBER', '4'),
-                           ('CASE', 'th hoof'),
+                           ('CASE', 'hoof'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
                            ('STRING', 'Why does this happen?!'),
+                           ('PUNCTUATION', '.'),
                            ('RUN', 'I would'),
                            ('NAME', 'flail'),
+                           ('PUNCTUATION', '.'),
                            ('DEFAULT', 'If all else fails'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
                            ('STRING', 'She’s just being Pinkie Pie.'),
                            ('PUNCTUATION', '.'),
-                           ('RUN', 'That’s what I did.'))
+                           ('END_LOOP', 'That’s what I did'),
+                           ('PUNCTUATION', '.'))
 
     def testFor(self):
         self.assert_tokens('For every number x from 1 to 100,'
                            '\nI said x!'
                            '\nThat’s what I did.',
                            ('FOR', 'For every'),
-                           ('NUMBER_TYPE', 'number'),
-                           ('NAME', 'x'),
+                           ('NAME', 'number x'),
                            ('ITER', 'from'),
                            ('NUMBER', '1'),
                            ('ITER', 'to'),
@@ -833,7 +832,7 @@ class TestBranchingStatements(Base):
                            ('PRINT', 'I said'),
                            ('NAME', 'x'),
                            ('PUNCTUATION', '!'),
-                           ('FOR', 'That’s what I did'),
+                           ('END_LOOP', 'That’s what I did'),
                            ('PUNCTUATION', '.'))
 
     def testFor2(self):
@@ -844,20 +843,18 @@ class TestBranchingStatements(Base):
             '\nThat’s what I did.',
             ('VAR', 'Did you know that'),
             ('NAME', 'Berry Punch'),
-            ('VARIABLE_VALUE_ASSIGNMENT', 'likes'),
-            ('STRING_TYPE', 'the phrase'),
-            ('STRING', '“Cheerwine”'),
+            ('VAR', 'likes'),
+            ('STRING', 'the phrase “Cheerwine”'),
             ('PUNCTUATION', '?'),
             ('FOR', 'For every'),
-            ('CHAR_TYPE', 'character'),
-            ('NAME', 'c'),
-            ('IN', 'in'),
+            ('NAME', 'character c'),
+            ('FOR', 'in'),
             ('NAME', 'Berry Punch'),
             ('PUNCTUATION', '...'),
             ('PRINT', 'I said'),
             ('NAME', 'c'),
             ('PUNCTUATION', '.'),
-            ('FOR', 'That’s what I did'),
+            ('END_LOOP', 'That’s what I did'),
             ('PUNCTUATION', '.'))
 
 
