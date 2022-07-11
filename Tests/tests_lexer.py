@@ -1,6 +1,7 @@
 import unittest
-from lexer_second_attempt import Lexer
+from lexer import Lexer
 
+# TODO: Tests for indexes
 
 class Base(unittest.TestCase):
     def setUp(self):
