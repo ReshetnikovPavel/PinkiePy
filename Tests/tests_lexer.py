@@ -1,6 +1,7 @@
 import unittest
 from lexer import Lexer
 
+
 # TODO: Tests for indexes
 
 class Base(unittest.TestCase):
@@ -81,15 +82,18 @@ class TestComments(Base):
             ('PUNCTUATION', '!'),
             ('COMMENT', '(replace “something” with the actual variable)'))
 
+    # For some reason in documentation for the language
+    # comma is not considered as punctuation, but on wiki it is
+    # so i decided to stick with wiki version
     def testBlock_InsideCode(self):
         self.assert_tokens(
             'Dear Princess Celestia( and Princess Luna and Princess Cadence): '
-            'Hey, Celly!',
+            'Hey Celly!',
             ('REPORT', 'Dear'),
             ('NAME', 'Princess Celestia'),
             ('COMMENT', '( and Princess Luna and Princess Cadence)'),
             ('PUNCTUATION', ':'),
-            ('NAME', 'Hey, Celly'),
+            ('NAME', 'Hey Celly'),
             ('PUNCTUATION', '!'))
 
 
@@ -145,7 +149,7 @@ class TestMethods(Base):
         self.assert_tokens('I learned how to do math with a number.',
                            ('PARAGRAPH', 'I learned'),
                            ('NAME', 'how to do math'),
-                           ('RETURNED_VARIABLE_TYPE_DEFINITION', 'with'),
+                           ('RETURNED_VARIABLE_TYPE', 'with'),
                            ('NAME', 'a number'),
                            ('PUNCTUATION', '.'))
 
@@ -155,7 +159,7 @@ class TestMethods(Base):
             'using the numbers X.',
             ('PARAGRAPH', 'I learned'),
             ('NAME', 'how to take the sum of a set of numbers'),
-            ('RETURNED_VARIABLE_TYPE_DEFINITION', 'with'),
+            ('RETURNED_VARIABLE_TYPE', 'with'),
             ('NAME', 'a number'),
             ('LISTING_PARAGRAPH_PARAMETERS', 'using'),
             ('NAME', 'the numbers X'),
@@ -511,14 +515,14 @@ class TestOperators(Base):
     def testVariableModifier(self):
         self.assert_tokens('Spike’s age is now 11!',
                            ('NAME', 'Spike’s age'),
-                           ('VARIABLE_VALUE_ASSIGNMENT', 'is now'),
+                           ('ASSIGN', 'is now'),
                            ('NUMBER', '11'),
                            ('PUNCTUATION', '!'))
 
     def testVariableModifier2(self):
         self.assert_tokens('Applejack now likes 99.',
                            ('NAME', 'Applejack'),
-                           ('VARIABLE_VALUE_ASSIGNMENT', 'now likes'),
+                           ('ASSIGN', 'now likes'),
                            ('NUMBER', '99'),
                            ('PUNCTUATION', '.'))
 
@@ -526,7 +530,7 @@ class TestOperators(Base):
         self.assert_tokens(
             'the number of books in Twilight’s library becomes 1000.',
             ('NAME', 'the number of books in Twilight’s library'),
-            ('VARIABLE_VALUE_ASSIGNMENT', 'becomes'),
+            ('ASSIGN', 'becomes'),
             ('NUMBER', '1000'),
             ('PUNCTUATION', '.'))
 
@@ -741,6 +745,7 @@ class TestOperators(Base):
             ('EQUAL', 'has'),
             ('NUMBER', '5'),
             ('COMMENT', '(apples)'),
+            ('PUNCTUATION', ','),
             ('PRINT', 'I said'),
             ('STRING', 'Keep going!'),
             ('PUNCTUATION', '.'))
@@ -830,6 +835,7 @@ class TestBranchingStatements(Base):
                            ('NUMBER', '1'),
                            ('ITER', 'to'),
                            ('NUMBER', '100'),
+                           ('PUNCTUATION', ','),
                            ('PRINT', 'I said'),
                            ('NAME', 'x'),
                            ('PUNCTUATION', '!'),
