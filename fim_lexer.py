@@ -478,7 +478,7 @@ class Lexer:
             Keywords.FOR, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bby\b',
-            Keywords.DIVISION, Block.END_PARTNER, Suffix.NONE),
+            Keywords.DIVISION, Block.END_PARTNER, Suffix.INFIX),
     ]
 
     def compile_reserved_words(self):

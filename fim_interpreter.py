@@ -1,5 +1,5 @@
-from lexer import Literals
-from lexer import Keywords
+from fim_lexer import Literals
+from fim_lexer import Keywords
 
 
 class NodeVisitor(object):
@@ -39,6 +39,12 @@ class Interpreter(NodeVisitor):
     def visit_Number(self, node):
         return node.value
 
+    def visit_String(self, node):
+        return node.value
+
+    def visit_Char(self, node):
+        return node.value
+
     def visit_Compound(self, node):
         for child in node.children:
             self.visit(child)
@@ -62,3 +68,10 @@ class Interpreter(NodeVisitor):
         else:
             return val
 
+    def visit_Print(self, node):
+        res = self.visit(node.expr)
+        # if res is float and can be int, convert it
+        if type(res) == float\
+                and int(res) == float(res):
+            res = int(res)
+        print(res)

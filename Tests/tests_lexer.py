@@ -1,5 +1,5 @@
 import unittest
-from lexer import Lexer
+from fim_lexer import Lexer
 
 
 # TODO: Tests for indexes
