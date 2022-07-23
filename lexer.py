@@ -25,6 +25,10 @@ class Token:
     def __str__(self):
         return f'{self.value} {self.name} {self.start} {self.end}'
 
+    @staticmethod
+    def default_token():
+        return Token(None, None, None, None, None, None)
+
 
 class Block(Enum):
     NONE = 0
@@ -115,6 +119,7 @@ def match_reserved_words(words, source):
 class Lexer:
     def __init__(self, source):
         self.source = source
+        self.tokens = None
         self.compile_reserved_words()
 
     punctuation_pattern = r'(?:(?:\.\.\.)|[!?‽…:,]|(?:(?!\d)\.(?!\d)))'
@@ -608,6 +613,8 @@ class Lexer:
                     Suffix.NONE,
                     stack[-1].end + 1,
                     len(self.source) - 1))
+
+        self.tokens = stack
         return stack
 
     def add_keyword_to_stack(self, stack, keyword):
@@ -654,3 +661,8 @@ class Lexer:
                     literal.end + name_regex_info.start)
                 start_index = literal.end + 1
                 yield previous
+
+    def get_next_token(self):
+        if len(self.tokens) == 0:
+            return Token.default_token()
+        return self.tokens.pop(0)
