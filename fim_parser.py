@@ -21,6 +21,88 @@ class Parser:
         else:
             self.error()
 
+    def class_statement(self):
+        self.eat(Keywords.REPORT, token_block=Block.BEGIN)
+        superclass_token = self.current_token
+        self.eat('NAME')
+
+        implementations = []
+        while self.current_token.name == Keywords.AND:
+            self.eat(Keywords.AND)
+            implementations.append(self.current_token)
+            self.eat('NAME')
+        self.eat(Keywords.PUNCTUATION)
+
+        class_token = self.current_token
+        self.eat('NAME')
+
+        self.eat(Keywords.PUNCTUATION)
+        body = self.statement_list()
+
+        self.eat(Keywords.REPORT, token_block=Block.END)
+        self.eat(Keywords.PUNCTUATION)
+        programmer_token = self.current_token
+        self.eat('NAME')
+
+        return fim_ast.Class(
+            class_token, superclass_token, implementations, body, programmer_token)
+
+    def method_statement(self):
+        self.eat(Keywords.PARAGRAPH, token_block=Block.BEGIN)
+        name = self.current_token
+        self.eat('NAME')
+
+        return_type = None
+        if self.current_token.name == Keywords.RETURNED_VARIABLE_TYPE:
+            self.eat(Keywords.RETURNED_VARIABLE_TYPE)
+            return_type = self.current_token
+            self.eat('NAME')
+
+        parameters = []
+        if self.current_token.name == Keywords.LISTING_PARAGRAPH_PARAMETERS:
+            self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
+            while self.current_token.name == Keywords.AND:
+                self.eat(Keywords.AND)
+                parameters.append(self.current_token)
+                self.eat('NAME')
+        self.eat(Keywords.PUNCTUATION)
+
+        body = self.statement_list()
+
+        self.eat(Keywords.PARAGRAPH, token_block=Block.END)
+        name_in_ending = self.current_token
+        if name.value != name_in_ending.value:
+            self.error()
+        self.eat('NAME')
+
+        return fim_ast.Method(name, return_type, parameters, body)
+
+    def return_statement(self):
+        self.eat(Keywords.RETURN)
+        node = fim_ast.Return(self.expr())
+        return node
+
+    def run_statement(self):
+        self.eat(Keywords.RUN)
+        node = self.expr()
+        return node
+
+    def method_call_expr(self):
+        token = self.current_token
+        self.eat('NAME')
+
+        parameters = []
+        if self.current_token.name == Keywords.LISTING_PARAGRAPH_PARAMETERS:
+            self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
+            while self.current_token.name == Keywords.AND:
+                self.eat(Keywords.AND)
+                parameters.append(self.current_token.value)
+                self.eat('NAME')
+            self.eat('NAME')
+
+        node = fim_ast.MethodCall(token, parameters)
+        return node
+
     def compound_statement(self):
         # compound_name = self.current_token.name
         # self.eat(compound_name, token_block=Block.BEGIN)
@@ -73,6 +155,16 @@ class Parser:
         node = fim_ast.Print(self.expr())
         return node
 
+    def read_statement(self):
+        self.eat(Keywords.READ)
+        node = fim_ast.Read(self.variable())
+        return node
+
+    def prompt_statement(self):
+        read_node = self.read_statement()
+        node = fim_ast.Prompt(read_node, self.expr())
+        return node
+
     def variable(self):
         node = fim_ast.Var(self.current_token)
         self.eat('NAME')
@@ -94,6 +186,15 @@ class Parser:
         elif token.name == Literals.CHAR:
             self.eat(Literals.CHAR)
             return fim_ast.Char(token)
+        elif token.name == Literals.TRUE:
+            self.eat(Literals.TRUE)
+            return fim_ast.Bool(token)
+        elif token.name == Literals.FALSE:
+            self.eat(Literals.FALSE)
+            return fim_ast.Bool(token)
+        elif token.name == Literals.NULL:
+            self.eat(Literals.NULL)
+            return fim_ast.Null(token)
         else:
             node = self.variable()
             return node
@@ -138,7 +239,6 @@ class Parser:
                 if token.name == Keywords.ADDITION:
                     self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
                 elif token.name == Keywords.AND:
-                    self.current_token.name = Keywords.ADDITION
                     self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
                 elif token.name == Keywords.SUBTRACTION:
                     self.eat(Keywords.SUBTRACTION, token_suffix=Suffix.INFIX)

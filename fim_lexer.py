@@ -665,4 +665,7 @@ class Lexer:
     def get_next_token(self):
         if len(self.tokens) == 0:
             return Token.default_token()
-        return self.tokens.pop(0)
+        token = self.tokens.pop(0)
+        while token.name == Keywords.COMMENT:
+            token = self.tokens.pop(0)
+        return token
