@@ -16,15 +16,19 @@ def interpret(program):
 
 class Base(unittest.TestCase):
     def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def assert_printed(self, program, expected):
         self.old_stdout = sys.stdout  # Memorize the default stdout stream
         sys.stdout = self.buffer = io.StringIO()
 
-    def tearDown(self):
-        sys.stdout = self.old_stdout
-
-    def assert_printed(self, program, expected):
         interpret(program)
         self.assertEqual(self.buffer.getvalue(), expected)
+
+        sys.stdout = self.old_stdout
 
 
 class TestOperators(Base):
@@ -63,6 +67,12 @@ class TestOperators(Base):
 
     def testOutput4(self):
         self.assert_printed('I said “Hello”! I said “World”.', 'Hello\nWorld\n')
+
+    def testXor(self):
+        self.assert_printed('I said either false or false.', 'False\n')
+        self.assert_printed('I said either false or true.', 'True\n')
+        self.assert_printed('I said either true or false.', 'True\n')
+        self.assert_printed('I said either true or true.', 'False\n')
 
 
 if __name__ == '__main__':

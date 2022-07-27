@@ -44,7 +44,7 @@ class UnaryOp(AST):
 class Number(AST):
     def __init__(self, token):
         self.token = token
-        self.value = float(token.value)
+        self.value = token.value
 
 
 class Char(AST):
@@ -126,3 +126,9 @@ class Prompt(AST):
         self.read_node = read_node
         self.expr = expr
 
+
+class VariableDeclaration(AST):
+    def __init__(self, left, op, right):
+        self.left = left
+        self.token = self.op = op
+        self.right = right

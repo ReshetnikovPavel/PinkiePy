@@ -14,9 +14,11 @@ class Parser:
         raise Exception('Invalid syntax')
 
     def eat(self, token_name, token_block=None, token_suffix=None):
-        if self.current_token.name == token_name\
-                and ((token_block is None) or (token_block == self.current_token.block))\
-                and ((token_suffix is None) or (token_suffix == self.current_token.suffix)):
+        if self.current_token.name == token_name \
+                and ((token_block is None) or (
+                token_block == self.current_token.block)) \
+                and ((token_suffix is None) or (
+                token_suffix == self.current_token.suffix)):
             self.current_token = self.lexer.get_next_token()
         else:
             self.error()
@@ -45,7 +47,8 @@ class Parser:
         self.eat('NAME')
 
         return fim_ast.Class(
-            class_token, superclass_token, implementations, body, programmer_token)
+            class_token, superclass_token, implementations, body,
+            programmer_token)
 
     def method_statement(self):
         self.eat(Keywords.PARAGRAPH, token_block=Block.BEGIN)
@@ -130,24 +133,24 @@ class Parser:
         return results
 
     def statement(self):
-        #if self.current_token.block == Block.BEGIN:
+        # if self.current_token.block == Block.BEGIN:
         #    node = self.compound_statement()
-        #el
+        # el
         if self.current_token.name == Keywords.VAR:
-            node = self.assignment_statement()
+            node = self.variable_declaration_statement()
         elif self.current_token.name == Keywords.PRINT:
             node = self.print_statement()
         else:
             node = self.empty()
         return node
 
-    def assignment_statement(self):
+    def variable_declaration_statement(self):
         self.eat(Keywords.VAR, token_suffix=Suffix.PREFIX)
         left = self.variable()
         token = self.current_token
         self.eat(Keywords.VAR, token_suffix=Suffix.INFIX)
         right = self.expr()
-        node = fim_ast.Assign(left, token, right)
+        node = fim_ast.VariableDeclaration(left, token, right)
         return node
 
     def print_statement(self):
@@ -175,7 +178,164 @@ class Parser:
         """An empty production"""
         return fim_ast.NoOp()
 
+    def expr(self):
+        return self.assignment()
+
+    def assignment(self):
+        token = self.current_token
+        if token.name == Keywords.ASSIGN:
+            left = self.variable()
+            token = self.current_token
+            self.eat(Keywords.ASSIGN)
+            right = self.assignment()
+            return fim_ast.Assign(left, token, right)
+        else:
+            return self.logic()
+
+    def logic(self):
+        return self.logic_xor()
+
+    def logic_xor(self):
+        if self.current_token.name in (Keywords.XOR,)\
+                and self.current_token.suffix == Suffix.PREFIX:
+            token = self.current_token
+            self.eat(token.name, token_suffix=Suffix.PREFIX)
+            left = self.logic_or()
+            self.eat(token.name, token_suffix=Suffix.INFIX)
+            right = self.logic_or()
+            node = fim_ast.BinOp(op=token, left=left, right=right)
+            return node
+        else:
+            return self.logic_or()
+
+    def logic_or(self):
+        left = self.logic_and()
+        while self.current_token.name in (Keywords.OR,) \
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
+            op = self.current_token
+            if op.name == Keywords.OR:
+                self.eat(Keywords.EQUAL, token_suffix=Suffix.INFIX)
+
+            right = self.logic_and()
+            left = fim_ast.BinOp(left, op, right)
+
+        return left
+
+    def logic_and(self):
+        left = self.equality()
+        while self.current_token.name in (Keywords.AND,) \
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
+            op = self.current_token
+            if op.name == Keywords.AND:
+                self.eat(Keywords.EQUAL, token_suffix=Suffix.INFIX)
+
+            right = self.equality()
+            left = fim_ast.BinOp(left, op, right)
+
+        return left
+
+    def equality(self):
+        left = self.comparison()
+
+        while self.current_token.name in (Keywords.EQUAL, Keywords.NOT_EQUAL)\
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
+            op = self.current_token
+            if op.name == Keywords.EQUAL:
+                self.eat(Keywords.EQUAL, token_suffix=Suffix.INFIX)
+            elif op.name == Keywords.NOT_EQUAL:
+                self.eat(Keywords.NOT_EQUAL, token_suffix=Suffix.INFIX)
+
+            right = self.comparison()
+            left = fim_ast.BinOp(left, op, right)
+
+        return left
+
+    def comparison(self):
+        node = self.term()
+        while self.current_token.name in \
+                (Keywords.GREATER_THAN,
+                 Keywords.GREATER_THAN_OR_EQUAL,
+                 Keywords.LESS_THAN_OR_EQUAL,
+                 Keywords.LESS_THAN) \
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
+            token = self.current_token
+            if token.name == Keywords.GREATER_THAN:
+                self.eat(Keywords.GREATER_THAN, token_suffix=Suffix.INFIX)
+            elif token.name == Keywords.GREATER_THAN_OR_EQUAL:
+                self.eat(Keywords.GREATER_THAN_OR_EQUAL, token_suffix=Suffix.INFIX)
+            elif token.name == Keywords.LESS_THAN_OR_EQUAL:
+                self.eat(Keywords.LESS_THAN_OR_EQUAL, token_suffix=Suffix.INFIX)
+            elif token.name == Keywords.LESS_THAN:
+                self.eat(Keywords.LESS_THAN, token_suffix=Suffix.INFIX)
+            node = fim_ast.BinOp(left=node, op=token, right=self.term())
+        return node
+
+    def term(self):
+        if self.current_token.name in (Keywords.ADDITION, Keywords.SUBTRACTION) \
+                and self.current_token.suffix == Suffix.PREFIX:
+            token = self.current_token
+            self.eat(token.name, token_suffix=Suffix.PREFIX)
+            left = self.term()
+            self.eat(token.name, token_suffix=Suffix.INFIX)
+            right = self.term()
+            node = fim_ast.BinOp(op=token, left=left, right=right)
+            return node
+        else:
+            node = self.factor()
+            while self.current_token.name in (
+            Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND) \
+                    and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
+                token = self.current_token
+                if token.name == Keywords.ADDITION:
+                    self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
+                elif token.name == Keywords.AND:
+                    #   TODO: while typechecking should become ADDITION
+                    self.eat(Keywords.AND, token_suffix=Suffix.INFIX)
+                elif token.name == Keywords.SUBTRACTION:
+                    self.eat(Keywords.SUBTRACTION, token_suffix=Suffix.INFIX)
+                node = fim_ast.BinOp(left=node, op=token, right=self.factor())
+            return node
+
     def factor(self):
+        if self.current_token.name in (
+        Keywords.MULTIPLICATION, Keywords.DIVISION) \
+                and self.current_token.suffix == Suffix.PREFIX:
+            token = self.current_token
+            self.eat(token.name, token_suffix=Suffix.PREFIX,
+                     token_block=Block.BEGIN_PARTNER)
+            left = self.factor()
+            self.eat(token.name, token_suffix=Suffix.INFIX,
+                     token_block=Block.END_PARTNER)
+            right = self.factor()
+            node = fim_ast.BinOp(op=token, left=left, right=right)
+            return node
+        else:
+            node = self.unary()
+            while self.current_token.name in (
+            Keywords.MULTIPLICATION, Keywords.DIVISION) \
+                    and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
+                token = self.current_token
+                if token.name == Keywords.MULTIPLICATION:
+                    self.eat(Keywords.MULTIPLICATION)
+                elif token.name == Keywords.DIVISION:
+                    self.eat(Keywords.DIVISION)
+                node = fim_ast.BinOp(left=node, op=token, right=self.unary())
+            return node
+
+    def unary(self):
+        token = self.current_token
+        if token.name == Keywords.NOT:
+            self.eat(Keywords.NOT)
+            return fim_ast.UnaryOp(token, self.unary())
+        else:
+            node = self.primary()
+            return node
+
+    def primary(self):
         token = self.current_token
         if token.name == Literals.NUMBER:
             self.eat(Literals.NUMBER)
@@ -197,52 +357,6 @@ class Parser:
             return fim_ast.Null(token)
         else:
             node = self.variable()
-            return node
-
-    def term(self):
-        if self.current_token.name in (Keywords.MULTIPLICATION, Keywords.DIVISION)\
-                and self.current_token.suffix == Suffix.PREFIX:
-            token = self.current_token
-            self.eat(token.name, token_suffix=Suffix.PREFIX, token_block=Block.BEGIN_PARTNER)
-            left = self.term()
-            self.eat(token.name, token_suffix=Suffix.INFIX, token_block=Block.END_PARTNER)
-            right = self.term()
-            node = fim_ast.BinOp(op=token, left=left, right=right)
-            return node
-        else:
-            node = self.factor()
-            while self.current_token.name in (Keywords.MULTIPLICATION, Keywords.DIVISION)\
-                    and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
-                token = self.current_token
-                if token.name == Keywords.MULTIPLICATION:
-                    self.eat(Keywords.MULTIPLICATION)
-                elif token.name == Keywords.DIVISION:
-                    self.eat(Keywords.DIVISION)
-                node = fim_ast.BinOp(left=node, op=token, right=self.factor())
-            return node
-
-    def expr(self):
-        if self.current_token.name in (Keywords.ADDITION, Keywords.SUBTRACTION)\
-                and self.current_token.suffix == Suffix.PREFIX:
-            token = self.current_token
-            self.eat(token.name, token_suffix=Suffix.PREFIX)
-            left = self.term()
-            self.eat(token.name, token_suffix=Suffix.INFIX)
-            right = self.term()
-            node = fim_ast.BinOp(op=token, left=left, right=right)
-            return node
-        else:
-            node = self.term()
-            while self.current_token.name in (Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND)\
-                    and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
-                token = self.current_token
-                if token.name == Keywords.ADDITION:
-                    self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
-                elif token.name == Keywords.AND:
-                    self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
-                elif token.name == Keywords.SUBTRACTION:
-                    self.eat(Keywords.SUBTRACTION, token_suffix=Suffix.INFIX)
-                node = fim_ast.BinOp(left=node, op=token, right=self.term())
             return node
 
     def parse(self):

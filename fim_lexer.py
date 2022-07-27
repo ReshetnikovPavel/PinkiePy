@@ -465,6 +465,9 @@ class Lexer:
             r'\bor\b',
             Keywords.OR, Block.NONE, Suffix.INFIX),
         ReservedWord(
+            r'\bor\b',
+            Keywords.XOR, Block.END_PARTNER, Suffix.INFIX),
+        ReservedWord(
             r'\bis\b',
             Keywords.VAR, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
