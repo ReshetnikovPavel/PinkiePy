@@ -172,6 +172,9 @@ class Lexer:
             r"(P\.)+S\..*\n?",
             Keywords.COMMENT, Block.NONE, Suffix.NONE),
         ReservedWord(
+            r'\n',
+            Keywords.COMMENT, Block.NONE, Suffix.NONE),
+        ReservedWord(
             punctuation_pattern,
             Keywords.PUNCTUATION, Block.NONE, Suffix.NONE),
         ReservedWord(
@@ -669,7 +672,7 @@ class Lexer:
         if len(self.tokens) == 0:
             return Token.default_token()
         token = self.tokens.pop(0)
-        while token.name == Keywords.COMMENT:
+        while len(self.tokens) > 0 and token.name == Keywords.COMMENT:
             token = self.tokens.pop(0)
         return token
 

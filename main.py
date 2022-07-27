@@ -3,7 +3,11 @@ from fim_parser import Parser
 from fim_interpreter import Interpreter
 
 lexer = Lexer("""
-I said add 2 and 3
+Did you know that a is "before"?
+I said a.
+a is now "after".
+I said a.
+
 """)
 lexer.lex()
 parser = Parser(lexer)
