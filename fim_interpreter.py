@@ -102,6 +102,20 @@ class Interpreter(NodeVisitor):
         else:
             return val
 
+    def visit_Increment(self, node):
+        var_name = node.token.value
+        if var_name in self.GLOBAL_SCOPE:
+            self.GLOBAL_SCOPE[var_name] += 1
+        else:
+            raise NameError(repr(var_name))
+
+    def visit_Decrement(self, node):
+        var_name = node.token.value
+        if var_name in self.GLOBAL_SCOPE:
+            self.GLOBAL_SCOPE[var_name] -= 1
+        else:
+            raise NameError(repr(var_name))
+
     def visit_Print(self, node):
         res = self.visit(node.expr)
         # if res is float and can be int, convert it
@@ -109,3 +123,4 @@ class Interpreter(NodeVisitor):
                 and int(res) == float(res):
             res = int(res)
         print(res)
+

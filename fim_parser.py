@@ -133,16 +133,30 @@ class Parser:
         return results
 
     def statement(self):
-        # if self.current_token.block == Block.BEGIN:
-        #    node = self.compound_statement()
-        # el
         if self.current_token.name == Keywords.VAR:
             node = self.variable_declaration_statement()
         elif self.current_token.name == Keywords.PRINT:
             node = self.print_statement()
+        elif self.current_token.name == Keywords.INCREMENT:
+            node = self.increment_statement()
+        elif self.current_token.name == Keywords.DECREMENT:
+            node = self.decrement_statement()
+        elif self.current_token.name == 'NAME':
+            node = self.postfix_statement()
         else:
             node = self.empty()
         return node
+
+    def postfix_statement(self):
+        variable = self.variable()
+        if self.current_token.suffix == Suffix.POSTFIX:
+            if self.current_token.name == Keywords.INCREMENT:
+                self.eat(Keywords.INCREMENT, token_suffix=Suffix.POSTFIX)
+                return fim_ast.Increment(variable)
+            elif self.current_token.name == Keywords.DECREMENT:
+                self.eat(Keywords.DECREMENT, token_suffix=Suffix.POSTFIX)
+                return fim_ast.Decrement(variable)
+        return variable
 
     def variable_declaration_statement(self):
         self.eat(Keywords.VAR, token_suffix=Suffix.PREFIX)
@@ -166,6 +180,16 @@ class Parser:
     def prompt_statement(self):
         read_node = self.read_statement()
         node = fim_ast.Prompt(read_node, self.expr())
+        return node
+
+    def increment_statement(self):
+        self.eat(Keywords.INCREMENT, token_suffix=Suffix.PREFIX)
+        node = fim_ast.Increment(self.variable())
+        return node
+
+    def decrement_statement(self):
+        self.eat(Keywords.DECREMENT, token_suffix=Suffix.PREFIX)
+        node = fim_ast.Decrement(self.variable())
         return node
 
     def variable(self):

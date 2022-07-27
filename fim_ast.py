@@ -132,3 +132,13 @@ class VariableDeclaration(AST):
         self.left = left
         self.token = self.op = op
         self.right = right
+
+
+class Increment(AST):
+    def __init__(self, token):
+        self.token = token
+
+
+class Decrement:
+    def __init__(self, token):
+        self.token = token

@@ -3,7 +3,7 @@ from fim_parser import Parser
 from fim_interpreter import Interpreter
 
 lexer = Lexer("""
-I said either false or false.
+2 plus 2
 """)
 lexer.lex()
 parser = Parser(lexer)
