@@ -141,22 +141,29 @@ class Parser:
             node = self.increment_statement()
         elif self.current_token.name == Keywords.DECREMENT:
             node = self.decrement_statement()
-        elif self.current_token.name == 'NAME':
+        elif self.current_token.name == 'NAME'\
+                and self.lexer.peek().name == Keywords.ASSIGN:
+            node = self.assignment()
+        elif self.current_token.name == 'NAME'\
+                and self.lexer.peek().suffix == Suffix.POSTFIX:
             node = self.postfix_statement()
         else:
             node = self.empty()
         return node
 
     def postfix_statement(self):
-        variable = self.variable()
-        if self.current_token.suffix == Suffix.POSTFIX:
-            if self.current_token.name == Keywords.INCREMENT:
+        if self.lexer.peek().suffix == Suffix.POSTFIX:
+            if self.lexer.peek().name == Keywords.INCREMENT:
+                variable = self.current_token
+                self.variable()
                 self.eat(Keywords.INCREMENT, token_suffix=Suffix.POSTFIX)
                 return fim_ast.Increment(variable)
-            elif self.current_token.name == Keywords.DECREMENT:
+            elif self.lexer.peek().name == Keywords.DECREMENT:
+                variable = self.current_token
+                self.variable()
                 self.eat(Keywords.DECREMENT, token_suffix=Suffix.POSTFIX)
                 return fim_ast.Decrement(variable)
-        return variable
+        self.error()
 
     def variable_declaration_statement(self):
         self.eat(Keywords.VAR, token_suffix=Suffix.PREFIX)
@@ -206,8 +213,7 @@ class Parser:
         return self.assignment()
 
     def assignment(self):
-        token = self.current_token
-        if token.name == Keywords.ASSIGN:
+        if self.lexer.peek().name == Keywords.ASSIGN:
             left = self.variable()
             token = self.current_token
             self.eat(Keywords.ASSIGN)

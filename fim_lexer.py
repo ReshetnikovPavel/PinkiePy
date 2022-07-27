@@ -672,3 +672,8 @@ class Lexer:
         while token.name == Keywords.COMMENT:
             token = self.tokens.pop(0)
         return token
+
+    def peek(self):
+        if len(self.tokens) == 0:
+            return Token.default_token()
+        return self.tokens[0]
