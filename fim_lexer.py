@@ -59,6 +59,7 @@ class Literals(Enum):
 
 
 class Keywords(Enum):
+    THEN = 42
     COMMENT = 0
     PUNCTUATION = 1
     DO_WHILE = 2
@@ -170,9 +171,6 @@ class Lexer:
             Keywords.COMMENT, Block.NONE, Suffix.NONE),
         ReservedWord(
             r"(P\.)+S\..*\n?",
-            Keywords.COMMENT, Block.NONE, Suffix.NONE),
-        ReservedWord(
-            r'\n',
             Keywords.COMMENT, Block.NONE, Suffix.NONE),
         ReservedWord(
             punctuation_pattern,
@@ -300,7 +298,7 @@ class Lexer:
             Keywords.ADDITION, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bOr else\b',
-            Keywords.ELSE, Block.BEGIN, Suffix.NONE),
+            Keywords.ELSE, Block.END, Suffix.NONE),
         ReservedWord(
             r'\bI wrote\b',
             Keywords.PRINT, Block.NONE, Suffix.PREFIX),
@@ -405,10 +403,10 @@ class Lexer:
             Keywords.ADDITION, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bWhen\b',
-            Keywords.IF, Block.BEGIN_PARTNER, Suffix.PREFIX),
+            Keywords.IF, Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
             r'\bthen\b',
-            Keywords.IF, Block.END_PARTNER, Suffix.POSTFIX),
+            Keywords.THEN, Block.NONE, Suffix.NONE),
         ReservedWord(
             r'\bDear\b', 'REPORT', Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
@@ -460,7 +458,7 @@ class Lexer:
             Keywords.EQUAL, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bIf\b',
-            Keywords.IF, Block.BEGIN_PARTNER, Suffix.PREFIX),
+            Keywords.IF, Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
             r'\bto\b',
             Keywords.ITER, Block.END_PARTNER, Suffix.INFIX),
@@ -621,6 +619,7 @@ class Lexer:
                     len(self.source) - 1))
 
         self.tokens = stack
+        stack.append(Token('EOF', 'EOF', Block.NONE, Suffix.NONE, len(self.source), len(self.source)))
         return stack
 
     def add_keyword_to_stack(self, stack, keyword):
@@ -637,7 +636,9 @@ class Lexer:
     def handle_literals(self, name_regex_info):
         literals = match_reserved_words(self.literals, name_regex_info.value)
         if len(literals) == 0:
-            yield name_regex_info
+            name_pattern = name_regex_info.value.strip()
+            if name_pattern != '':
+                yield name_regex_info
             return
         start_index = 0
         previous = None

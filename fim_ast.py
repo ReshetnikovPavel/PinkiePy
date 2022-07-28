@@ -139,6 +139,13 @@ class Increment(AST):
         self.token = token
 
 
-class Decrement:
+class Decrement(AST):
     def __init__(self, token):
         self.token = token
+
+
+class If(AST):
+    def __init__(self, condition, then_branch, else_branch):
+        self.condition = condition
+        self.then_branch = then_branch
+        self.else_branch = else_branch

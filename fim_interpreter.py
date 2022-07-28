@@ -1,5 +1,7 @@
 from fim_lexer import Literals
 from fim_lexer import Keywords
+from environment import Environment
+import operator
 
 
 class NodeVisitor(object):
@@ -12,10 +14,23 @@ class NodeVisitor(object):
         raise Exception('No visit_{} method'.format(type(node).__name__))
 
 
+def stringify(obj):
+    # if res is float and can be int, convert it to int
+    if type(obj) == float and int(obj) == float(obj):
+        return str(int(obj))
+    if obj is None:
+        return "nothing"
+    if obj is True:
+        return "true"
+    if obj is False:
+        return "false"
+    return str(obj)
+
+
 class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser
-        self.GLOBAL_SCOPE = {}
+        self.environment = Environment()
 
     def interpret(self):
         tree = self.parser.parse()
@@ -57,7 +72,7 @@ class Interpreter(NodeVisitor):
     def visit_UnaryOp(self, node):
         op = node.op.name
         if op == Keywords.NOT:
-            return not(self.visit(node.expr))
+            return not (self.visit(node.expr))
 
     def visit_Number(self, node):
         return float(node.value)
@@ -71,9 +86,26 @@ class Interpreter(NodeVisitor):
     def visit_Bool(self, node):
         return node.value
 
+    def visit_Null(self, node):
+        return node.value
+
     def visit_Compound(self, node):
-        for child in node.children:
-            self.visit(child)
+        self.execute_compound(node.children, Environment(self.environment))
+
+    def execute_compound(self, statements, environment):
+        previous_env = self.environment
+        try:
+            self.environment = environment
+            for statement in statements:
+                self.visit(statement)
+        finally:
+            self.environment = previous_env
+
+    def visit_If(self, node):
+        if self.visit(node.condition):
+            self.visit(node.then_branch)
+        elif node.else_branch is not None:
+            self.visit(node.else_branch)
 
     def visit_StatementList(self, node):
         for child in node.children:
@@ -84,43 +116,25 @@ class Interpreter(NodeVisitor):
 
     def visit_Assign(self, node):
         var_name = node.left.value
-        if var_name in self.GLOBAL_SCOPE:
-            self.GLOBAL_SCOPE[var_name] = self.visit(node.right)
+        self.environment.assign(var_name, self.visit(node.right))
 
     def visit_VariableDeclaration(self, node):
         var_name = node.left.value
-        if var_name in self.GLOBAL_SCOPE:
-            raise NameError(repr(var_name))
-        else:
-            self.GLOBAL_SCOPE[var_name] = self.visit(node.right)
+        self.environment.define(var_name, self.visit(node.right))
 
     def visit_Var(self, node):
         var_name = node.value
-        val = self.GLOBAL_SCOPE.get(var_name)
-        if val is None:
-            raise NameError(repr(var_name))
-        else:
-            return val
+        val = self.environment.get(var_name)
+        return val
 
     def visit_Increment(self, node):
         var_name = node.token.value
-        if var_name in self.GLOBAL_SCOPE:
-            self.GLOBAL_SCOPE[var_name] += 1
-        else:
-            raise NameError(repr(var_name))
+        self.environment.modify(var_name, operator.add, 1)
 
     def visit_Decrement(self, node):
         var_name = node.token.value
-        if var_name in self.GLOBAL_SCOPE:
-            self.GLOBAL_SCOPE[var_name] -= 1
-        else:
-            raise NameError(repr(var_name))
+        self.environment.modify(var_name, operator.sub, 1)
 
     def visit_Print(self, node):
         res = self.visit(node.expr)
-        # if res is float and can be int, convert it
-        if type(res) == float\
-                and int(res) == float(res):
-            res = int(res)
-        print(res)
-
+        print(stringify(res))

@@ -39,7 +39,7 @@ class Parser:
         self.eat('NAME')
 
         self.eat(Keywords.PUNCTUATION)
-        body = self.statement_list()
+        body = self.compound_statement()
 
         self.eat(Keywords.REPORT, token_block=Block.END)
         self.eat(Keywords.PUNCTUATION)
@@ -70,7 +70,7 @@ class Parser:
                 self.eat('NAME')
         self.eat(Keywords.PUNCTUATION)
 
-        body = self.statement_list()
+        body = self.compound_statement()
 
         self.eat(Keywords.PARAGRAPH, token_block=Block.END)
         name_in_ending = self.current_token
@@ -106,11 +106,8 @@ class Parser:
         node = fim_ast.MethodCall(token, parameters)
         return node
 
-    def compound_statement(self):
-        # compound_name = self.current_token.name
-        # self.eat(compound_name, token_block=Block.BEGIN)
-        nodes = self.statement_list()
-        # self.eat(compound_name, token_block=Block.END)
+    def compound_statement(self, end_token_names=None):
+        nodes = self.statement_list(end_token_names=end_token_names)
 
         root = fim_ast.Compound()
         for node in nodes:
@@ -118,12 +115,15 @@ class Parser:
 
         return root
 
-    def statement_list(self):
+    def statement_list(self, end_token_names=None):
         node = self.statement()
 
         results = [node]
 
-        while self.current_token.name == Keywords.PUNCTUATION:
+        while self.current_token.name != 'EOF' \
+                and (end_token_names is None
+                     or self.current_token.name not in end_token_names
+                     and self.current_token.block != Block.END):
             self.eat(Keywords.PUNCTUATION)
             results.append(self.statement())
 
@@ -141,15 +141,42 @@ class Parser:
             node = self.increment_statement()
         elif self.current_token.name == Keywords.DECREMENT:
             node = self.decrement_statement()
-        elif self.current_token.name == 'NAME'\
+        elif self.current_token.name == 'NAME' \
                 and self.lexer.peek().name == Keywords.ASSIGN:
             node = self.assignment()
-        elif self.current_token.name == 'NAME'\
+        elif self.current_token.name == 'NAME' \
                 and self.lexer.peek().suffix == Suffix.POSTFIX:
             node = self.postfix_statement()
+        elif self.current_token.name == Keywords.IF \
+                and self.current_token.block == Block.BEGIN:
+            node = self.if_statement()
         else:
             node = self.empty()
         return node
+
+    def if_statement(self):
+        self.eat(Keywords.IF)
+        condition = self.expr()
+        if self.current_token.name == Keywords.THEN:
+            self.eat(Keywords.THEN)
+            self.eat(Keywords.PUNCTUATION)
+        elif self.current_token.name == Keywords.PUNCTUATION:
+            self.eat(Keywords.PUNCTUATION)
+        else:
+            self.error()
+
+        then_branch = self.compound_statement(end_token_names=(
+            Keywords.IF, Keywords.ELSE))
+        else_branch = None
+        if self.current_token.name == Keywords.ELSE:
+            self.eat(Keywords.ELSE)
+            self.eat(Keywords.PUNCTUATION)
+            else_branch = self.compound_statement(
+                end_token_names=(Keywords.IF,))
+
+        self.eat(Keywords.IF, token_block=Block.END)
+
+        return fim_ast.If(condition, then_branch, else_branch)
 
     def postfix_statement(self):
         if self.lexer.peek().suffix == Suffix.POSTFIX:
@@ -226,7 +253,7 @@ class Parser:
         return self.logic_xor()
 
     def logic_xor(self):
-        if self.current_token.name in (Keywords.XOR,)\
+        if self.current_token.name in (Keywords.XOR,) \
                 and self.current_token.suffix == Suffix.PREFIX:
             token = self.current_token
             self.eat(token.name, token_suffix=Suffix.PREFIX)
@@ -245,7 +272,7 @@ class Parser:
                 and self.current_token.block == Block.NONE:
             op = self.current_token
             if op.name == Keywords.OR:
-                self.eat(Keywords.EQUAL, token_suffix=Suffix.INFIX)
+                self.eat(Keywords.OR, token_suffix=Suffix.INFIX)
 
             right = self.logic_and()
             left = fim_ast.BinOp(left, op, right)
@@ -269,7 +296,7 @@ class Parser:
     def equality(self):
         left = self.comparison()
 
-        while self.current_token.name in (Keywords.EQUAL, Keywords.NOT_EQUAL)\
+        while self.current_token.name in (Keywords.EQUAL, Keywords.NOT_EQUAL) \
                 and self.current_token.suffix == Suffix.INFIX \
                 and self.current_token.block == Block.NONE:
             op = self.current_token
@@ -296,7 +323,8 @@ class Parser:
             if token.name == Keywords.GREATER_THAN:
                 self.eat(Keywords.GREATER_THAN, token_suffix=Suffix.INFIX)
             elif token.name == Keywords.GREATER_THAN_OR_EQUAL:
-                self.eat(Keywords.GREATER_THAN_OR_EQUAL, token_suffix=Suffix.INFIX)
+                self.eat(Keywords.GREATER_THAN_OR_EQUAL,
+                         token_suffix=Suffix.INFIX)
             elif token.name == Keywords.LESS_THAN_OR_EQUAL:
                 self.eat(Keywords.LESS_THAN_OR_EQUAL, token_suffix=Suffix.INFIX)
             elif token.name == Keywords.LESS_THAN:
@@ -317,7 +345,7 @@ class Parser:
         else:
             node = self.factor()
             while self.current_token.name in (
-            Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND) \
+                    Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND) \
                     and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
                 token = self.current_token
                 if token.name == Keywords.ADDITION:
@@ -332,7 +360,7 @@ class Parser:
 
     def factor(self):
         if self.current_token.name in (
-        Keywords.MULTIPLICATION, Keywords.DIVISION) \
+                Keywords.MULTIPLICATION, Keywords.DIVISION) \
                 and self.current_token.suffix == Suffix.PREFIX:
             token = self.current_token
             self.eat(token.name, token_suffix=Suffix.PREFIX,
@@ -346,7 +374,7 @@ class Parser:
         else:
             node = self.unary()
             while self.current_token.name in (
-            Keywords.MULTIPLICATION, Keywords.DIVISION) \
+                    Keywords.MULTIPLICATION, Keywords.DIVISION) \
                     and self.current_token.suffix == Suffix.INFIX and self.current_token.block == Block.NONE:
                 token = self.current_token
                 if token.name == Keywords.MULTIPLICATION:
