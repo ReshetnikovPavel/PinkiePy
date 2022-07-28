@@ -25,14 +25,14 @@ class Base(unittest.TestCase):
 
 def tokens_are(tokens, tuples):
     try:
-        for i in range(len(tokens)):
+        for i in range(len(tuples)):
             print(tuples[i][0] in str(tokens[i]), tuples[i][0], tokens[i])
             print(tuples[i][1] in str(tokens[i]), tuples[i][1], tokens[i])
             if not (tuples[i][0] in str(tokens[i]) and tuples[i][1] in str(
                     tokens[i])):
                 return False
         print(len(tokens), len(tuples))
-        return len(tokens) == len(tuples)
+        return 'EOF' in str(tokens[-1]) and len(tokens) == len(tuples) + 1
     except IndexError:
         return False
 
@@ -675,7 +675,7 @@ class TestOperators(Base):
             ('NAME', 'Spike’s crush on Rarity'),
             ('GREATER_THAN', 'is more than'),
             ('NAME', 'Scootaloo’s crush on Rainbow Dash'),
-            ('IF', 'then'),
+            ('THEN', 'then'),
             ('PUNCTUATION', ':'),
             ('PRINT', 'I said'),
             ('STRING', 'It’s Tuesday'),
@@ -689,7 +689,7 @@ class TestOperators(Base):
             ('NAME', 'Celestia’s greatness'),
             ('GREATER_THAN_OR_EQUAL', 'is no less than'),
             ('NAME', 'Luna’s greatness'),
-            ('IF', 'then'),
+            ('THEN', 'then'),
             ('PUNCTUATION', ':'),
             ('RUN', 'I would'),
             ('NAME', 'praise Luna some more'),
@@ -758,7 +758,7 @@ class TestBranchingStatements(Base):
                            ('NAME', 'Spike'),
                            ('EQUAL', 'was'),
                            ('NUMBER', '10'),
-                           ('IF', 'then'),
+                           ('THEN', 'then'),
                            ('PUNCTUATION', ':'))
 
     def testIf2(self):

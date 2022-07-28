@@ -149,3 +149,9 @@ class If(AST):
         self.condition = condition
         self.then_branch = then_branch
         self.else_branch = else_branch
+
+
+class While(AST):
+    def __init__(self, condition, body):
+        self.condition = condition
+        self.body = body

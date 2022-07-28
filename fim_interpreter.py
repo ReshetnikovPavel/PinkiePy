@@ -107,6 +107,10 @@ class Interpreter(NodeVisitor):
         elif node.else_branch is not None:
             self.visit(node.else_branch)
 
+    def visit_While(self, node):
+        while self.visit(node.condition):
+            self.visit(node.body)
+
     def visit_StatementList(self, node):
         for child in node.children:
             self.visit(child)

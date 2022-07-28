@@ -4,13 +4,11 @@ from fim_interpreter import Interpreter
 
 lexer = Lexer("""
 
-Did you know that a is "global"?
-I said a.
-If false:
-    a becomes "local"?
-    I said "a is " plus a.
-That’s what I would do.
-I said "a is " plus a.
+Did you know that a is true?
+While a is true,
+    I said a.
+    a is now false.
+That's what I did.
 """)
 lexer.lex()
 parser = Parser(lexer)
