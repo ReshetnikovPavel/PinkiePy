@@ -620,6 +620,7 @@ class Lexer:
 
         self.tokens = stack
         stack.append(Token('EOF', 'EOF', Block.NONE, Suffix.NONE, len(self.source), len(self.source)))
+        stack.append(Token('EOF', 'EOF', Block.NONE, Suffix.NONE, len(self.source), len(self.source)))
         return stack
 
     def add_keyword_to_stack(self, stack, keyword):

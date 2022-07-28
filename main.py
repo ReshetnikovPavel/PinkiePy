@@ -4,11 +4,11 @@ from fim_interpreter import Interpreter
 
 lexer = Lexer("""
 
-Did you know that a is true?
-While a is true,
-    I said a.
-    a is now false.
-That's what I did.
+Did you know that I could is wrong?
+Here’s what I did:
+I said "a lot of things".
+I did this as long as I could.
+
 """)
 lexer.lex()
 parser = Parser(lexer)

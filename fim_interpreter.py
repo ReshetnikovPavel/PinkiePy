@@ -111,6 +111,12 @@ class Interpreter(NodeVisitor):
         while self.visit(node.condition):
             self.visit(node.body)
 
+    def visit_DoWhile(self, node):
+        while True:
+            self.visit(node.body)
+            if not self.visit(node.condition):
+                break
+
     def visit_StatementList(self, node):
         for child in node.children:
             self.visit(child)

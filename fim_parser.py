@@ -153,6 +153,9 @@ class Parser:
         elif self.current_token.name == Keywords.WHILE \
                 and self.current_token.block == Block.BEGIN:
             node = self.while_statement()
+        elif self.current_token.name == Keywords.DO_WHILE \
+                and self.current_token.block == Block.BEGIN:
+            node = self.do_while_statement()
         else:
             node = self.empty()
         return node
@@ -189,6 +192,14 @@ class Parser:
         self.eat(Keywords.END_LOOP)
 
         return fim_ast.While(condition, body)
+
+    def do_while_statement(self):
+        self.eat(Keywords.DO_WHILE, token_block=Block.BEGIN)
+        body = self.compound_statement(end_token_names=(Keywords.DO_WHILE,))
+        self.eat(Keywords.DO_WHILE, token_block=Block.END)
+        condition = self.expr()
+
+        return fim_ast.DoWhile(condition, body)
 
     def postfix_statement(self):
         if self.lexer.peek().suffix == Suffix.POSTFIX:
