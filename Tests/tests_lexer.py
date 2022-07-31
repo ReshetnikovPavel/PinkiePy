@@ -6,11 +6,12 @@ from fim_lexer import Lexer
 
 class Base(unittest.TestCase):
     def setUp(self):
+        self.lexer = Lexer()
         pass
 
     def get_tokens(self, program):
-        lexer = Lexer(program)
-        return list(lexer.lex())
+        self.lexer.set_source(program)
+        return list(self.lexer.lex())
 
     def assert_no_tokens(self, program):
         tokens = self.get_tokens(program)
@@ -23,6 +24,29 @@ class Base(unittest.TestCase):
                         f"tokens are not right\n{list(tokens)}")
 
 
+class TestLexerInterfaceMethods(Base):
+    def testGetNextToken(self):
+        self.lexer.set_source('I said "a lot of things".')
+        self.lexer.lex()
+        tokens_len = len(self.lexer.tokens)
+        token = self.lexer.get_next_token()
+        print(token)
+        self.assertTrue(str(token.name) == 'PRINT' and token.value == 'I said')
+        self.assertTrue(len(self.lexer.tokens) == tokens_len - 1)
+        next_token = self.lexer.get_next_token()
+        self.assertTrue(str(next_token.name) == 'STRING'
+                        and next_token.value == '"a lot of things"')
+
+    def testPeek(self):
+        self.lexer.set_source('I said "a lot of things".')
+        self.lexer.lex()
+        tokens_len = len(self.lexer.tokens)
+        token = self.lexer.peek()
+        self.assertTrue(token == self.lexer.tokens[0])
+        self.assertTrue(str(token.name) == 'PRINT' and token.value == 'I said')
+        self.assertTrue(len(self.lexer.tokens) == tokens_len)
+
+
 def tokens_are(tokens, tuples):
     try:
         for i in range(len(tuples)):
@@ -31,7 +55,9 @@ def tokens_are(tokens, tuples):
             if not (tuples[i][0] in str(tokens[i]) and tuples[i][1] in str(
                     tokens[i])):
                 return False
-        print(len(tokens), len(tuples))
+        # print(len(tokens), len(tuples))
+        # print(tokens)
+        # print(tuples)
         return 'EOF' in str(tokens[-1]) and len(tokens) == len(tuples) + 1
     except IndexError:
         return False

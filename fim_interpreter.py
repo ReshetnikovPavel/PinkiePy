@@ -1,36 +1,16 @@
 from fim_lexer import Literals
 from fim_lexer import Keywords
 from environment import Environment
+import fim_callable
+from node_visitor import NodeVisitor
 import operator
-
-
-class NodeVisitor(object):
-    def visit(self, node):
-        method_name = 'visit_' + type(node).__name__
-        visitor = getattr(self, method_name, self.generic_visit)
-        return visitor(node)
-
-    def generic_visit(self, node):
-        raise Exception('No visit_{} method'.format(type(node).__name__))
-
-
-def stringify(obj):
-    # if res is float and can be int, convert it to int
-    if type(obj) == float and int(obj) == float(obj):
-        return str(int(obj))
-    if obj is None:
-        return "nothing"
-    if obj is True:
-        return "true"
-    if obj is False:
-        return "false"
-    return str(obj)
 
 
 class Interpreter(NodeVisitor):
     def __init__(self, parser):
         self.parser = parser
-        self.environment = Environment()
+        self.globals = Environment()
+        self.environment = self.globals
 
     def interpret(self):
         tree = self.parser.parse()
@@ -135,7 +115,31 @@ class Interpreter(NodeVisitor):
     def visit_Var(self, node):
         var_name = node.value
         val = self.environment.get(var_name)
+        if isinstance(val, fim_callable.FimCallable):
+            return val.call(self, [])
         return val
+
+    def visit_FunctionCall(self, node):
+        function_name = node.name.value
+        function = self.environment.get(function_name)
+
+        arguments = []
+        for argument in node.arguments:
+            arguments.append(self.visit(argument))
+
+        if len(arguments) != function.arity():
+            raise RuntimeError("Function '{}' expected {} arguments, got {}".format(function_name, function.arity(), len(arguments)))
+
+        if isinstance(function, fim_callable.FimCallable):
+            return function.call(self, arguments)
+        else:
+            raise RuntimeError("{} is not a function".format(function_name))
+
+    def visit_Return(self, node):
+        value = None
+        if node.value is not None:
+            value = self.visit(node.value)
+        raise fim_callable.FimReturn(value)
 
     def visit_Increment(self, node):
         var_name = node.token.value
@@ -148,3 +152,19 @@ class Interpreter(NodeVisitor):
     def visit_Print(self, node):
         res = self.visit(node.expr)
         print(stringify(res))
+
+    def visit_Function(self, node):
+        fim_function = fim_callable.FimFunction(node, self.environment)
+        self.environment.define(node.name, fim_function)
+
+def stringify(obj):
+    # if res is float and can be int, convert it to int
+    if type(obj) == float and int(obj) == float(obj):
+        return str(int(obj))
+    if obj is None:
+        return "nothing"
+    if obj is True:
+        return "true"
+    if obj is False:
+        return "false"
+    return str(obj)

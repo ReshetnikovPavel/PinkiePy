@@ -84,6 +84,7 @@ class String(AST):
                 and token.value[-1] in ['"', '”', '“']:
             self.value = token.value[1:-1]
 
+
 class NoOp(AST):
     pass
 
@@ -97,20 +98,21 @@ class Class(AST):
         self.programmer = programmer
 
 
-class Method(AST):
-    def __init__(self, name, return_type, arguments, body):
-        self.name = name
+class Function(AST):
+    def __init__(self, name, return_type, params, body, is_main):
+        self.name = name.value
         self.return_type = return_type
-        self.arguments = arguments
+        self.params = params
         self.body = body
+        self.is_main = is_main
 
 
 class Return(AST):
-    def __init__(self, expr):
-        self.expr = expr
+    def __init__(self, value):
+        self.value = value
 
 
-class MethodCall(AST):
+class FunctionCall(AST):
     def __init__(self, name, arguments):
         self.name = name
         self.arguments = arguments

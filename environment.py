@@ -1,5 +1,6 @@
 class Environment:
     def __init__(self, enclosing=None):
+        self.enclosing = None
         self._values = {}
         if enclosing is not None:
             self.enclosing = enclosing

@@ -4,10 +4,20 @@ from fim_interpreter import Interpreter
 
 lexer = Lexer("""
 
-Did you know that I could is wrong?
-Here’s what I did:
-I said "a lot of things".
-I did this as long as I could.
+
+I learned rec using x!
+    
+    x got one more.
+    If x is less than 90 then:
+        x is now rec using x!
+    That‘s what I would do.
+    Then you get x!
+
+
+That's all about rec.
+
+Did you know that Twilight is 0?
+    I said rec using Twilight.
 
 """)
 lexer.lex()
