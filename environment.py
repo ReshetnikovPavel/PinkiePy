@@ -19,6 +19,16 @@ class Environment:
 
         raise NameError('Undefined variable: %s' % name)
 
+    def get_at(self, distance, name):
+        return self.ancestor(distance)._values.get(name)
+
+    def ancestor(self, distance):
+        environment = self
+        for i in range(distance):
+            environment = environment.enclosing
+
+        return environment
+
     def assign(self, name, value):
         if name in self._values:
             self._values[name] = value
@@ -29,6 +39,9 @@ class Environment:
             return
 
         raise NameError('Undefined variable: %s' % name)
+
+    def assign_at(self, distance, name, value):
+        self.ancestor(distance)[name] = value
 
     def modify(self, name, relate, value):
         return self.assign(name, relate(self.get(name), value))
