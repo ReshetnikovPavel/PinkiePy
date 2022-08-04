@@ -124,7 +124,7 @@ class Parser:
                 self.eat(Keywords.AND)
                 parameters.append(self.variable())
 
-        node = fim_ast.FunctionCall(fim_ast.Var(token), parameters)
+        node = fim_ast.FunctionCall(token, parameters)
         return node
 
     def compound_statement(self, end_token_names=None):

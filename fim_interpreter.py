@@ -11,13 +11,10 @@ class Interpreter(NodeVisitor):
         self.parser = parser
         self.globals = Environment()
         self.environment = self.globals
-        self.locals = {}
 
-    def interpret(self, tree):
+    def interpret(self):
+        tree = self.parser.parse()
         return self.visit(tree)
-
-    def resolve(self, expression, depth):
-        self.locals[expression.value] = depth
 
     def visit_BinOp(self, node):
         if node.op.name == Keywords.ADDITION:
@@ -109,27 +106,15 @@ class Interpreter(NodeVisitor):
 
     def visit_Assign(self, node):
         var_name = node.left.value
-        value = self.visit(node.right)
-        distance = self.locals.get(node)
-        if distance is not None:
-            self.environment.assign_at(distance, var_name, value)
-        else:
-            self.globals.assign(var_name, value)
+        self.environment.assign(var_name, self.visit(node.right))
 
     def visit_VariableDeclaration(self, node):
         var_name = node.left.value
         self.environment.define(var_name, self.visit(node.right))
 
     def visit_Var(self, node):
-        return self.lookup_var(node.value, node.value)
-
-    def lookup_var(self, name, expression):
-        distance = self.locals.get(expression)
-        if distance is not None:
-            val = self.environment.get_at(distance, name)
-        else:
-            val = self.globals.get(name)
-
+        var_name = node.value
+        val = self.environment.get(var_name)
         if isinstance(val, fim_callable.FimCallable):
             return val.call(self, [])
         return val
