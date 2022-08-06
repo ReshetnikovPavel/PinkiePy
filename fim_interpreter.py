@@ -11,46 +11,49 @@ class Interpreter(NodeVisitor):
         self.parser = parser
         self.globals = Environment()
         self.environment = self.globals
+        self.locals = {}
 
-    def interpret(self):
-        tree = self.parser.parse()
+    def interpret(self, tree):
         return self.visit(tree)
 
+    def resolve(self, node, depth):
+        self.locals[node] = depth
+
     def visit_BinOp(self, node):
-        if node.op.name == Keywords.ADDITION:
+        if node.op.type == Keywords.ADDITION:
             return self.visit(node.left) + self.visit(node.right)
-        elif node.op.name == Keywords.SUBTRACTION:
+        elif node.op.type == Keywords.SUBTRACTION:
             return self.visit(node.left) - self.visit(node.right)
-        elif node.op.name == Keywords.MULTIPLICATION:
+        elif node.op.type == Keywords.MULTIPLICATION:
             return self.visit(node.left) * self.visit(node.right)
-        elif node.op.name == Keywords.DIVISION:
+        elif node.op.type == Keywords.DIVISION:
             return self.visit(node.left) / self.visit(node.right)
-        elif node.op.name == Keywords.GREATER_THAN:
+        elif node.op.type == Keywords.GREATER_THAN:
             return self.visit(node.left) > self.visit(node.right)
-        elif node.op.name == Keywords.LESS_THAN:
+        elif node.op.type == Keywords.LESS_THAN:
             return self.visit(node.left) < self.visit(node.right)
-        elif node.op.name == Keywords.GREATER_THAN_OR_EQUAL:
+        elif node.op.type == Keywords.GREATER_THAN_OR_EQUAL:
             return self.visit(node.left) >= self.visit(node.right)
-        elif node.op.name == Keywords.LESS_THAN_OR_EQUAL:
+        elif node.op.type == Keywords.LESS_THAN_OR_EQUAL:
             return self.visit(node.left) <= self.visit(node.right)
-        elif node.op.name == Keywords.EQUAL:
+        elif node.op.type == Keywords.EQUAL:
             return self.visit(node.left) == self.visit(node.right)
-        elif node.op.name == Keywords.NOT_EQUAL:
+        elif node.op.type == Keywords.NOT_EQUAL:
             return self.visit(node.left) != self.visit(node.right)
-        elif node.op.name == Keywords.AND:
+        elif node.op.type == Keywords.AND:
             left = self.visit(node.left)
             right = self.visit(node.right)
             if type(left) == float and type(right) == float:
                 return left + right
             else:
                 return left and right
-        elif node.op.name == Keywords.OR:
+        elif node.op.type == Keywords.OR:
             return self.visit(node.left) or self.visit(node.right)
-        elif node.op.name == Keywords.XOR:
+        elif node.op.type == Keywords.XOR:
             return self.visit(node.left) ^ self.visit(node.right)
 
     def visit_UnaryOp(self, node):
-        op = node.op.name
+        op = node.op.type
         if op == Keywords.NOT:
             return not (self.visit(node.expr))
 
@@ -105,19 +108,31 @@ class Interpreter(NodeVisitor):
         pass
 
     def visit_Assign(self, node):
-        var_name = node.left.value
-        self.environment.assign(var_name, self.visit(node.right))
+        value = self.visit(node.right)
+        distance = self.locals.get(node)
+        if distance is not None:
+            self.environment.assign_at(distance, node.left.value, value)
+        else:
+            self.globals.assign(node.left.value, value)
+
+        return value
 
     def visit_VariableDeclaration(self, node):
         var_name = node.left.value
         self.environment.define(var_name, self.visit(node.right))
 
     def visit_Var(self, node):
-        var_name = node.value
-        val = self.environment.get(var_name)
+        val = self.lookup_variable(node.token, node)
         if isinstance(val, fim_callable.FimCallable):
             return val.call(self, [])
         return val
+
+    def lookup_variable(self, token, node):
+        distance = self.locals.get(node)
+        if distance is not None:
+            return self.environment.get_at(distance, token.value)
+        else:
+            return self.globals.get(token.value)
 
     def visit_FunctionCall(self, node):
         function_name = node.name.value
@@ -142,11 +157,11 @@ class Interpreter(NodeVisitor):
         raise fim_callable.FimReturn(value)
 
     def visit_Increment(self, node):
-        var_name = node.token.value
+        var_name = node.variable.value
         self.environment.modify(var_name, operator.add, 1)
 
     def visit_Decrement(self, node):
-        var_name = node.token.value
+        var_name = node.variable.value
         self.environment.modify(var_name, operator.sub, 1)
 
     def visit_Print(self, node):
@@ -156,6 +171,7 @@ class Interpreter(NodeVisitor):
     def visit_Function(self, node):
         fim_function = fim_callable.FimFunction(node, self.environment)
         self.environment.define(node.name, fim_function)
+
 
 def stringify(obj):
     # if res is float and can be int, convert it to int

@@ -58,7 +58,7 @@ class Char(AST):
 class Bool(AST):
     def __init__(self, token):
         self.token = token
-        self.value = self._convert(token.name)
+        self.value = self._convert(token.type)
 
     @staticmethod
     def _convert(token_name):
@@ -100,6 +100,7 @@ class Class(AST):
 
 class Function(AST):
     def __init__(self, name, return_type, params, body, is_main):
+        self.token = name
         self.name = name.value
         self.return_type = return_type
         self.params = params
@@ -137,13 +138,13 @@ class VariableDeclaration(AST):
 
 
 class Increment(AST):
-    def __init__(self, token):
-        self.token = token
+    def __init__(self, variable):
+        self.variable = variable
 
 
 class Decrement(AST):
-    def __init__(self, token):
-        self.token = token
+    def __init__(self, variable):
+        self.variable = variable
 
 
 class If(AST):

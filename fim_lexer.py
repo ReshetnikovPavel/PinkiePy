@@ -6,27 +6,27 @@ from enum import Enum
 
 
 class ReservedWord:
-    def __init__(self, regex, name, block, suffix):
+    def __init__(self, regex, type, block, suffix):
         self.regex = regex
-        self.name = name
+        self.type = type
         self.block = block
         self.suffix = suffix
 
 
 class Token:
-    def __init__(self, value, name, block, suffix, start, end):
+    def __init__(self, value, type, block, suffix, start, end):
         self.value = value
-        self.name = name
+        self.type = type
         self.block = block
         self.suffix = suffix
         self.start = start
         self.end = end
 
     def __str__(self):
-        return f'{self.value} {self.name} {self.start} {self.end}'
+        return f'{self.value} {self.type} {self.start} {self.end}'
 
     def __repr__(self):
-        return f"Token({self.value}, {self.name}, {self.block}," \
+        return f"Token({self.value}, {self.type}, {self.block}," \
                f" {self.suffix}, {self.start}, {self.end}) "
 
     @staticmethod
@@ -57,6 +57,7 @@ class Literals(Enum):
     TRUE = 3
     FALSE = 4
     NULL = 5
+    ID = 6
 
     def __str__(self):
         return self.name
@@ -115,7 +116,7 @@ def match_reserved_words(words, source):
     res = []
     for word in words:
         for m in word.regex.finditer(source):
-            ri = Token(m.group(), word.name, word.block, word.suffix,
+            ri = Token(m.group(), word.type, word.block, word.suffix,
                        m.start(), m.end())
             res.append(ri)
     return sorted(res, key=lambda x: (x.start, -x.end, -len(x.value)))
@@ -126,7 +127,7 @@ class Lexer:
         if source is None:
             source = ''
         self.source = source
-        self.tokens = None
+        self.tokens = []
         self._compile_reserved_words()
 
     punctuation_pattern = r'(?:(?:\.\.\.)|[!?‽…:,]|(?:(?!\d)\.(?!\d)))'
@@ -510,7 +511,7 @@ class Lexer:
         if len(keywords) == 0:
             self._add_literals_to_stack(stack, Token(
                 self.source,
-                'NAME',
+                Literals.ID,
                 Block.NONE,
                 Suffix.NONE,
                 0,
@@ -522,7 +523,7 @@ class Lexer:
             if pattern != '':
                 self._add_literals_to_stack(stack, Token(
                     pattern,
-                    'NAME',
+                    Literals.ID,
                     Block.NONE,
                     Suffix.NONE,
                     0,
@@ -532,7 +533,7 @@ class Lexer:
             # if stack is empty
             if len(stack) == 0:
                 if keyword.block == Block.BEGIN_PARTNER:
-                    partner_name_stack.append(keyword.name)
+                    partner_name_stack.append(keyword.type)
                     self._add_keyword_to_stack(stack, keyword)
                     continue
                 self._add_keyword_to_stack(stack, keyword)
@@ -541,12 +542,12 @@ class Lexer:
             # if keyword is end_partner with no begin_partner with the same name
             # then it is probably a name
             if keyword.block == Block.END_PARTNER and partner_name_stack \
-                    and partner_name_stack[-1] != keyword.name:
+                    and partner_name_stack[-1] != keyword.type:
                 continue
 
             # if keyword is end_partner with begin_partner with the same name
             if keyword.block == Block.END_PARTNER and partner_name_stack \
-                    and partner_name_stack[-1] == keyword.name \
+                    and partner_name_stack[-1] == keyword.type \
                     and stack[-1].value == keyword.value:
                 stack.pop()
                 partner_name_stack.pop()
@@ -562,28 +563,28 @@ class Lexer:
             if keyword.start >= stack[-1].end:
                 pattern = self.source[stack[-1].end:keyword.start].strip()
                 # if previous was a name, merge
-                if stack[-1].name == 'NAME' and pattern != '':
+                if stack[-1].type == Literals.ID and pattern != '':
                     stack[-1].value += ' ' + pattern
                     stack[-1].end = keyword.start - 1
                 # else add a new one
                 elif pattern != '':
                     self._add_literals_to_stack(stack, Token(
                         pattern,
-                        'NAME',
+                        Literals.ID,
                         Block.NONE,
                         Suffix.NONE,
                         stack[-1].end + 1,
                         keyword.start - 1))
             # if begin partner
             if keyword.block == Block.BEGIN_PARTNER:
-                partner_name_stack.append(keyword.name)
+                partner_name_stack.append(keyword.type)
                 self._add_keyword_to_stack(stack, keyword)
                 continue
             # if end partner
             elif keyword.block == Block.END_PARTNER:
                 # if it is the right partner
                 if partner_name_stack \
-                        and partner_name_stack[-1] == keyword.name:
+                        and partner_name_stack[-1] == keyword.type:
                     partner_name_stack.pop()
                     self._add_keyword_to_stack(stack, keyword)
                     continue
@@ -593,13 +594,13 @@ class Lexer:
                 else:
                     if keywords[index + 1].value == keyword.value:
                         continue
-                    if stack[-1].name == 'NAME':
+                    if stack[-1].type == Literals.ID:
                         stack[-1].value += ' ' + keyword.value
                         stack[-1].end = keyword.end
                     else:
                         self._add_literals_to_stack(stack, Token(
                             keyword.value,
-                            'NAME',
+                            Literals.ID,
                             Block.NONE,
                             Suffix.NONE,
                             keyword.start,
@@ -613,7 +614,7 @@ class Lexer:
         if stack[-1].end != len(self.source) - 1:
             self._add_literals_to_stack(stack, Token(
                 self.source[stack[-1].end + 1:],
-                'NAME',
+                Literals.ID,
                 Block.NONE,
                 Suffix.NONE,
                 stack[-1].end + 1,
@@ -624,7 +625,7 @@ class Lexer:
         return stack
 
     def _add_keyword_to_stack(self, stack, keyword):
-        if len(stack) != 0 and stack[-1].name == 'NAME':
+        if len(stack) != 0 and stack[-1].type == Literals.ID:
             self._add_literals_to_stack(stack, stack.pop())
         stack.append(keyword)
 
@@ -652,7 +653,7 @@ class Lexer:
                 name_pattern = name_regex_info.value[start_index:]
                 previous = Token(
                     name_pattern,
-                    'NAME',
+                    Literals.ID,
                     Block.NONE,
                     Suffix.NONE,
                     start_index + name_regex_info.start,
@@ -662,7 +663,7 @@ class Lexer:
             else:
                 previous = Token(
                     literal.value,
-                    literal.name,
+                    literal.type,
                     literal.block,
                     literal.suffix,
                     literal.start + name_regex_info.start,
@@ -674,7 +675,7 @@ class Lexer:
         if len(self.tokens) == 0:
             return Token.default_token()
         token = self.tokens.pop(0)
-        while len(self.tokens) > 0 and token.name == Keywords.COMMENT:
+        while len(self.tokens) > 0 and token.type == Keywords.COMMENT:
             token = self.tokens.pop(0)
         return token
 

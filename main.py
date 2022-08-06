@@ -1,6 +1,7 @@
 from fim_lexer import Lexer
 from fim_parser import Parser
 from fim_interpreter import Interpreter
+from fim_resolver import Resolver
 
 lexer = Lexer("""
 
@@ -23,5 +24,8 @@ Did you know that Twilight is 0?
 lexer.lex()
 parser = Parser(lexer)
 interpreter = Interpreter(parser)
-interpreter.interpret()
+tree = parser.parse()
+resolver = Resolver(interpreter)
+resolver.resolve(tree)
+interpreter.interpret(tree)
 print(interpreter.environment)
