@@ -140,3 +140,6 @@ class Resolver(NodeVisitor):
 
     def visit_NoOp(self, node):
         pass
+
+    def visit_Bool(self, node):
+        pass

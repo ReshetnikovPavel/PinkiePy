@@ -109,9 +109,9 @@ class Interpreter(NodeVisitor):
 
     def visit_Assign(self, node):
         value = self.visit(node.right)
-        distance = self.locals.get(node)
+        distance = self.locals.get(node.left)
         if distance is not None:
-            self.environment.assign_at(distance, node.left.value, value)
+            self.environment.assign_at(distance, node.left.token, value)
         else:
             self.globals.assign(node.left.value, value)
 
@@ -157,12 +157,12 @@ class Interpreter(NodeVisitor):
         raise fim_callable.FimReturn(value)
 
     def visit_Increment(self, node):
-        var_name = node.variable.value
-        self.environment.modify(var_name, operator.add, 1)
+        distance = self.locals.get(node.variable)
+        self.environment.modify_at(distance, node.variable.token, operator.add, 1)
 
     def visit_Decrement(self, node):
-        var_name = node.variable.value
-        self.environment.modify(var_name, operator.sub, 1)
+        distance = self.locals.get(node.variable)
+        self.environment.modify_at(distance, node.variable.token, operator.sub, 1)
 
     def visit_Print(self, node):
         res = self.visit(node.expr)

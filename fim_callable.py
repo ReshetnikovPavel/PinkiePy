@@ -19,7 +19,7 @@ class FimFunction(FimCallable):
         for i in range(len(self.declaration.params)):
             environment.define(self.declaration.params[i].value, arguments[i])
         try:
-            interpreter.execute_compound(self.declaration.body.children, environment)
+            interpreter.execute_compound(self.declaration.body.children, Environment(environment)) #TODO this might be a potential fix
         except FimReturn as return_value:
             return return_value.value
         return None

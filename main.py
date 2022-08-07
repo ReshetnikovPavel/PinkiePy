@@ -5,15 +5,13 @@ from fim_resolver import Resolver
 
 lexer = Lexer("""
 
-
 I learned rec using x!
-    
+
     x got one more.
     If x is less than 90 then:
         x is now rec using x!
     That‘s what I would do.
     Then you get x!
-
 
 That's all about rec.
 

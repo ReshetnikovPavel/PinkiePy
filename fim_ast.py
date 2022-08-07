@@ -27,6 +27,9 @@ class Var(AST):
         self.token = token
         self.value = token.value
 
+    def __repr__(self):
+        return f"Var({self.token})"
+
 
 class BinOp(AST):
     def __init__(self, left, op, right):
