@@ -6,6 +6,7 @@ from fim_interpreter import Interpreter
 from fim_lexer import Lexer, Literals, Keywords, Token
 from fim_parser import Parser
 from fim_resolver import Resolver
+from fim_callable import FimClass, FimInstance
 from environment import Environment
 
 
@@ -103,6 +104,93 @@ class InterpreterTests(Base):
                 self.interpreter.environment)
         res = self.interpreter.visit_Assign(expr)
         self.assertTrue(res == "after")
+
+    def testVisitClass(self):
+        body = fim_ast.Compound()
+        body.children = [fim_ast.NoOp()]
+        class_node = fim_ast.Class(
+            Token('A', Literals.ID, None, None, None, None),
+            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            [],
+            body,
+            [],
+            [],
+            Token('Programmer Name', Literals.ID, None, None, None, None))
+        self.interpreter.visit_Class(class_node)
+        self.assertTrue('A' in self.interpreter.environment._values)
+        self.assertTrue(isinstance(self.interpreter.environment._values['A'], FimClass))
+        self.assertTrue(self.interpreter.environment._values['A'].name == 'A')
+
+    def testVisitGet(self):
+        pony = Token('Pony', Literals.ID, None, None, None, None)
+        applejack = Token('Applejack', Literals.ID, None, None, None, None)
+        hat = Token('hat', Literals.ID, None, None, None, None)
+        instance = FimInstance(
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+        self.interpreter.environment.define(pony.value, instance)
+        self.interpreter.environment.get('Pony').fields['hat'] = \
+            fim_ast.String(Token('value', Literals.ID, None, None, None, None))
+        self.interpreter.visit_VariableDeclaration(
+            fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
+
+        get = fim_ast.Get(fim_ast.Var(applejack), hat)
+        res = self.interpreter.visit_Get(get)
+
+        self.assertTrue(res.value == 'value')
+
+    def testVisitGetIfNoField(self):
+        pony = Token('Pony', Literals.ID, None, None, None, None)
+        applejack = Token('Applejack', Literals.ID, None, None, None, None)
+        hat = Token('hat', Literals.ID, None, None, None, None)
+        instance = FimInstance(
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+        self.interpreter.environment.define(pony.value, instance)
+
+        self.interpreter.visit_VariableDeclaration(
+            fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
+
+        get = fim_ast.Get(fim_ast.Var(applejack), hat)
+        with self.assertRaises(Exception):
+            self.interpreter.visit_Get(get)
+
+    def testVisitSet(self):
+        pony = Token('Pony', Literals.ID, None, None, None, None)
+        applejack = Token('Applejack', Literals.ID, None, None, None, None)
+        hat = Token('hat', Literals.ID, None, None, None, None)
+        instance = FimInstance(
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+        self.interpreter.environment.define(pony.value, instance)
+
+        self.interpreter.visit_VariableDeclaration(
+            fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
+
+        set = fim_ast.Set(fim_ast.Var(applejack), hat, fim_ast.String(Token('value', Literals.ID, None, None, None, None)))
+        res = self.interpreter.visit_Set(set)
+
+        self.assertTrue(res == 'value')
+        self.assertTrue(self.interpreter.environment.get('Pony').fields['hat'] == 'value')
+
+    def testClassMethods(self):
+        body = fim_ast.Compound()
+        method = fim_ast.Function(
+            fim_ast.Var(Token('func', Literals.ID, None, None, None, None)),
+            [],
+            [],
+            fim_ast.Compound(),
+            False)
+        body.children = [method]
+        ast_class = fim_ast.Class(
+            Token('A', Literals.ID, None, None, None, None),
+            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            [],
+            body,
+            [method],
+            [],
+            Token('Programmer Name', Literals.ID, None, None, None, None))
+        self.interpreter.visit_Class(ast_class)
+        self.interpreter.environment._values['A'].methods['func'] = method
+
+
 
 
 

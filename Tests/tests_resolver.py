@@ -187,7 +187,41 @@ class ResolverTests(Base):
             self.resolver.visit_Return(fim_ast.Return(
                 fim_ast.String(Token('"a"', Literals.STRING, None, None, None, None))))
 
+    def testVisitClass(self):
+        self.resolver.begin_scope()
+        body = fim_ast.Compound()
+        body.children = [fim_ast.NoOp()]
+        self.resolver.visit_Class(fim_ast.Class(
+            Token('A', Literals.ID, None, None, None, None),
+            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            [],
+            body,
+            [],
+            [],
+            Token('Programmer Name', Literals.ID, None, None, None, None)))
+        self.assertTrue('A' in self.resolver.scopes[-1])
+        self.assertTrue(self.resolver.scopes[-1]['A'] is True)
 
+    # def testVisitClassWithMethod(self):
+    #     self.resolver.begin_scope()
+    #     body = fim_ast.Compound()
+    #     method = fim_ast.Function(
+    #         fim_ast.Var(Token('func', Literals.ID, None, None, None, None)),
+    #         [],
+    #         [],
+    #         fim_ast.Compound(),
+    #         False)
+    #     body.children = [method]
+    #     self.resolver.visit_Class(fim_ast.Class(
+    #         Token('A', Literals.ID, None, None, None, None),
+    #         Token('Princess Celestia', Literals.ID, None, None, None, None),
+    #         [],
+    #         body,
+    #         [method],
+    #         [],
+    #         Token('Programmer Name', Literals.ID, None, None, None, None)))
+    #     self.assertTrue('func' in self.resolver.scopes[-1])
+    #     self.assertTrue(self.resolver.scopes[-1]['func'] is True)
 
 
 if __name__ == '__main__':

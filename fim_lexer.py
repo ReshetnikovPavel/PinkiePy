@@ -107,6 +107,7 @@ class Keywords(Enum):
     AND = 40
     OR = 41
     THEN = 42
+    ACCESS_FROM_OBJECT = 43
 
     def __str__(self):
         return self.name
@@ -184,6 +185,10 @@ class Lexer:
         ReservedWord(
             punctuation_pattern,
             Keywords.PUNCTUATION, Block.NONE, Suffix.NONE),
+        ReservedWord(
+            # works the same as . in Java or C#, for instance
+            r'`s|`',
+            Keywords.ACCESS_FROM_OBJECT, Block.NONE, Suffix.NONE),
         ReservedWord(
             r'\bI did this as long as\b',
             Keywords.DO_WHILE, Block.END, Suffix.PREFIX),
@@ -417,7 +422,8 @@ class Lexer:
             r'\bthen\b',
             Keywords.THEN, Block.NONE, Suffix.NONE),
         ReservedWord(
-            r'\bDear\b', 'REPORT', Block.BEGIN, Suffix.PREFIX),
+            r'\bDear\b',
+            Keywords.REPORT, Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
             r'\bwith\b',
             Keywords.RETURNED_VARIABLE_TYPE, Block.NONE, Suffix.INFIX),

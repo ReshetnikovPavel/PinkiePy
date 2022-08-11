@@ -5,18 +5,16 @@ from fim_resolver import Resolver
 
 lexer = Lexer("""
 
-I learned rec using x!
+Dear Princess Celestia: Hello World!
 
-    x got one more.
-    If x is less than 90 then:
-        x is now rec using x!
-    That‘s what I would do.
-    Then you get x!
+    Today I learned how to say Hello World!
+    I said “Hello World”!
+    That’s all about how to say Hello World!
 
-That's all about rec.
+Your faithful student, Kyli Rouge.
 
-Did you know that Twilight is 0?
-    I said rec using Twilight.
+Did you know that variable is Hello World?
+I remembered variable`s how to say Hello World!
 
 """)
 lexer.lex()

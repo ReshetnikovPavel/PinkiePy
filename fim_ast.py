@@ -5,6 +5,11 @@ class AST:
     pass
 
 
+class Trunk(AST):
+    def __init__(self, children):
+        self.children = children
+
+
 class Compound(AST):
     def __init__(self):
         self.children = []
@@ -93,12 +98,27 @@ class NoOp(AST):
 
 
 class Class(AST):
-    def __init__(self, name, superclass, implementations, body, programmer):
+    def __init__(self, name, superclass, implementations, body, methods, fields, programmer):
         self.name = name
         self.superclass = superclass
         self.implementations = implementations
         self.body = body
+        self.methods = methods
+        self.fields = fields
         self.programmer = programmer
+
+
+class Get(AST):
+    def __init__(self, object, name):
+        self.object = object
+        self.name = name
+
+
+class Set(AST):
+    def __init__(self, object, name, value):
+        self.object = object
+        self.name = name
+        self.value = value
 
 
 class Function(AST):

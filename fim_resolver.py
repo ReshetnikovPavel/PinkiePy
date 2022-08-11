@@ -10,6 +10,7 @@ class ResolverException(Exception):
 class FunctionType(Enum):
     NONE = 0
     FUNCTION = 1
+    METHOD = 2
 
 
 class Resolver(NodeVisitor):
@@ -23,11 +24,17 @@ class Resolver(NodeVisitor):
         self.resolve_statements(node.children)
         self.end_scope()
 
+    def visit_Trunk(self, node):
+        self.resolve_statements(node.children)
+
     def resolve_statements(self, statements):
         for statement in statements:
             self.visit(statement)
 
     def resolve(self, node):
+        if isinstance(node, list):
+            self.resolve_statements(node)
+            return
         self.visit(node)
 
     def begin_scope(self):
@@ -71,6 +78,22 @@ class Resolver(NodeVisitor):
     def visit_Assign(self, node):
         self.resolve(node.right)
         self.resolve_local(node.left, node.left.token)
+
+    def visit_Class(self, node):
+        self.declare(node.name)
+        self.define(node.name)
+
+        for method in node.methods:
+            declaration = FunctionType.METHOD
+            self.resolve_function(method, declaration)
+
+
+    def visit_Get(self, node):
+        self.resolve(node.object)
+
+    def visit_Set(self, node):
+        self.resolve(node.value)
+        self.resolve(node.object)
 
     def visit_Function(self, node):
         self.declare(node.token)

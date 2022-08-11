@@ -1,5 +1,6 @@
 from fim_lexer import Literals
 from fim_lexer import Keywords
+from fim_callable import FimClass, FimCallable
 from environment import Environment
 import fim_callable
 from node_visitor import NodeVisitor
@@ -75,6 +76,10 @@ class Interpreter(NodeVisitor):
     def visit_Compound(self, node):
         self.execute_compound(node.children, Environment(self.environment))
 
+    def visit_Trunk(self, node):
+        for declaration in node.children:
+            self.visit(declaration)
+
     def execute_compound(self, statements, environment):
         previous_env = self.environment
         try:
@@ -113,7 +118,7 @@ class Interpreter(NodeVisitor):
         if distance is not None:
             self.environment.assign_at(distance, node.left.token, value)
         else:
-            self.globals.assign(node.left.value, value)
+            self.globals.assign(node.left, value)
 
         return value
 
@@ -171,6 +176,34 @@ class Interpreter(NodeVisitor):
     def visit_Function(self, node):
         fim_function = fim_callable.FimFunction(node, self.environment)
         self.environment.define(node.name, fim_function)
+
+    def visit_Class(self, node):
+        self.environment.define(node.name.value, None)
+
+        methods = {}
+        for method in node.methods:
+            function = fim_callable.FimFunction(method, self.environment)
+            methods[method.token.value] = function
+
+        fim_class = FimClass(node.name.value, methods)
+        self.environment.assign(node.name, fim_class)
+
+    def visit_Get(self, node):
+        obj = self.visit(node.object)
+        if isinstance(obj, fim_callable.FimInstance):
+            field = obj.get(node.name)
+            if isinstance(field, FimCallable):
+                return field.call(self, [])
+            return field
+        raise RuntimeError("{} only instances have properties".format(obj))
+
+    def visit_Set(self, node):
+        obj = self.visit(node.object)
+        if isinstance(obj, fim_callable.FimInstance):
+            value = self.visit(node.value)
+            obj.set(node.name, value)
+            return value
+        raise RuntimeError("{} only instances have properties".format(obj))
 
 
 def stringify(obj):

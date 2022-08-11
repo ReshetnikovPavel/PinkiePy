@@ -20,15 +20,15 @@ class Environment:
         raise NameError('Undefined variable: %s' % name)
 
     def assign(self, name, value):
-        if name in self._values:
-            self._values[name] = value
+        if name.value in self._values:
+            self._values[name.value] = value
             return
 
         if self.enclosing is not None:
             self.enclosing.assign(name, value)
             return
 
-        raise NameError('Undefined variable: %s' % name)
+        raise NameError('Undefined variable: %s' % name.value)
 
     def modify(self, name, relate, value):
         return self.assign(name, relate(self.get(name), value))

@@ -25,7 +25,6 @@ class EnvironmentTests(Base):
         res = env.get_at(4, var.token.value)
         self.assertTrue(res == "Hello World!")
 
-
     def testAncestorNoAncestors(self):
         env = Environment()
         res = env.ancestor(0)

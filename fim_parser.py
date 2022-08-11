@@ -31,7 +31,9 @@ class Parser:
         if self.current_token.type == Keywords.MANE_PARAGRAPH:
             return self.main_function_declaration()
         else:
-            return self.statement()
+            node = self.statement()
+            self.eat(Keywords.PUNCTUATION)
+            return node
 
     def class_declaration(self):
         self.eat(Keywords.REPORT, token_block=Block.BEGIN)
@@ -49,16 +51,25 @@ class Parser:
         self.eat(Literals.ID)
 
         self.eat(Keywords.PUNCTUATION)
-        body = self.compound_statement()
+        body = self.compound_statement(end_token_names=(Keywords.REPORT,))
+
+        methods = []
+        fields = []
+        for child in body.children:
+            if isinstance(child, fim_ast.Function):
+                child.is_class_method = True
+                methods.append(child)
+            elif isinstance(child, fim_ast.Assign):
+                fields.append(child)
 
         self.eat(Keywords.REPORT, token_block=Block.END)
-        self.eat(Keywords.PUNCTUATION)
         programmer_token = self.current_token
         self.eat(Literals.ID)
+        self.eat(Keywords.PUNCTUATION)
 
         return fim_ast.Class(
             class_token, superclass_token, implementations, body,
-            programmer_token)
+            methods, fields, programmer_token)
 
     def function_declaration(self, is_main=False):
         if is_main:
@@ -110,21 +121,6 @@ class Parser:
     def run_statement(self):
         self.eat(Keywords.RUN)
         node = self.expr()
-        return node
-
-    def function_call_expr(self):
-        token = self.current_token
-        self.eat(Literals.ID)
-
-        parameters = []
-        if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
-            self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
-            parameters.append(self.variable())
-            while self.current_token.type == Keywords.AND:
-                self.eat(Keywords.AND)
-                parameters.append(self.variable())
-
-        node = fim_ast.FunctionCall(fim_ast.Var(token), parameters)
         return node
 
     def compound_statement(self, end_token_names=None):
@@ -278,6 +274,30 @@ class Parser:
         node = fim_ast.Decrement(self.variable())
         return node
 
+    def finish_call(self, expr):
+        parameters = [self.expr()]
+        while self.current_token.type == Keywords.AND:
+            self.eat(Keywords.AND)
+            parameters.append(self.expr())
+
+        return fim_ast.FunctionCall(expr, parameters)
+
+    def call(self):
+        expr = self.primary()
+        while True:
+            if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
+                self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
+                expr = self.finish_call(expr)
+            elif self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
+                self.eat(Keywords.ACCESS_FROM_OBJECT)
+                name_token = self.current_token
+                self.eat(Literals.ID)
+                expr = fim_ast.Get(expr, name_token)
+            else:
+                break
+
+        return expr
+
     def variable(self):
         node = fim_ast.Var(self.current_token)
         self.eat(Literals.ID)
@@ -291,15 +311,32 @@ class Parser:
     def expr(self):
         return self.assignment()
 
+    # def assignment(self):
+    #     if self.lexer.peek().type == Keywords.ASSIGN:
+    #         left = self.variable()
+    #         token = self.current_token
+    #         self.eat(Keywords.ASSIGN)
+    #         right = self.assignment()
+    #         return fim_ast.Assign(left, token, right)
+    #     else:
+    #         return self.logic()
+
     def assignment(self):
-        if self.lexer.peek().type == Keywords.ASSIGN:
-            left = self.variable()
-            token = self.current_token
+        expr = self.logic()
+        if self.current_token.type == Keywords.ASSIGN:
+            equals = self.current_token
             self.eat(Keywords.ASSIGN)
-            right = self.assignment()
-            return fim_ast.Assign(left, token, right)
-        else:
-            return self.logic()
+            value = self.assignment()
+
+            if isinstance(expr, fim_ast.Var):
+                name = expr
+                return fim_ast.Assign(name, equals, value)
+            elif isinstance(expr, fim_ast.Get):
+                get = expr
+                return fim_ast.Set(get.object, get.name, value)
+            raise Exception("Invalid assignment target")
+        return expr
+
 
     def logic(self):
         return self.logic_xor()
@@ -442,7 +479,7 @@ class Parser:
             self.eat(Keywords.NOT)
             return fim_ast.UnaryOp(token, self.unary())
         else:
-            node = self.primary()
+            node = self.call()
             return node
 
     def primary(self):
@@ -465,12 +502,13 @@ class Parser:
         elif token.type == Literals.NULL:
             self.eat(Literals.NULL)
             return fim_ast.Null(token)
-        elif token.type == Literals.ID\
-                and self.lexer.peek().type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
-            return self.function_call_expr()
         else:
             node = self.variable()
             return node
 
     def parse(self):
-        return self.compound_statement()
+        statements = []
+        while not self.current_token.type == 'EOF':
+            statements.append(self.declaration())
+
+        return fim_ast.Trunk(statements)

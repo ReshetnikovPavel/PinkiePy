@@ -158,6 +158,18 @@ class TestClasses(Base):
                            ('ID', 'Princess Luna'),
                            ('PUNCTUATION', ':'))
 
+    def testAccessFromObject1(self):
+        self.assert_tokens('Applejack`s hat',
+                           ('ID', 'Applejack'),
+                           ('ACCESS_FROM_OBJECT', '`s'),
+                           ('ID', 'hat'))
+
+    def testAccessFromObject2(self):
+        self.assert_tokens('Queen Chrysalis` evil plan',
+                           ('ID', 'Queen Chrysalis'),
+                           ('ACCESS_FROM_OBJECT', '`'),
+                           ('ID', 'evil plan'))
+
 
 class TestMethods(Base):
     def testDeclaration(self):
