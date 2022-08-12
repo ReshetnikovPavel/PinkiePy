@@ -109,9 +109,10 @@ class Class(AST):
 
 
 class Get(AST):
-    def __init__(self, object, name):
+    def __init__(self, object, name, has_arguments):
         self.object = object
         self.name = name
+        self.has_arguments = has_arguments
 
 
 class Set(AST):

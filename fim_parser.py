@@ -9,9 +9,10 @@ class Parser:
     def __init__(self, lexer):
         self.lexer = lexer
         self.current_token = self.lexer.get_next_token()
+        self.is_currently_parsing_call_arguments_count = 0
 
     def error(self):
-        raise Exception('Invalid syntax')
+        raise Exception('Invalid syntax', self.current_token)
 
     def eat(self, token_name, token_block=None, token_suffix=None):
         if self.current_token.type == token_name \
@@ -287,12 +288,16 @@ class Parser:
         while True:
             if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
                 self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
+                self.is_currently_parsing_call_arguments_count += 1
                 expr = self.finish_call(expr)
+                self.is_currently_parsing_call_arguments_count -= 1
+                if len(expr.arguments) != 0 and isinstance(expr.name, fim_ast.Get):
+                    expr.name.has_parameters = True
             elif self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
                 self.eat(Keywords.ACCESS_FROM_OBJECT)
-                name_token = self.current_token
+                name_token = fim_ast.Var(self.current_token)
                 self.eat(Literals.ID)
-                expr = fim_ast.Get(expr, name_token)
+                expr = fim_ast.Get(expr, name_token, False)
             else:
                 break
 
@@ -370,9 +375,14 @@ class Parser:
 
     def logic_and(self):
         left = self.equality()
+
         while self.current_token.type in (Keywords.AND,) \
                 and self.current_token.suffix == Suffix.INFIX \
                 and self.current_token.block == Block.NONE:
+
+            if self.is_currently_parsing_call_arguments_count != 0:
+                return left
+
             op = self.current_token
             if op.type == Keywords.AND:
                 self.eat(Keywords.EQUAL, token_suffix=Suffix.INFIX)
@@ -440,6 +450,10 @@ class Parser:
                 if token.type == Keywords.ADDITION:
                     self.eat(Keywords.ADDITION, token_suffix=Suffix.INFIX)
                 elif token.type == Keywords.AND:
+
+                    if self.is_currently_parsing_call_arguments_count != 0:
+                        return node
+
                     #   TODO: while typechecking should become ADDITION
                     self.eat(Keywords.AND, token_suffix=Suffix.INFIX)
                 elif token.type == Keywords.SUBTRACTION:

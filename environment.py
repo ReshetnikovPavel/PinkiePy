@@ -10,6 +10,11 @@ class Environment:
             raise NameError('Variable already defined: %s' % name)
         self._values[name] = value
 
+    def declare(self, name):
+        if name.value in self._values:
+            raise NameError('Variable already defined: %s' % name.value)
+        self._values[name.value] = None
+
     def get(self, name):
         if name in self._values:
             return self._values.get(name)

@@ -166,3 +166,6 @@ class Resolver(NodeVisitor):
 
     def visit_Bool(self, node):
         pass
+
+    def visit_Null(self, node):
+        pass
