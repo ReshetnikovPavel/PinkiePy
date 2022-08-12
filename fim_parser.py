@@ -60,7 +60,7 @@ class Parser:
             if isinstance(child, fim_ast.Function):
                 child.is_class_method = True
                 methods.append(child)
-            elif isinstance(child, fim_ast.Assign):
+            elif isinstance(child, fim_ast.VariableDeclaration):
                 fields.append(child)
 
         self.eat(Keywords.REPORT, token_block=Block.END)

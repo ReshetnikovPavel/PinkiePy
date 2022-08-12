@@ -27,6 +27,11 @@ class FimFunction(FimCallable):
     def arity(self):
         return len(self.declaration.params)
 
+    def bind(self, instance):
+        environment = Environment(self.closure)
+        environment.define('this', instance)
+        return FimFunction(self.declaration, environment)
+
 
 class FimReturn(RuntimeError):
     def __init__(self, value):
@@ -35,9 +40,10 @@ class FimReturn(RuntimeError):
 
 
 class FimClass(FimCallable):
-    def __init__(self, name, methods):
+    def __init__(self, name, methods, fields):
         self.name = name
         self.methods = methods
+        self.fields = fields
 
     def __str__(self):
         return self.name
@@ -46,7 +52,7 @@ class FimClass(FimCallable):
         return 0
 
     def call(self, interpreter, arguments):
-        instance = FimInstance(self)
+        instance = FimInstance(self, self.fields)
         return instance
 
     def find_method(self, name):
@@ -56,9 +62,9 @@ class FimClass(FimCallable):
 
 
 class FimInstance:
-    def __init__(self, fim_class):
+    def __init__(self, fim_class, fields):
         self.fim_class = fim_class
-        self.fields = {}
+        self.fields = fields
 
     def __str__(self):
         return f'{self.fim_class.name} instance'
@@ -69,7 +75,7 @@ class FimInstance:
 
         method = self.fim_class.find_method(token.value)
         if method is not None:
-            return method
+            return method.bind(self)
 
         raise RuntimeError(f'{self.fim_class.name} has no field {token.value}')
 

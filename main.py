@@ -6,31 +6,19 @@ from fim_resolver import Resolver
 
 program = """
 
-Dear Princess Celestia: Math!
+Dear Princess Celestia: Class!
 
-   I learned how to find maximum using first number and second number!
-       Did you know that maximum was nothing?
-       If first number is greater than second number, maximum becomes first number.
-       Otherwise, maximum becomes second number.
-       That's what I would do.
-       Then you get maximum!
-       
-   That’s all about how to find maximum!
-       
-    I learned how to find minimum using first number and second number!
-        Did you know that minimum was nothing?
-        If first number is less than second number, minimum becomes first number.
-        Otherwise, minimum becomes second number.
-        That's what I would do.
-        Then you get minimum!
-        
-    That’s all about how to find minimum!
-   
-   
-Your faithful student, Kyli Rouge.
+    Did you know that a is "Test"?
+    
+    I learned ab.
+        Did you know that res is a?
+        Then you get res plus "b".
+    That's all about ab.
+    
 
-I said Math`s how to find minimum using 42 and 69!
-I said Math`s how to find maximum using 42 and 69!
+Your faithful student, Pavel Reshetnikov.
+
+I said Class`s ab.
 
 """
 

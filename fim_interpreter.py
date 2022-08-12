@@ -1,3 +1,6 @@
+import copy
+
+import fim_ast
 from fim_lexer import Literals
 from fim_lexer import Keywords
 from fim_callable import FimClass, FimCallable
@@ -137,10 +140,19 @@ class Interpreter(NodeVisitor):
         if distance is not None:
             return self.environment.get_at(distance, token.value)
         else:
-            return self.globals.get(token.value)
+            try:
+                instance = self.environment.get('this')
+                res = instance.get(token)
+                if isinstance(res, fim_callable.FimCallable):
+                    return FunctionWrapper(res)
+                return res
+            except NameError:
+                return self.globals.get(token.value)
 
     def visit_FunctionCall(self, node):
         function = self.visit(node.name)
+        if isinstance(function, FunctionWrapper):
+            function = function.function
 
         arguments = []
         for argument in node.arguments:
@@ -184,15 +196,18 @@ class Interpreter(NodeVisitor):
         for method in node.methods:
             function = fim_callable.FimFunction(method, self.environment)
             methods[method.token.value] = function
+        fields = {}
+        for field in node.fields:
+            fields[field.left.value] = self.visit(field.right)
 
-        fim_class = FimClass(node.name.value, methods)
+        fim_class = FimClass(node.name.value, methods, fields)
         self.environment.assign(node.name, fim_class)
 
     def visit_Get(self, node):
         obj = self.visit(node.object)
         if isinstance(obj, fim_callable.FimInstance):
             field = obj.get(node.name)
-            if isinstance(field, FimCallable) and not node.has_parameters:
+            if isinstance(field, FimCallable) and not node.has_arguments:
                 return field.call(self, [])
             return field
         raise RuntimeError("{} only instances have properties".format(obj))
@@ -217,3 +232,8 @@ def stringify(obj):
     if obj is False:
         return "false"
     return str(obj)
+
+
+class FunctionWrapper:
+    def __init__(self, function):
+        self.function = function

@@ -99,5 +99,14 @@ class InstanceTests(Base):
         self.assertTrue(instance.get(token) == 'new value')
 
 
+class FunctionTests(Base):
+    def testBind(self):
+        fim_function = FimFunction(None, None)
+        fim_class = FimClass('class name', [], [])
+        instance = FimInstance(fim_class, [])
+        function = fim_function.bind(instance)
+        self.assertTrue(function.closure.get("this") == instance)
+
+
 if __name__ == '__main__':
     unittest.main()

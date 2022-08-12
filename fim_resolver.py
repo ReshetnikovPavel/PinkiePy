@@ -83,9 +83,14 @@ class Resolver(NodeVisitor):
         self.declare(node.name)
         self.define(node.name)
 
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
+
         for method in node.methods:
             declaration = FunctionType.METHOD
             self.resolve_function(method, declaration)
+
+        self.end_scope()
 
 
     def visit_Get(self, node):
