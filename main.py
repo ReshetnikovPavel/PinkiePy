@@ -6,19 +6,29 @@ from fim_resolver import Resolver
 
 program = """
 
-Dear Princess Celestia: Class!
+Dear Princess Celestia: Linked List!
 
-    Did you know that a is "Test"?
+    Did you know that Next is nothing?
+    Did you know that Value is nothing?
     
-    I learned ab.
-        Did you know that res is a?
-        Then you get res plus "b".
-    That's all about ab.
-    
+    I learned creation using next and value.
+        Next becomes next.
+        Value becomes value.
+        Then you get this.
+    That's all about creation.    
 
 Your faithful student, Pavel Reshetnikov.
 
-I said Class`s ab.
+Did you know that node is Linked List`s creation using nothing and 1?
+I said node`s Value.
+node becomes Linked List`s creation using node and 2.
+node becomes Linked List`s creation using node and 3.
+
+I said node`s Value.
+I said node`s Next`s Value.
+I said node`s Next`s Next`s Value.
+
+
 
 """
 

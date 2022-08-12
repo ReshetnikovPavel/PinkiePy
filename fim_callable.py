@@ -1,3 +1,5 @@
+import copy
+
 from environment import Environment
 
 
@@ -64,7 +66,7 @@ class FimClass(FimCallable):
 class FimInstance:
     def __init__(self, fim_class, fields):
         self.fim_class = fim_class
-        self.fields = fields
+        self.fields = copy.copy(fields)
 
     def __str__(self):
         return f'{self.fim_class.name} instance'

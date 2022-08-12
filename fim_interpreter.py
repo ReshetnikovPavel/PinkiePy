@@ -121,7 +121,11 @@ class Interpreter(NodeVisitor):
         if distance is not None:
             self.environment.assign_at(distance, node.left.token, value)
         else:
-            self.globals.assign(node.left, value)
+            try:
+                instance = self.environment.get('this')
+                instance.set(node.left, value)
+            except NameError:
+                self.globals.assign(node.left, value)
 
         return value
 
@@ -207,7 +211,7 @@ class Interpreter(NodeVisitor):
         obj = self.visit(node.object)
         if isinstance(obj, fim_callable.FimInstance):
             field = obj.get(node.name)
-            if isinstance(field, FimCallable) and not node.has_arguments:
+            if isinstance(field, FimCallable) and not node.has_parameters:
                 return field.call(self, [])
             return field
         raise RuntimeError("{} only instances have properties".format(obj))
