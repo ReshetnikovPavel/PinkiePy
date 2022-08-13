@@ -108,6 +108,7 @@ class Keywords(Enum):
     OR = 41
     THEN = 42
     ACCESS_FROM_OBJECT = 43
+    CONCAT = 44
 
     def __str__(self):
         return self.name

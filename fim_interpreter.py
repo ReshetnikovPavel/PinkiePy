@@ -59,6 +59,10 @@ class Interpreter(NodeVisitor):
             return self.visit(node.left) or self.visit(node.right)
         elif node.op.type == Keywords.XOR:
             return self.visit(node.left) ^ self.visit(node.right)
+        elif node.op.type == Keywords.CONCAT:
+            left = self.visit(node.left)
+            right = self.visit(node.right)
+            return stringify(left) + stringify(right)
 
     def visit_UnaryOp(self, node):
         op = node.op.type
@@ -141,7 +145,7 @@ class Interpreter(NodeVisitor):
 
     def visit_Var(self, node):
         val = self.lookup_variable(node.token, node)
-        if isinstance(val, fim_callable.FimCallable):
+        if isinstance(val, fim_callable.FimCallable) and val.arity() == 0:
             return val.call(self, [])
         return val
 
@@ -211,17 +215,23 @@ class Interpreter(NodeVisitor):
         self.environment.assign(node.name, None)
 
         methods = {}
+        main_method_token = None
         for method in node.methods:
             function = fim_callable.FimFunction(method, self.environment)
             methods[method.token.value] = function
             if method.is_main:
-                function.call(self, [])
+                main_method_token = function.declaration.token
+
         fields = {}
         for field in node.fields:
             fields[field.left.value] = self.visit(field.right)
 
         fim_class = FimClass(node.name.value, superclass, methods, fields)
         self.environment.assign(node.name, fim_class)
+
+        if main_method_token is not None:
+            instance = fim_class.call(self, [])
+            instance.get(main_method_token).call(self, [])
 
     def visit_Get(self, node):
         obj = self.visit(node.object)

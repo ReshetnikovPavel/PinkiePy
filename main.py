@@ -5,34 +5,31 @@ from fim_resolver import Resolver
 
 
 program = """
-Dear Princess Celestia: Math!
+Dear Princess Celestia: Cider Jugs.
 
-   I learned how to find maximum using first number and second number!
-       Did you know that maximum was nothing?
-       If first number is greater than second number, maximum becomes first number.
-       Otherwise, maximum becomes second number.
-       That's what I would do.
-       Then you get maximum!
-       
-   That’s all about how to find maximum!
-       
-    I learned how to find minimum using first number and second number!
-        Did you know that minimum was nothing?
-        If first number is less than second number, minimum becomes first number.
-        Otherwise, minimum becomes second number.
-        That's what I would do.
-        Then you get minimum!
-        
-    That’s all about how to find minimum!
-    
-    Today I learned Main!
-        I said "Main was called"!
-    That’s all about Main!   
-   
-Your faithful student, Kyli Rouge.
+Today I learned Applejack's Drinking Song.
+Did you know that Applejack likes 5? (Applejack likes a lot of things...)
+I remembered how to sing the drinking song using Applejack.
+That's all about Applejack's Drinking Song!
 
-I said Math`s how to find minimum using 42 and 69!
-I said Math`s how to find maximum using 42 and 69!
+I learned how to sing the drinking song using ciders.
+As long as ciders were more than 1.
+I sang ciders" jugs of cider on the wall, "ciders" jugs of cider,".
+There was one less ciders.
+When ciders had more than 1, I sang "Take one down and pass it around, "ciders" jugs of cider on the wall."!
+Otherwise, I sang "Take one down and pass it around, 1 jug of cider on the wall."!
+That's what I would do, That's what I did.
+
+I sang "1 jug of cider on the wall, 1 jug of cider.
+Take it down and pass it around, no more jugs of cider on the wall.
+
+No more jugs of cider on the wall, no more jugs of cider.
+Go to the celler, get some more, 99 jugs of cider on the wall.".
+That's all about how to sing the drinking song!
+
+Your faithful student, Twilight Sparkle.
+
+P.S. Twilight's drunken state truely frightened me, so I couldn't disregard her order to send you this letter. Who would have thought her first reaction to hard cider would be this... explosive? I need your advice, your help, everything, on how to deal with her drunk... self. -Spike
 """
 
 lexer = Lexer(program)

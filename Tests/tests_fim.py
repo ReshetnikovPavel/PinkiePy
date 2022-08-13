@@ -110,6 +110,15 @@ I said Math`s how to find maximum using 42 and 69!
 """,
                             '42\n69\n')
 
+    def testHelloWorld(self):
+        self.assert_printed("""Dear Princess Celestia: Hello World!
+
+Today I learned how to say Hello World!
+I said “Hello World”!
+That’s all about how to say Hello World!
+
+Your faithful student, Kyli Rouge.""", 'Hello World\n')
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,8 +1,5 @@
 import fim_ast
-from fim_lexer import Literals
-from fim_lexer import Keywords
-from fim_lexer import Suffix
-from fim_lexer import Block
+from fim_lexer import Literals, Block, Suffix, Keywords, Token
 
 
 class Parser:
@@ -283,26 +280,6 @@ class Parser:
 
         return fim_ast.FunctionCall(expr, parameters)
 
-    def call(self):
-        expr = self.primary()
-        while True:
-            if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
-                self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
-                self.is_currently_parsing_call_arguments_count += 1
-                expr = self.finish_call(expr)
-                self.is_currently_parsing_call_arguments_count -= 1
-                if len(expr.arguments) != 0 and isinstance(expr.name, fim_ast.Get):
-                    expr.name.has_parameters = True
-            elif self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
-                self.eat(Keywords.ACCESS_FROM_OBJECT)
-                name_token = fim_ast.Var(self.current_token)
-                self.eat(Literals.ID)
-                expr = fim_ast.Get(expr, name_token, False)
-            else:
-                break
-
-        return expr
-
     def variable(self):
         node = fim_ast.Var(self.current_token)
         self.eat(Literals.ID)
@@ -495,6 +472,47 @@ class Parser:
         else:
             node = self.call()
             return node
+
+    def call(self):
+        expr = self.concatenation()
+        while True:
+            if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
+                self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS)
+                self.is_currently_parsing_call_arguments_count += 1
+                expr = self.finish_call(expr)
+                self.is_currently_parsing_call_arguments_count -= 1
+                if len(expr.arguments) != 0 and isinstance(expr.name,
+                                                           fim_ast.Get):
+                    expr.name.has_parameters = True
+            elif self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
+                self.eat(Keywords.ACCESS_FROM_OBJECT)
+                name_token = fim_ast.Var(self.current_token)
+                self.eat(Literals.ID)
+                expr = fim_ast.Get(expr, name_token, False)
+            else:
+                break
+
+        return expr
+
+    def concatenation(self):
+        next_token = self.lexer.peek()
+        if self.current_token.type == Literals.STRING\
+                and next_token.type != Keywords.PUNCTUATION\
+                or next_token.type == Literals.STRING:
+            left = self.primary()
+            right = self.expr()
+
+            return fim_ast.BinOp(
+                left,
+                Token('Concatenation',
+                      Keywords.CONCAT,
+                      Block.NONE,
+                      Suffix.NONE,
+                      self.current_token.end,
+                      next_token.start),
+                right)
+        else:
+            return self.primary()
 
     def primary(self):
         token = self.current_token
