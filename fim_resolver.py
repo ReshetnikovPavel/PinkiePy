@@ -197,3 +197,6 @@ class Resolver(NodeVisitor):
 
     def visit_Null(self, node):
         pass
+
+    def visit_Read(self, node):
+        pass

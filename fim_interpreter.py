@@ -3,7 +3,7 @@ import special_words
 
 import fim_ast
 from fim_lexer import Literals
-from fim_lexer import Keywords
+from fim_lexer import Keywords, Token
 from fim_callable import FimClass, FimCallable
 from environment import Environment
 import fim_callable
@@ -197,6 +197,13 @@ class Interpreter(NodeVisitor):
     def visit_Print(self, node):
         res = self.visit(node.expr)
         print(stringify(res))
+
+    def visit_Read(self, node):
+        line = input()
+        self.visit_Assign(fim_ast.Assign(
+            node.variable,
+            fim_ast.String(
+                Token(line, Literals.STRING, None, None, None, None))))
 
     def visit_Function(self, node):
         self.environment.declare(node.name)

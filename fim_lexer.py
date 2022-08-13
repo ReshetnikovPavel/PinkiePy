@@ -319,7 +319,7 @@ class Lexer:
             Keywords.PRINT, Block.NONE, Suffix.PREFIX),
         ReservedWord(
             r'\bI asked\b',
-            Keywords.READ, Block.NONE, Suffix.PREFIX),
+            Keywords.READLINE, Block.NONE, Suffix.PREFIX),
         ReservedWord(
             r'\bI heard\b',
             Keywords.READLINE, Block.NONE, Suffix.PREFIX),

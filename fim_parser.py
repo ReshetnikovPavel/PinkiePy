@@ -181,6 +181,8 @@ class Parser:
             node = self.main_function_declaration()
         elif self.current_token.type == Keywords.RETURN:
             node = self.return_statement()
+        elif self.current_token.type == Keywords.READLINE:
+            node = self.read_statement()
         else:
             node = self.empty()
         return node
@@ -253,7 +255,7 @@ class Parser:
         return node
 
     def read_statement(self):
-        self.eat(Keywords.READ)
+        self.eat(Keywords.READLINE)
         node = fim_ast.Read(self.variable())
         return node
 
@@ -312,7 +314,7 @@ class Parser:
 
             if isinstance(expr, fim_ast.Var):
                 name = expr
-                return fim_ast.Assign(name, equals, value)
+                return fim_ast.Assign(name, value)
             elif isinstance(expr, fim_ast.Get):
                 get = expr
                 return fim_ast.Set(get.object, get.name, value)
