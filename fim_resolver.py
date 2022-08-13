@@ -1,5 +1,6 @@
 from node_visitor import NodeVisitor
 from enum import Enum
+from fim_callable import FimClass
 
 
 class ResolverException(Exception):
@@ -22,6 +23,12 @@ class Resolver(NodeVisitor):
         self.scopes = []
         self.current_function = FunctionType.NONE
         self.current_class = ClassType.NONE
+        self.set_builtin_globals()
+        self.main_was_initialized = False
+
+    def set_builtin_globals(self):
+        self.interpreter.globals.define(
+            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
 
     def visit_Compound(self, node):
         self.begin_scope()
@@ -87,6 +94,8 @@ class Resolver(NodeVisitor):
         self.declare(node.name)
         self.define(node.name)
 
+        self.interpreter.globals.define(node.name.value, node)
+
         if node.name.value == node.superclass.token.value:
             raise ResolverException(f"A class cannot inherit from itself")
 
@@ -115,6 +124,11 @@ class Resolver(NodeVisitor):
         self.resolve_function(node, FunctionType.FUNCTION)
 
     def resolve_function(self, node, function_type):
+        if node.is_main:
+            if self.main_was_initialized:
+                raise ResolverException(f"Cannot have more than one main function")
+            self.main_was_initialized = True
+
         enclosing_function = self.current_function
         self.current_function = function_type
 

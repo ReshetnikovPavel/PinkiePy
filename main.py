@@ -5,24 +5,34 @@ from fim_resolver import Resolver
 
 
 program = """
+Dear Princess Celestia: Math!
 
-Dear Princess Celestia: A!
+   I learned how to find maximum using first number and second number!
+       Did you know that maximum was nothing?
+       If first number is greater than second number, maximum becomes first number.
+       Otherwise, maximum becomes second number.
+       That's what I would do.
+       Then you get maximum!
+       
+   That’s all about how to find maximum!
+       
+    I learned how to find minimum using first number and second number!
+        Did you know that minimum was nothing?
+        If first number is less than second number, minimum becomes first number.
+        Otherwise, minimum becomes second number.
+        That's what I would do.
+        Then you get minimum!
+        
+    That’s all about how to find minimum!
+    
+    Today I learned Main!
+        I said "Main was called"!
+    That’s all about Main!   
+   
+Your faithful student, Kyli Rouge.
 
-    Did you know that field is 1?
-
-Your faithful student, Pavel Reshetnikov.
-
-Dear A: B!
-
-    I learned how to find super's field!
-        I said field!
-    That's all about how to find super's field.
-
-Your faithful student, Pavel Reshetnikov.
-
-I remembered B`s how to find super's field.
-
-
+I said Math`s how to find minimum using 42 and 69!
+I said Math`s how to find maximum using 42 and 69!
 """
 
 lexer = Lexer(program)

@@ -17,13 +17,11 @@ class Interpreter(NodeVisitor):
         self.globals = Environment()
         self.environment = self.globals
         self.locals = {}
-        self.set_builtin_globals()
-
-    def set_builtin_globals(self):
-        self.globals.define(
-            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
 
     def interpret(self, tree):
+        for variable in self.globals._values.values():
+            if isinstance(variable, fim_ast.AST):
+                self.visit(variable)
         return self.visit(tree)
 
     def resolve(self, node, depth):
@@ -87,6 +85,8 @@ class Interpreter(NodeVisitor):
 
     def visit_Trunk(self, node):
         for declaration in node.children:
+            if isinstance(declaration, fim_ast.Class):
+                continue
             self.visit(declaration)
 
     def execute_compound(self, statements, environment):
@@ -153,16 +153,16 @@ class Interpreter(NodeVisitor):
             try:
                 instance = self.environment.get(special_words.this)
                 res = instance.get(token)
-                if isinstance(res, fim_callable.FimCallable):
-                    return FunctionWrapper(res)
+                # if isinstance(res, fim_callable.FimCallable):
+                #     return FunctionWrapper(res)
                 return res
-            except NameError:
+            except (NameError, RuntimeError):
                 return self.globals.get(token.value)
 
     def visit_FunctionCall(self, node):
         function = self.visit(node.name)
-        if isinstance(function, FunctionWrapper):
-            function = function.function
+        # if isinstance(function, FunctionWrapper):
+        #     function = function.function
 
         arguments = []
         for argument in node.arguments:
@@ -201,15 +201,21 @@ class Interpreter(NodeVisitor):
 
     def visit_Class(self, node):
         superclass = self.lookup_variable(node.superclass.token, node.superclass)
+
+        if isinstance(superclass, fim_ast.AST):
+            superclass = self.visit(superclass)
+
         if not isinstance(superclass, FimClass):
             raise RuntimeError("{} is not a class".format(superclass))
 
-        self.environment.define(node.name.value, None)
+        self.environment.assign(node.name, None)
 
         methods = {}
         for method in node.methods:
             function = fim_callable.FimFunction(method, self.environment)
             methods[method.token.value] = function
+            if method.is_main:
+                function.call(self, [])
         fields = {}
         for field in node.fields:
             fields[field.left.value] = self.visit(field.right)
@@ -248,6 +254,6 @@ def stringify(obj):
     return str(obj)
 
 
-class FunctionWrapper:
-    def __init__(self, function):
-        self.function = function
+# class FunctionWrapper:
+#     def __init__(self, function):
+#         self.function = function
