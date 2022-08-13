@@ -1,4 +1,5 @@
 import copy
+import special_words
 
 from environment import Environment
 
@@ -31,7 +32,7 @@ class FimFunction(FimCallable):
 
     def bind(self, instance):
         environment = Environment(self.closure)
-        environment.define('this', instance)
+        environment.define(special_words.this, instance)
         return FimFunction(self.declaration, environment)
 
 
@@ -42,10 +43,11 @@ class FimReturn(RuntimeError):
 
 
 class FimClass(FimCallable):
-    def __init__(self, name, methods, fields):
+    def __init__(self, name, superclass, methods, fields):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
-        self.fields = fields
+        self.fields = self.add_superclass_fields(fields)
 
     def __str__(self):
         return self.name
@@ -57,9 +59,23 @@ class FimClass(FimCallable):
         instance = FimInstance(self, self.fields)
         return instance
 
+    def add_superclass_fields(self, fields):
+        if self.superclass is None:
+            return fields
+
+        fields = copy.deepcopy(fields)
+        for key, value in self.superclass.fields.items():
+            if key not in fields:
+                fields[key] = value
+        return fields
+
     def find_method(self, name):
         if name in self.methods:
             return self.methods[name]
+
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
+
         return None
 
 
@@ -67,6 +83,7 @@ class FimInstance:
     def __init__(self, fim_class, fields):
         self.fim_class = fim_class
         self.fields = copy.copy(fields)
+        self.fields[special_words.this] = self
 
     def __str__(self):
         return f'{self.fim_class.name} instance'

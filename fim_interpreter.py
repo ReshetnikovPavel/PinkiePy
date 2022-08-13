@@ -1,4 +1,5 @@
 import copy
+import special_words
 
 import fim_ast
 from fim_lexer import Literals
@@ -16,6 +17,11 @@ class Interpreter(NodeVisitor):
         self.globals = Environment()
         self.environment = self.globals
         self.locals = {}
+        self.set_builtin_globals()
+
+    def set_builtin_globals(self):
+        self.globals.define(
+            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
 
     def interpret(self, tree):
         return self.visit(tree)
@@ -122,7 +128,7 @@ class Interpreter(NodeVisitor):
             self.environment.assign_at(distance, node.left.token, value)
         else:
             try:
-                instance = self.environment.get('this')
+                instance = self.environment.get(special_words.this)
                 instance.set(node.left, value)
             except NameError:
                 self.globals.assign(node.left, value)
@@ -145,7 +151,7 @@ class Interpreter(NodeVisitor):
             return self.environment.get_at(distance, token.value)
         else:
             try:
-                instance = self.environment.get('this')
+                instance = self.environment.get(special_words.this)
                 res = instance.get(token)
                 if isinstance(res, fim_callable.FimCallable):
                     return FunctionWrapper(res)
@@ -194,6 +200,10 @@ class Interpreter(NodeVisitor):
         self.environment.assign(node.name, fim_function)
 
     def visit_Class(self, node):
+        superclass = self.lookup_variable(node.superclass.token, node.superclass)
+        if not isinstance(superclass, FimClass):
+            raise RuntimeError("{} is not a class".format(superclass))
+
         self.environment.define(node.name.value, None)
 
         methods = {}
@@ -204,7 +214,7 @@ class Interpreter(NodeVisitor):
         for field in node.fields:
             fields[field.left.value] = self.visit(field.right)
 
-        fim_class = FimClass(node.name.value, methods, fields)
+        fim_class = FimClass(node.name.value, superclass, methods, fields)
         self.environment.assign(node.name, fim_class)
 
     def visit_Get(self, node):

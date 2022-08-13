@@ -38,13 +38,13 @@ class Parser:
 
     def class_declaration(self):
         self.eat(Keywords.REPORT, token_block=Block.BEGIN)
-        superclass_token = self.current_token
+        superclass = fim_ast.Var(self.current_token)
         self.eat(Literals.ID)
 
         implementations = []
         while self.current_token.type == Keywords.AND:
             self.eat(Keywords.AND)
-            implementations.append(self.current_token)
+            implementations.append(fim_ast.Var(self.current_token))
             self.eat(Literals.ID)
         self.eat(Keywords.PUNCTUATION)
 
@@ -69,7 +69,7 @@ class Parser:
         self.eat(Keywords.PUNCTUATION)
 
         return fim_ast.Class(
-            class_token, superclass_token, implementations, body,
+            class_token, superclass, implementations, body,
             methods, fields, programmer_token)
 
     def function_declaration(self, is_main=False):

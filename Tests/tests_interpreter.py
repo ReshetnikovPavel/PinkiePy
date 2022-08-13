@@ -110,7 +110,7 @@ class InterpreterTests(Base):
         body.children = [fim_ast.NoOp()]
         class_node = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
             [],
@@ -126,14 +126,14 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
         self.interpreter.environment.define(pony.value, instance)
         self.interpreter.environment.get('Pony').fields['hat'] = \
             fim_ast.String(Token('value', Literals.ID, None, None, None, None))
         self.interpreter.visit_VariableDeclaration(
             fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
 
-        get = fim_ast.Get(fim_ast.Var(applejack), hat)
+        get = fim_ast.Get(fim_ast.Var(applejack), hat, [])
         res = self.interpreter.visit_Get(get)
 
         self.assertTrue(res.value == 'value')
@@ -143,13 +143,13 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
         self.interpreter.environment.define(pony.value, instance)
 
         self.interpreter.visit_VariableDeclaration(
             fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
 
-        get = fim_ast.Get(fim_ast.Var(applejack), hat)
+        get = fim_ast.Get(fim_ast.Var(applejack), hat, False)
         with self.assertRaises(Exception):
             self.interpreter.visit_Get(get)
 
@@ -158,7 +158,7 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None))
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
         self.interpreter.environment.define(pony.value, instance)
 
         self.interpreter.visit_VariableDeclaration(
@@ -181,7 +181,7 @@ class InterpreterTests(Base):
         body.children = [method]
         ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
             [method],
@@ -189,6 +189,34 @@ class InterpreterTests(Base):
             Token('Programmer Name', Literals.ID, None, None, None, None))
         self.interpreter.visit_Class(ast_class)
         self.interpreter.environment._values['A'].methods['func'] = method
+
+    def testClassSuperclassPrincessCelestia(self):
+        self.assertTrue(isinstance(self.interpreter.globals.get('Princess Celestia'), FimClass))
+        ast_class = fim_ast.Class(
+            Token('A', Literals.ID, None, None, None, None),
+            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
+            [],
+            fim_ast.Compound(),
+            [],
+            [],
+            Token('Programmer Name', Literals.ID, None, None, None, None))
+        self.interpreter.visit_Class(ast_class)
+        self.assertTrue(self.interpreter.environment._values['A'].superclass.name == 'Princess Celestia')
+
+    def testClassInheritFromNotAClass(self):
+        self.interpreter.globals.define('A', 'I am totally not a class')
+        ast_class = fim_ast.Class(
+            Token('B', Literals.ID, None, None, None, None),
+            fim_ast.Var(Token('A', Literals.ID, None, None, None, None)),
+            [],
+            fim_ast.Compound(),
+            [],
+            [],
+            Token('Programmer Name', Literals.ID, None, None, None, None))
+        with self.assertRaises(RuntimeError):
+            self.interpreter.visit_Class(ast_class)
+
+
 
 
 

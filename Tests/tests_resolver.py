@@ -193,7 +193,7 @@ class ResolverTests(Base):
         body.children = [fim_ast.NoOp()]
         self.resolver.visit_Class(fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            Token('Princess Celestia', Literals.ID, None, None, None, None),
+            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
             [],
@@ -201,6 +201,21 @@ class ResolverTests(Base):
             Token('Programmer Name', Literals.ID, None, None, None, None)))
         self.assertTrue('A' in self.resolver.scopes[-1])
         self.assertTrue(self.resolver.scopes[-1]['A'] is True)
+
+    def testSuperclassIsTheSameAsClass(self):
+        self.resolver.begin_scope()
+        body = fim_ast.Compound()
+        body.children = [fim_ast.NoOp()]
+        with self.assertRaises(ResolverException):
+            self.resolver.visit_Class(fim_ast.Class(
+                Token('A', Literals.ID, None, None, None, None),
+                fim_ast.Var(Token('A', Literals.ID, None, None, None, None)),
+                [],
+                body,
+                [],
+                [],
+                Token('Programmer Name', Literals.ID, None, None, None, None)))
+
 
     # def testVisitClassWithMethod(self):
     #     self.resolver.begin_scope()

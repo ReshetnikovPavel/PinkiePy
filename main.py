@@ -6,28 +6,21 @@ from fim_resolver import Resolver
 
 program = """
 
-Dear Princess Celestia: Linked List!
+Dear Princess Celestia: A!
 
-    Did you know that Next is nothing?
-    Did you know that Value is nothing?
-    
-    I learned creation using next and value.
-        Next becomes next.
-        Value becomes value.
-        Then you get this.
-    That's all about creation.    
+    Did you know that field is 1?
 
 Your faithful student, Pavel Reshetnikov.
 
-Did you know that node is Linked List`s creation using nothing and 1?
-I said node`s Value.
-node becomes Linked List`s creation using node and 2.
-node becomes Linked List`s creation using node and 3.
+Dear A: B!
 
-I said node`s Value.
-I said node`s Next`s Value.
-I said node`s Next`s Next`s Value.
+    I learned how to find super's field!
+        I said field!
+    That's all about how to find super's field.
 
+Your faithful student, Pavel Reshetnikov.
+
+I remembered B`s how to find super's field.
 
 
 """

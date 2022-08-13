@@ -12,12 +12,16 @@ class FunctionType(Enum):
     FUNCTION = 1
     METHOD = 2
 
+class ClassType(Enum):
+    NONE = 0
+    CLASS = 1
 
 class Resolver(NodeVisitor):
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.scopes = []
         self.current_function = FunctionType.NONE
+        self.current_class = ClassType.NONE
 
     def visit_Compound(self, node):
         self.begin_scope()
@@ -82,6 +86,11 @@ class Resolver(NodeVisitor):
     def visit_Class(self, node):
         self.declare(node.name)
         self.define(node.name)
+
+        if node.name.value == node.superclass.token.value:
+            raise ResolverException(f"A class cannot inherit from itself")
+
+        self.resolve(node.superclass)
 
         self.begin_scope()
         self.scopes[-1]["this"] = True
