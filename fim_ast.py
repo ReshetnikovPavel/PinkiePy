@@ -124,7 +124,7 @@ class Set(AST):
 class Function(AST):
     def __init__(self, name, return_type, params, body, is_main):
         self.token = name
-        self.name = name.value
+        self.name = name
         self.return_type = return_type
         self.params = params
         self.body = body
@@ -175,6 +175,13 @@ class If(AST):
         self.condition = condition
         self.then_branch = then_branch
         self.else_branch = else_branch
+
+
+class Switch(AST):
+    def __init__(self, variable, cases, default):
+        self.variable = variable
+        self.cases = cases
+        self.default = default
 
 
 class While(AST):

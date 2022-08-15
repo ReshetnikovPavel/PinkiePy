@@ -121,7 +121,9 @@ class Parser:
         node = self.expr()
         return node
 
-    def compound_statement(self, end_token_names=None):
+    def compound_statement(self,
+                           end_token_names=None,
+                           end_block_type=(Block.END,)):
         nodes = self.statement_list(end_token_names=end_token_names)
 
         root = fim_ast.Compound()
@@ -135,12 +137,13 @@ class Parser:
 
         results = [node]
 
+        self.eat(Keywords.PUNCTUATION)
         while self.current_token.type != 'EOF' \
                 and (end_token_names is None
                      or self.current_token.type not in end_token_names
                      and self.current_token.block != Block.END):
-            self.eat(Keywords.PUNCTUATION)
             results.append(self.statement())
+            self.eat(Keywords.PUNCTUATION)
 
         if self.current_token.type == Literals.ID:
             self.error()
@@ -183,6 +186,8 @@ class Parser:
             node = self.return_statement()
         elif self.current_token.type == Keywords.READLINE:
             node = self.read_statement()
+        elif self.current_token.type == Keywords.SWITCH:
+            node = self.switch_statement()
         else:
             node = self.empty()
         return node
@@ -210,6 +215,33 @@ class Parser:
         self.eat(Keywords.IF, token_block=Block.END)
 
         return fim_ast.If(condition, then_branch, else_branch)
+
+    def switch_statement(self):
+        self.eat(Keywords.SWITCH)
+        variable = self.variable()
+        self.eat(Keywords.PUNCTUATION)
+        cases = {}
+        while self.current_token.type == Keywords.CASE \
+                and self.current_token.block == Block.BEGIN_PARTNER:
+            self.eat(Keywords.CASE, token_block=Block.BEGIN_PARTNER)
+            case_value = self.expr()
+            self.eat(Keywords.CASE, token_block=Block.END_PARTNER)
+            self.eat(Keywords.PUNCTUATION)
+            case_body = self.compound_statement(end_token_names=
+                                                (Keywords.CASE,
+                                                 Keywords.DEFAULT),
+                                                end_block_type=
+                                                (Block.BEGIN_PARTNER,
+                                                 Block.NONE))
+            cases[case_value] = case_body
+        default_body = None
+        if self.current_token.type == Keywords.DEFAULT:
+            self.eat(Keywords.DEFAULT)
+            self.eat(Keywords.PUNCTUATION)
+            default_body = self.compound_statement(end_token_names=
+                                                   (Keywords.SWITCH,))
+        self.eat(Keywords.END_LOOP, token_block=Block.END)
+        return fim_ast.Switch(variable, cases, default_body)
 
     def while_statement(self):
         self.eat(Keywords.WHILE)
@@ -320,7 +352,6 @@ class Parser:
                 return fim_ast.Set(get.object, get.name, value)
             raise Exception("Invalid assignment target")
         return expr
-
 
     def logic(self):
         return self.logic_xor()
@@ -498,8 +529,8 @@ class Parser:
 
     def concatenation(self):
         next_token = self.lexer.peek()
-        if self.current_token.type == Literals.STRING\
-                and next_token.type != Keywords.PUNCTUATION\
+        if self.current_token.type == Literals.STRING \
+                and next_token.type != Keywords.PUNCTUATION \
                 or next_token.type == Literals.STRING:
             left = self.primary()
             right = self.expr()

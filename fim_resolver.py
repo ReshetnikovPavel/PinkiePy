@@ -200,3 +200,11 @@ class Resolver(NodeVisitor):
 
     def visit_Read(self, node):
         pass
+
+    def visit_Switch(self, node):
+        self.resolve(node.variable)
+        for case_condition, body in node.cases.items():
+            self.resolve(case_condition)
+            self.resolve(body)
+        if node.default is not None:
+            self.resolve(node.default)

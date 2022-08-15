@@ -257,6 +257,16 @@ class Interpreter(NodeVisitor):
             return value
         raise RuntimeError("{} only instances have properties".format(obj))
 
+    def visit_Switch(self, node):
+        cases = {}
+        for case, body in node.cases.items():
+            cases[self.visit(case)] = body
+        variable_value = self.visit(node.variable)
+        if variable_value in cases:
+            self.visit(cases[variable_value])
+        else:
+            self.visit(node.default)
+
 
 def stringify(obj):
     # if res is float and can be int, convert it to int
