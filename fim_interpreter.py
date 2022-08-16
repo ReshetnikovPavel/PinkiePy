@@ -96,7 +96,7 @@ class Interpreter(NodeVisitor):
     def visit_Compound(self, node):
         self.execute_compound(node.children, Environment(self.environment))
 
-    def visit_Trunk(self, node):
+    def visit_Root(self, node):
         for declaration in node.children:
             if isinstance(declaration, fim_ast.Class):
                 continue

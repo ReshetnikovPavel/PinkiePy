@@ -355,20 +355,9 @@ class Parser:
     def expr(self):
         return self.assignment()
 
-    # def assignment(self):
-    #     if self.lexer.peek().type == Keywords.ASSIGN:
-    #         left = self.variable()
-    #         token = self.current_token
-    #         self.eat(Keywords.ASSIGN)
-    #         right = self.assignment()
-    #         return fim_ast.Assign(left, token, right)
-    #     else:
-    #         return self.logic()
-
     def assignment(self):
         expr = self.logic()
         if self.current_token.type == Keywords.ASSIGN:
-            equals = self.current_token
             self.eat(Keywords.ASSIGN)
             value = self.assignment()
 
@@ -604,4 +593,4 @@ class Parser:
         while not self.current_token.type == 'EOF':
             statements.append(self.declaration())
 
-        return fim_ast.Trunk(statements)
+        return fim_ast.Root(statements)

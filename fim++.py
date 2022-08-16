@@ -17,15 +17,18 @@ def interpret(program):
     interpreter.interpret(tree)
 
 
-def interpret_from_command_line():
-    if len(sys.argv) != 2:
-        print("Usage: fim++.py <filename>")
-        sys.exit(1)
-    program_file_name = sys.argv[1]
+def interpret_file(program_file_name):
     if program_file_name.endswith('.fim'):
         with open(program_file_name, 'r') as program_file:
             program = program_file.read()
             interpret(program)
+
+
+def interpret_from_command_line():
+    if len(sys.argv) != 2:
+        print("Usage: fim++.py <filename>")
+        sys.exit(1)
+    interpret_file(sys.argv[1])
 
 
 if __name__ == '__main__':

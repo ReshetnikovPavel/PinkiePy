@@ -1,6 +1,5 @@
 from node_visitor import NodeVisitor
 from enum import Enum
-from fim_callable import FimClass
 
 
 class ResolverException(Exception):
@@ -43,7 +42,7 @@ class Resolver(NodeVisitor):
         self.resolve_statements(node.children)
         self.end_scope()
 
-    def visit_Trunk(self, node):
+    def visit_Root(self, node):
         self.resolve_statements(node.children)
 
     def resolve_statements(self, statements):

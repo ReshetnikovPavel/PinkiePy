@@ -5,7 +5,7 @@ class AST:
     pass
 
 
-class Trunk(AST):
+class Root(AST):
     def __init__(self, children):
         self.children = children
 
