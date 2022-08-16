@@ -22,7 +22,7 @@ def interpret_from_command_line():
         print("Usage: fim++.py <filename>")
         sys.exit(1)
     program_file_name = sys.argv[1]
-    if program_file_name.endswith('.fpp'):
+    if program_file_name.endswith('.fim'):
         with open(program_file_name, 'r') as program_file:
             program = program_file.read()
             interpret(program)
