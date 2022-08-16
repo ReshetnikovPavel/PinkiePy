@@ -107,6 +107,16 @@ class Class(AST):
         self.programmer = programmer
 
 
+class Interface(AST):
+    def __init__(self, name, methods, programmer):
+        self.name = name
+        self.methods = methods
+        self.programmer = programmer
+
+    def __str__(self):
+        raise Exception("Cannot print interface")
+
+
 class Get(AST):
     def __init__(self, object, name, has_parameters):
         self.object = object

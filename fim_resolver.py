@@ -13,9 +13,11 @@ class FunctionType(Enum):
     FUNCTION = 1
     METHOD = 2
 
+
 class ClassType(Enum):
     NONE = 0
     CLASS = 1
+
 
 class Resolver(NodeVisitor):
     def __init__(self, interpreter):
@@ -25,6 +27,7 @@ class Resolver(NodeVisitor):
         self.current_class = ClassType.NONE
         self.set_builtin_globals()
         self.main_was_initialized = False
+        self.interfaces_to_be_checked = {}
 
     def set_builtin_globals(self):
         self.interpreter.globals.define(
@@ -100,6 +103,15 @@ class Resolver(NodeVisitor):
             raise ResolverException(f"A class cannot inherit from itself")
 
         self.resolve(node.superclass)
+
+        for interface_token in node.implementations:
+            if interface_token.value in self.interpreter.globals._values:
+                self.check_interface(
+                    self.interpreter.globals.get(interface_token.value), node)
+            elif interface_token.value in self.interfaces_to_be_checked:
+                self.interfaces_to_be_checked[interface_token.value].append(node)
+            else:
+                self.interfaces_to_be_checked[interface_token.value] = [node]
 
         self.begin_scope()
         self.scopes[-1]["this"] = True
@@ -200,6 +212,23 @@ class Resolver(NodeVisitor):
 
     def visit_Read(self, node):
         pass
+
+    def visit_Interface(self, node):
+        self.interpreter.globals.define(node.name.value, node)
+        if node.name.value in self.interfaces_to_be_checked:
+            for fim_class in self.interfaces_to_be_checked[node.name.value]:
+                self.check_interface(node, fim_class)
+        # TODO: сделать интерфейс
+        # Как реализовать? В классе, если интерфейса не существует в глобалс,
+        # поместить класс в словарь с ключом - названием интерфейса
+        # и значением - списком классов-имплементаций.
+        # При посещении интерфейса проверять наличие в словаре интерфейсов
+        # и проверять методы
+
+    def check_interface(self, interface, fim_class):
+        for method in interface.methods:
+            if method.name.value not in map(lambda m: m.name.value, fim_class.methods):
+                raise ResolverException(f"{fim_class.name.value} does not implement {method.name.value}")
 
     def visit_Switch(self, node):
         self.resolve(node.variable)

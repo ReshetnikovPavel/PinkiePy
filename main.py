@@ -5,25 +5,35 @@ from fim_resolver import Resolver
 
 
 program = """
-I learned flail.
-    I said "Flail!".
-That's all about flail.
 
-Did you know that Pinkie’s Tail is 4?
+Princess Luna:
 
-In regards to Pinkie’s Tail:
-On the 1st hoof...
-I said “That’s impossible!”.
-On the 2nd hoof...
-I said “There must be a scientific explanation”.
-On the 3rd hoof...
-I said “There must be an explanation”.
-On the 4th hoof...
-I said “Why does this happen?!”.
-I would flail.
-If all else fails...
-I said “She’s just being Pinkie Pie.”.
-That’s what I did.
+I learned how to fly.
+I learned how to do magic.
+I learned how to raise the moon.
+
+Your faithful student, Kyli Rouge.
+
+Dear Princess Celestia and Princess Luna: Test!
+
+Today I learned how to do many things!
+    I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
+That's all about how to do many things.
+
+I learned how to fly.
+    I said "I can fly now".
+That's all about how to fly.
+
+I learned how to do magic.
+    I said "Shazam"!
+That's all about how to do magic.
+
+I learned how to raise the moon.
+    I said "cnreicofnouqefcnf".
+That's all about how to raise the moon.
+
+Your faithful student, Pavel Reshetnikov.
+
 """
 
 lexer = Lexer(program)

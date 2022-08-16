@@ -568,7 +568,7 @@ class Lexer:
             # if it doesn't cross a previous one,
             # so there is probably a name between them
             if keyword.start >= stack[-1].end:
-                pattern = self.source[stack[-1].end:keyword.start].strip()
+                pattern = self.source[stack[-1].end+1:keyword.start].strip()
                 # if previous was a name, merge
                 if stack[-1].type == Literals.ID and pattern != '':
                     stack[-1].value += ' ' + pattern

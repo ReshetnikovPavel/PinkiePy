@@ -240,6 +240,9 @@ class Interpreter(NodeVisitor):
             instance = fim_class.call(self, [])
             instance.get(main_method_token).call(self, [])
 
+    def visit_Interface(self, node):
+        pass
+
     def visit_Get(self, node):
         obj = self.visit(node.object)
         if isinstance(obj, fim_callable.FimInstance):

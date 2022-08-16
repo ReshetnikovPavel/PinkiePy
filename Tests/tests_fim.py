@@ -171,6 +171,134 @@ I would flail.
 If all else fails...
 I said “She’s just being Pinkie Pie.”.
 That’s what I did.""", 'Why does this happen?!\nFlail!\n')
+        self.assert_printed("""I learned flail.
+    I said "Flail!".
+That's all about flail.
+
+Did you know that Pinkie’s Tail is 5?
+
+In regards to Pinkie’s Tail:
+On the 1st hoof...
+I said “That’s impossible!”.
+On the 2nd hoof...
+I said “There must be a scientific explanation”.
+On the 3rd hoof...
+I said “There must be an explanation”.
+On the 4th hoof...
+I said “Why does this happen?!”.
+I would flail.
+If all else fails...
+I said “She’s just being Pinkie Pie.”.
+That’s what I did.""", 'She’s just being Pinkie Pie.\n')
+
+    def testInterface(self):
+        self.assert_printed("""Princess Luna:
+
+I learned how to fly.
+I learned how to do magic.
+I learned how to raise the moon.
+
+Your faithful student, Kyli Rouge.
+
+Dear Princess Celestia and Princess Luna: Interface Name!
+
+Today I learned how to do many things!
+    I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
+That's all about how to do many things.
+
+I learned how to fly.
+    I said "I can fly now".
+That's all about how to fly.
+
+I learned how to do magic.
+    I said "Shazam"!
+That's all about how to do magic.
+
+I learned how to raise the moon.
+    I said "cnreicofnouqefcnf".
+That's all about how to raise the moon.
+
+Your faithful student, Pavel Reshetnikov.""", 'I can fly now\nShazam\ncnreicofnouqefcnf\n')
+
+        self.assert_printed("""
+        Dear Princess Celestia and Princess Luna: Interface Name!
+
+        Today I learned how to do many things!
+            I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
+        That's all about how to do many things.
+
+        I learned how to fly.
+            I said "I can fly now".
+        That's all about how to fly.
+
+        I learned how to do magic.
+            I said "Shazam"!
+        That's all about how to do magic.
+
+        I learned how to raise the moon.
+            I said "a".
+        That's all about how to raise the moon.
+
+        Your faithful student, Pavel Reshetnikov.
+        
+        Princess Luna:
+
+        I learned how to fly.
+        I learned how to do magic.
+        I learned how to raise the moon.
+
+        Your faithful student, Kyli Rouge.""",
+                            'I can fly now\nShazam\na\n')
+
+        self.assert_printed("""
+        Interface 1:
+        I learned method 1!
+        Your faithful student, Pavel Reshetnikov.
+        
+        Interface 2:
+        I learned method 2!
+        Your faithful student, Pavel Reshetnikov.
+        
+        Dear Princess Celestia and Interface 1 and Interface 2: Implementation!
+        Today I learned Main!
+            I would method 1!
+            I would method 2!
+        That's all about Main.
+        
+        I learned method 1!
+            I said "method 1"!
+        That's all about method 1!
+        
+         I learned method 2!
+            I said "method 2"!
+        That's all about method 2!
+        
+        Your faithful student, Pavel Reshetnikov.""", 'method 1\nmethod 2\n')
+
+        with self.assertRaises(Exception):
+            self.assert_printed("""Princess Luna:
+
+I learned how to fly.
+I learned how to do magic.
+I learned how to raise the moon.
+
+Your faithful student, Kyli Rouge.
+
+Dear Princess Celestia and Princess Luna: Interface Name!
+
+Today I learned how to do many things!
+    I remembered how to fly, I remembered how to raise the moon!
+That's all about how to do many things.
+
+I learned how to fly.
+    I said "I can fly now".
+That's all about how to fly.
+
+I learned how to raise the moon.
+    I said "cnreicofnouqefcnf".
+That's all about how to raise the moon.
+
+Your faithful student, Pavel Reshetnikov.""", 'I can fly now\ncnreicofnouqefcnf\n')
 
 
 if __name__ == '__main__':

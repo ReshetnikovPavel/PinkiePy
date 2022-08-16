@@ -28,10 +28,28 @@ class Parser:
             return self.function_declaration()
         if self.current_token.type == Keywords.MANE_PARAGRAPH:
             return self.main_function_declaration()
+        if self.current_token.type == Literals.ID \
+                and self.lexer.peek().type == Keywords.PUNCTUATION:
+            return self.interface_declaration()
         else:
             node = self.statement()
             self.eat(Keywords.PUNCTUATION)
             return node
+
+    def interface_declaration(self):
+        name = self.current_token
+        self.eat(Literals.ID)
+        self.eat(Keywords.PUNCTUATION)
+        methods = []
+        while self.current_token.type != Keywords.REPORT or \
+                self.current_token.block != Block.END:
+            methods.append(self.function_declaration_without_body())
+
+        self.eat(Keywords.REPORT, token_block=Block.END)
+        programmer_name = self.current_token
+        self.eat(Literals.ID)
+        self.eat(Keywords.PUNCTUATION)
+        return fim_ast.Interface(name, methods, programmer_name)
 
     def class_declaration(self):
         self.eat(Keywords.REPORT, token_block=Block.BEGIN)
@@ -70,6 +88,20 @@ class Parser:
             methods, fields, programmer_token)
 
     def function_declaration(self, is_main=False):
+        function = self.function_declaration_without_body(is_main)
+
+        body = self.compound_statement(end_token_names=(Keywords.PARAGRAPH,))
+        function.body = body
+
+        self.eat(Keywords.PARAGRAPH, token_block=Block.END)
+        name_in_ending = self.current_token
+        if function.name.value != name_in_ending.value:
+            self.error()
+        self.eat(Literals.ID)
+
+        return function
+
+    def function_declaration_without_body(self, is_main=False):
         if is_main:
             self.eat(Keywords.MANE_PARAGRAPH, token_block=Block.BEGIN)
         else:
@@ -94,15 +126,7 @@ class Parser:
                 self.eat(Literals.ID)
         self.eat(Keywords.PUNCTUATION)
 
-        body = self.compound_statement(end_token_names=(Keywords.PARAGRAPH,))
-
-        self.eat(Keywords.PARAGRAPH, token_block=Block.END)
-        name_in_ending = self.current_token
-        if name.value != name_in_ending.value:
-            self.error()
-        self.eat(Literals.ID)
-
-        return fim_ast.Function(name, return_type, parameters, body, is_main)
+        return fim_ast.Function(name, return_type, parameters, None, is_main)
 
     def main_function_declaration(self):
         return self.function_declaration(is_main=True)
