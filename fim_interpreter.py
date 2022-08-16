@@ -18,6 +18,11 @@ class Interpreter(NodeVisitor):
         self.environment = self.globals
         self.locals = {}
 
+    def reset(self):
+        self.globals = Environment()
+        self.environment = self.globals
+        self.locals = {}
+
     def interpret(self, tree):
         for variable in self.globals._values.values():
             if isinstance(variable, fim_ast.AST):
@@ -26,6 +31,10 @@ class Interpreter(NodeVisitor):
 
     def resolve(self, node, depth):
         self.locals[node] = depth
+
+    def set_builtin_globals(self):
+        self.globals.define(
+            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
 
     def visit_BinOp(self, node):
         if node.op.type == Keywords.ADDITION:

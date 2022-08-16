@@ -522,7 +522,7 @@ class Lexer:
                 Block.NONE,
                 Suffix.NONE,
                 0,
-                len(self.source) - 1))
+                len(self.source)))
 
         # keyword is not at the start of the source
         elif keywords[0].start != 0:
@@ -534,7 +534,7 @@ class Lexer:
                     Block.NONE,
                     Suffix.NONE,
                     0,
-                    keywords[0].start - 1))
+                    keywords[0].start))
 
         for index, keyword in enumerate(keywords):
             # if stack is empty
@@ -568,11 +568,11 @@ class Lexer:
             # if it doesn't cross a previous one,
             # so there is probably a name between them
             if keyword.start >= stack[-1].end:
-                pattern = self.source[stack[-1].end+1:keyword.start].strip()
+                pattern = self.source[stack[-1].end:keyword.start].strip()
                 # if previous was a name, merge
                 if stack[-1].type == Literals.ID and pattern != '':
                     stack[-1].value += ' ' + pattern
-                    stack[-1].end = keyword.start - 1
+                    stack[-1].end = keyword.start
                 # else add a new one
                 elif pattern != '':
                     self._add_literals_to_stack(stack, Token(
@@ -580,8 +580,8 @@ class Lexer:
                         Literals.ID,
                         Block.NONE,
                         Suffix.NONE,
-                        stack[-1].end + 1,
-                        keyword.start - 1))
+                        stack[-1].end+1,
+                        keyword.start))
             # if begin partner
             if keyword.block == Block.BEGIN_PARTNER:
                 partner_name_stack.append(keyword.type)
@@ -618,14 +618,14 @@ class Lexer:
                 self._add_keyword_to_stack(stack, keyword)
                 continue
 
-        if stack[-1].end != len(self.source) - 1:
+        if stack[-1].end != len(self.source):
             self._add_literals_to_stack(stack, Token(
-                self.source[stack[-1].end + 1:],
+                self.source[stack[-1].end:],
                 Literals.ID,
                 Block.NONE,
                 Suffix.NONE,
-                stack[-1].end + 1,
-                len(self.source) - 1))
+                stack[-1].end,
+                len(self.source)))
 
         self.tokens = stack
         stack.append(Token('EOF', 'EOF', Block.NONE, Suffix.NONE, len(self.source), len(self.source)))
@@ -675,7 +675,7 @@ class Lexer:
                     literal.suffix,
                     literal.start + name_regex_info.start,
                     literal.end + name_regex_info.start)
-                start_index = literal.end + 1
+                start_index = literal.end
                 yield previous
 
     def get_next_token(self):

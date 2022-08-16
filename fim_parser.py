@@ -8,6 +8,10 @@ class Parser:
         self.current_token = self.lexer.get_next_token()
         self.is_currently_parsing_call_arguments_count = 0
 
+    def reset(self):
+        self.current_token = self.lexer.get_next_token()
+        self.is_currently_parsing_call_arguments_count = 0
+
     def error(self):
         raise Exception('Invalid syntax', self.current_token)
 

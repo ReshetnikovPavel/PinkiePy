@@ -25,13 +25,18 @@ class Resolver(NodeVisitor):
         self.scopes = []
         self.current_function = FunctionType.NONE
         self.current_class = ClassType.NONE
-        self.set_builtin_globals()
+        self.interpreter.set_builtin_globals()
         self.main_was_initialized = False
         self.interfaces_to_be_checked = {}
 
-    def set_builtin_globals(self):
-        self.interpreter.globals.define(
-            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
+    def reset(self):
+        self.scopes = []
+        self.current_function = FunctionType.NONE
+        self.current_class = ClassType.NONE
+        self.interpreter.set_builtin_globals()
+        self.main_was_initialized = False
+        self.interfaces_to_be_checked = {}
+
 
     def visit_Compound(self, node):
         self.begin_scope()

@@ -904,6 +904,47 @@ class TestBranchingStatements(Base):
             ('PUNCTUATION', '.'))
 
 
+class TestInterface(Base):
+    def testInterface(self):
+        self.assert_tokens(
+            """Princess Luna:
+
+I learned how to fly.
+I learned how to do magic.
+I learned how to raise the moon.
+
+Your faithful student, Kyli Rouge.""",
+            ('ID', 'Princess Luna'),
+            ('PUNCTUATION', ':'),
+            ('PARAGRAPH', 'I learned'),
+            ('ID', 'how to fly'),
+            ('PUNCTUATION', '.'),
+            ('PARAGRAPH', 'I learned'),
+            ('ID', 'how to do magic'),
+            ('PUNCTUATION', '.'),
+            ('PARAGRAPH', 'I learned'),
+            ('ID', 'how to raise the moon'),
+            ('PUNCTUATION', '.'),
+            ('REPORT', 'Your faithful student,'),
+            ('ID', 'Kyli Rouge'),
+            ('PUNCTUATION', '.'))
+
+
+class TestOther(Base):
+    def testRightAfterString(self):
+        self.assert_tokens('"pass it around"ciders',
+                           ('STRING', 'pass it around'),
+                           ('ID', 'ciders'))
+
+    def testInsideStrings(self):
+        self.assert_tokens('I sang "Take one down and pass it around, "ciders" jugs of cider on the wall."!',
+                           ('PRINT', 'I sang'),
+                           ('STRING', "Take one down and pass it around, "),
+                           ('ID', 'ciders'),
+                           ('STRING', " jugs of cider on the wall."),
+                           ('PUNCTUATION', '!'))
+
+
 class TestPrograms(Base):
     def testHelloWorld(self):
         self.assert_tokens('\nDear Princess Celestia: Hello World!'
