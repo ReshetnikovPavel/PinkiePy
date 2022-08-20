@@ -1,2 +1,3 @@
 this = 'this report'
-base = 'your'
+extension = '.fim'
+base_class_name = 'Princess Celestia'

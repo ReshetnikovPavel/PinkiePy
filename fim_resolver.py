@@ -1,6 +1,24 @@
+import os
+
+import fim_callable
+import special_words
+from fim_interpreter import Interpreter
+from fim_lexer import Lexer
+from fim_parser import Parser
 from node_visitor import NodeVisitor
 from enum import Enum
 
+def interpret(program):
+    lexer = Lexer(program)
+    lexer.lex()
+    parser = Parser(lexer)
+    interpreter = Interpreter(parser)
+    tree = parser.parse()
+    resolver = Resolver(interpreter)
+    resolver.resolve(tree)
+    interpreter.interpret(tree)
+
+    return interpreter.globals
 
 class ResolverException(Exception):
     def __init__(self, message=None):
@@ -241,3 +259,30 @@ class Resolver(NodeVisitor):
             self.resolve(body)
         if node.default is not None:
             self.resolve(node.default)
+
+    def visit_Import(self, node):
+        program_file_name = node.name.value + special_words.extension
+        if program_file_name.endswith(special_words.extension):
+            with open(program_file_name, 'r') as program_file:
+                program = program_file.read()
+                imported = interpret(program)
+                self.interpreter.globals.define(node.name.value, self.make_class_from_env(imported, node.name.value))
+
+    @staticmethod
+    def make_class_from_env(env, class_name):
+        methods = {}
+        fields = {}
+        for key, value in env._values.items():
+            if isinstance(value, FunctionType):
+                methods[key] = value
+            elif key == special_words.base_class_name:
+                continue
+            #   if the name of module is the same as the name of class,
+            #   then we import only this class
+            #   to make import work kinda like on wikia page
+            elif key == class_name:
+                return env._values[key]
+            else:
+                fields[key] = value
+
+        return fim_callable.FimClass(class_name, None, methods, fields)

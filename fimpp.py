@@ -1,4 +1,5 @@
 import sys
+import special_words
 
 from fim_lexer import Lexer
 from fim_parser import Parser
@@ -18,7 +19,7 @@ def interpret(program):
 
 
 def interpret_file(program_file_name):
-    if program_file_name.endswith('.fim'):
+    if program_file_name.endswith(special_words.extension):
         with open(program_file_name, 'r') as program_file:
             program = program_file.read()
             interpret(program)
@@ -30,6 +31,10 @@ def interpret_from_command_line():
         sys.exit(1)
     interpret_file(sys.argv[1])
 
+interpret("""
+Remember when I wrote about test?
+I remembered test!
+""")
 
 if __name__ == '__main__':
     interpret_from_command_line()

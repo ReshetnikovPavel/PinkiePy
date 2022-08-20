@@ -35,10 +35,19 @@ class Parser:
         if self.current_token.type == Literals.ID \
                 and self.lexer.peek().type == Keywords.PUNCTUATION:
             return self.interface_declaration()
+        if self.current_token.type == Keywords.IMPORT:
+            return self.import_declaration()
         else:
             node = self.statement()
             self.eat(Keywords.PUNCTUATION)
             return node
+
+    def import_declaration(self):
+        self.eat(Keywords.IMPORT)
+        name = self.current_token
+        self.eat(Literals.ID)
+        self.eat(Keywords.PUNCTUATION)
+        return fim_ast.Import(name)
 
     def interface_declaration(self):
         name = self.current_token

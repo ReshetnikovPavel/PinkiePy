@@ -34,7 +34,7 @@ class Interpreter(NodeVisitor):
 
     def set_builtin_globals(self):
         self.globals.define(
-            'Princess Celestia', FimClass('Princess Celestia', None, {}, {}))
+            special_words.base_class_name, FimClass(special_words.base_class_name, None, {}, {}))
 
     def visit_BinOp(self, node):
         if node.op.type == Keywords.ADDITION:
@@ -278,6 +278,9 @@ class Interpreter(NodeVisitor):
             self.visit(cases[variable_value])
         else:
             self.visit(node.default)
+
+    def visit_Import(self, node):
+        pass
 
 
 def stringify(obj):
