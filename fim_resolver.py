@@ -1,12 +1,12 @@
-import os
-
 import fim_callable
 import special_words
 from fim_interpreter import Interpreter
-from fim_lexer import Lexer
+from fim_lexer import Lexer, Literals
 from fim_parser import Parser
 from node_visitor import NodeVisitor
 from enum import Enum
+import re
+
 
 def interpret(program):
     lexer = Lexer(program)
@@ -19,6 +19,7 @@ def interpret(program):
     interpreter.interpret(tree)
 
     return interpreter.globals
+
 
 class ResolverException(Exception):
     def __init__(self, message=None):
@@ -40,11 +41,21 @@ class Resolver(NodeVisitor):
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.scopes = []
+        self.scopes_for_typechecking = []
         self.current_function = FunctionType.NONE
         self.current_class = ClassType.NONE
         self.interpreter.set_builtin_globals()
         self.main_was_initialized = False
         self.interfaces_to_be_checked = {}
+        self.builtin_type_names = {
+            Literals.NUMBER: r'^(?:(?:a )|(?:the ))?number',
+            Literals.CHAR: r'^(?:(?:a )|(?:the ))?(?:(?:letter)|(?:character))',
+            Literals.STRING: r'^(?:(?:a )|(?:the ))?'
+                             r'(?:(?:sentence)|(?:phrase)|(?:quote)|(?:word)|(?:name))',
+            Literals.BOOL: r'^(?:(?:(?:the )?logic)|(?:(?:an )|(?:the ))?argument)'}
+        self.new_type_names = {}
+        for type_name, regex in self.builtin_type_names.items():
+            self.builtin_type_names[type_name] = re.compile(regex)
 
     def reset(self):
         self.scopes = []
@@ -53,7 +64,6 @@ class Resolver(NodeVisitor):
         self.interpreter.set_builtin_globals()
         self.main_was_initialized = False
         self.interfaces_to_be_checked = {}
-
 
     def visit_Compound(self, node):
         self.begin_scope()
@@ -75,14 +85,17 @@ class Resolver(NodeVisitor):
 
     def begin_scope(self):
         self.scopes.append({})
+        self.scopes_for_typechecking.append({})
 
     def end_scope(self):
         self.scopes.pop()
+        self.scopes_for_typechecking.pop()
 
     def visit_VariableDeclaration(self, node):
         self.declare(node.left)
         if node.right is not None:
-            self.visit(node.right)
+            type = self.visit(node.right)
+            self.set_type(node.left.token, type)
         self.define(node.left)
 
     def declare(self, name):
@@ -99,17 +112,43 @@ class Resolver(NodeVisitor):
         scope = self.scopes[-1]
         scope[name.value] = True
 
+    def set_type(self, name, type):
+        if len(self.scopes_for_typechecking) == 0:
+            return
+        scope = self.scopes_for_typechecking[-1]
+        scope[name.value] = type
+
     def visit_Var(self, node):
         if len(self.scopes) != 0 and self.scopes[-1].get(node.value) is False:
             raise ResolverException()
 
+        variable_type = None
+        variable_type, variable_token = self.typecheck(node.token)
+        node.token = variable_token
+        node.value = variable_token.value
+
         self.resolve_local(node, node.token)
+
+        return variable_type
+
+    def typecheck(self, token):
+        variable_type, variable_token = self.separate_type(token)
+        if not self.is_instance(variable_type, variable_token):
+            raise ResolverException(
+                f"{variable_token.value} is not an instance of {variable_type}")
+        return variable_type, variable_token
 
     def resolve_local(self, node, name):
         for i in reversed(range(len(self.scopes))):
             if name.value in self.scopes[i]:
                 self.interpreter.resolve(node, len(self.scopes) - 1 - i)
                 return
+
+    def get_type(self, name):
+        for i in reversed(range(len(self.scopes_for_typechecking))):
+            if name.value in self.scopes_for_typechecking[i]:
+                return self.scopes_for_typechecking[i][name.value]
+        return None
 
     def visit_Assign(self, node):
         self.resolve(node.right)
@@ -131,7 +170,8 @@ class Resolver(NodeVisitor):
                 self.check_interface(
                     self.interpreter.globals.get(interface_token.value), node)
             elif interface_token.value in self.interfaces_to_be_checked:
-                self.interfaces_to_be_checked[interface_token.value].append(node)
+                self.interfaces_to_be_checked[interface_token.value].append(
+                    node)
             else:
                 self.interfaces_to_be_checked[interface_token.value] = [node]
 
@@ -144,7 +184,6 @@ class Resolver(NodeVisitor):
 
         self.end_scope()
 
-
     def visit_Get(self, node):
         self.resolve(node.object)
 
@@ -155,12 +194,14 @@ class Resolver(NodeVisitor):
     def visit_Function(self, node):
         self.declare(node.token)
         self.define(node.token)
+        self.set_type(node.token, node.return_type)
         self.resolve_function(node, FunctionType.FUNCTION)
 
     def resolve_function(self, node, function_type):
         if node.is_main:
             if self.main_was_initialized:
-                raise ResolverException(f"Cannot have more than one main function")
+                raise ResolverException(
+                    f"Cannot have more than one main function")
             self.main_was_initialized = True
 
         enclosing_function = self.current_function
@@ -205,10 +246,14 @@ class Resolver(NodeVisitor):
         self.resolve(node.variable)
 
     def visit_String(self, node):
-        pass
+        variable_type, variable_token = self.typecheck(node.token)
+        node.token = variable_token
+        return variable_type
 
     def visit_Number(self, node):
-        pass
+        variable_type, variable_token = self.typecheck(node.token)
+        node.token = variable_token
+        return variable_type
 
     def visit_BinOp(self, node):
         self.resolve(node.left)
@@ -227,7 +272,10 @@ class Resolver(NodeVisitor):
         pass
 
     def visit_Bool(self, node):
-        pass
+        variable_type, variable_token = self.typecheck(node.token)
+        node.token = variable_token
+        node.value = variable_token.value
+        return variable_type
 
     def visit_Null(self, node):
         pass
@@ -240,17 +288,14 @@ class Resolver(NodeVisitor):
         if node.name.value in self.interfaces_to_be_checked:
             for fim_class in self.interfaces_to_be_checked[node.name.value]:
                 self.check_interface(node, fim_class)
-        # TODO: сделать интерфейс
-        # Как реализовать? В классе, если интерфейса не существует в глобалс,
-        # поместить класс в словарь с ключом - названием интерфейса
-        # и значением - списком классов-имплементаций.
-        # При посещении интерфейса проверять наличие в словаре интерфейсов
-        # и проверять методы
 
-    def check_interface(self, interface, fim_class):
+    @staticmethod
+    def check_interface(interface, fim_class):
         for method in interface.methods:
-            if method.name.value not in map(lambda m: m.name.value, fim_class.methods):
-                raise ResolverException(f"{fim_class.name.value} does not implement {method.name.value}")
+            if method.name.value not in map(lambda m: m.name.value,
+                                            fim_class.methods):
+                raise ResolverException(
+                    f"{fim_class.name.value} does not implement {method.name.value}")
 
     def visit_Switch(self, node):
         self.resolve(node.variable)
@@ -266,7 +311,9 @@ class Resolver(NodeVisitor):
             with open(program_file_name, 'r') as program_file:
                 program = program_file.read()
                 imported = interpret(program)
-                self.interpreter.globals.define(node.name.value, self.make_class_from_env(imported, node.name.value))
+                self.interpreter.globals.define(
+                    node.name.value,
+                    self.make_class_from_env(imported, node.name.value))
 
     @staticmethod
     def make_class_from_env(env, class_name):
@@ -286,3 +333,31 @@ class Resolver(NodeVisitor):
                 fields[key] = value
 
         return fim_callable.FimClass(class_name, None, methods, fields)
+
+    def separate_type(self, token):
+        for type_name, regex in self.builtin_type_names.items():
+            match = re.match(regex, token.value)
+            if match:
+                value = str.removeprefix(token.value, match.group(0)).strip()
+                if value == "":
+                    return type_name, token
+                token.value = value
+                return type_name, token
+        # for name in self.interpreter.globals._values:
+        #     if isinstance(self.interpreter.globals._values.get(name),
+        #                   fim_callable.FimClass):
+        #         if token.value.startswith(name):
+        #             value = str.removeprefix(token.value, name).strip()
+        #             if value == "":
+        #                 return None, token
+        #             token.value = value
+        #             return name, token
+        return None, token
+
+    def is_instance(self, type, token):
+        if type is None:
+            return True
+        if token.type != Literals.ID:
+            return type == token.type
+        else:
+            return type == self.get_type(token)

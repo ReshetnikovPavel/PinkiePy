@@ -51,15 +51,21 @@ class UnaryOp(AST):
 class Number(AST):
     def __init__(self, token):
         self.token = token
-        self.value = token.value
+
+    @property
+    def value(self):
+        return self.token.value
 
 
 class Char(AST):
     def __init__(self, token):
         self.token = token
-        self.value = token.value
-        if token.value[0] == "'" and token.value[-1] == "'":
-            self.value = token.value[1:-1]
+
+    @property
+    def value(self):
+        if self.token.value[0] == "'" and self.token.value[-1] == "'":
+            return self.token.value[1:-1]
+        return self.token.value
 
 
 class Bool(AST):
@@ -86,10 +92,13 @@ class Null(AST):
 class String(AST):
     def __init__(self, token):
         self.token = token
-        self.value = token.value
-        if token.value[0] in ['"', '”', '“']\
-                and token.value[-1] in ['"', '”', '“']:
-            self.value = token.value[1:-1]
+
+    @property
+    def value(self):
+        if self.token.value[0] in ['"', '”', '“']\
+                and self.token.value[-1] in ['"', '”', '“']:
+            return self.token.value[1:-1]
+        return self.token.value
 
 
 class NoOp(AST):

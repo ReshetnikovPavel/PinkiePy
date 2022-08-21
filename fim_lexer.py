@@ -51,6 +51,7 @@ class Suffix(Enum):
 
 
 class Literals(Enum):
+    BOOL = 7
     CHAR = 0
     STRING = 1
     NUMBER = 2

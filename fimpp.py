@@ -31,10 +31,5 @@ def interpret_from_command_line():
         sys.exit(1)
     interpret_file(sys.argv[1])
 
-interpret("""
-Remember when I wrote about test?
-I remembered test!
-""")
-
 if __name__ == '__main__':
     interpret_from_command_line()

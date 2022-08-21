@@ -93,7 +93,6 @@ class InterpreterTests(Base):
         token = Token(Literals.ID, 'a', None, None, None, None)
         expr = fim_ast.Assign(
             fim_ast.Var(token),
-            Token('is now', Keywords.ASSIGN, None, None, None, None),
             fim_ast.String(
                 Token('after', Literals.STRING, None, None, None, None)))
         distance = 4
@@ -108,7 +107,7 @@ class InterpreterTests(Base):
     def testVisitClass(self):
         body = fim_ast.Compound()
         body.children = [fim_ast.NoOp()]
-        class_node = fim_ast.Class(
+        ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
             fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
@@ -116,7 +115,8 @@ class InterpreterTests(Base):
             [],
             [],
             Token('Programmer Name', Literals.ID, None, None, None, None))
-        self.interpreter.visit_Class(class_node)
+        self.interpreter.environment.define(ast_class.name.value, ast_class)
+        self.interpreter.visit_Class(ast_class)
         self.assertTrue('A' in self.interpreter.environment._values)
         self.assertTrue(isinstance(self.interpreter.environment._values['A'], FimClass))
         self.assertTrue(self.interpreter.environment._values['A'].name == 'A')
@@ -187,6 +187,7 @@ class InterpreterTests(Base):
             [method],
             [],
             Token('Programmer Name', Literals.ID, None, None, None, None))
+        self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
         self.interpreter.environment._values['A'].methods['func'] = method
 
@@ -200,6 +201,7 @@ class InterpreterTests(Base):
             [],
             [],
             Token('Programmer Name', Literals.ID, None, None, None, None))
+        self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
         self.assertTrue(self.interpreter.environment._values['A'].superclass.name == 'Princess Celestia')
 

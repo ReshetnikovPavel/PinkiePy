@@ -39,7 +39,7 @@ drinking_song = """
 Dear Princess Celestia: Cider Jugs.
 
 Today I learned Applejack's Drinking Song.
-Did you know that Applejack likes 99? (Applejack likes a lot of things...)
+Did you know that Applejack likes the number 99? (Applejack likes a lot of things...)
 I remembered how to sing the drinking song using Applejack.
 That's all about Applejack's Drinking Song!
 

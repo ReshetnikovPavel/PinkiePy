@@ -228,6 +228,7 @@ class Interpreter(NodeVisitor):
         if not isinstance(superclass, FimClass):
             raise RuntimeError("{} is not a class".format(superclass))
 
+        #   I use assign because it was defined as fim_ast.Class in resolver
         self.environment.assign(node.name, None)
 
         methods = {}
