@@ -225,6 +225,8 @@ class Parser:
             node = self.read_statement()
         elif self.current_token.type == Keywords.SWITCH:
             node = self.switch_statement()
+        elif self.current_token.type == Literals.ID:
+            node = self.array_element_assignment()
         else:
             node = self.empty()
         return node
@@ -314,8 +316,40 @@ class Parser:
         left = self.variable()
         token = self.current_token
         self.eat(Keywords.VAR, token_suffix=Suffix.INFIX)
+        if self.current_token.type == Keywords.ARRAY:
+            return self.array_declaration(left)
+        if self.current_token.type == Literals.ID \
+                and self.current_token.value.endswith('s'):
+            return self.inline_array_declaration(left)
         right = self.expr()
         node = fim_ast.VariableDeclaration(left, token, right)
+        return node
+
+    def array_declaration(self, name):
+        self.eat(Keywords.ARRAY)
+        type = self.variable()
+        node = fim_ast.Array(name, type)
+        return node
+
+    def inline_array_declaration(self, name):
+        type = self.variable()
+        elements = self.expr()
+        node = fim_ast.Array(name, type, elements=elements)
+        return node
+
+    def array_element_assignment(self):
+        left = self.variable()
+        index = None
+        if self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
+            self.eat(Keywords.ACCESS_FROM_OBJECT)
+            index = self.call()
+        if self.current_token.value == 'is':
+            self.eat(Keywords.EQUAL)
+        else:
+            self.error()
+
+        right = self.expr()
+        node = fim_ast.ArrayElementAssignment(left, right, index=index)
         return node
 
     def print_statement(self):
@@ -556,8 +590,8 @@ class Parser:
     def concatenation(self):
         next_token = self.lexer.peek()
         if self.current_token.type == Literals.STRING \
-                and next_token.type != Keywords.PUNCTUATION \
-                or next_token.type == Literals.STRING:
+                and (next_token.type == Literals.STRING
+                     or next_token.type == Literals.ID):
             left = self.primary()
             right = self.expr()
 

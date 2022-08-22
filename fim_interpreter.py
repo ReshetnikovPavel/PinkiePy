@@ -154,6 +154,12 @@ class Interpreter(NodeVisitor):
 
     def visit_Var(self, node):
         val = self.lookup_variable(node.token, node)
+        if hasattr(node, 'index'):
+            if is_float_and_int(node.index):
+                index = int(node.index)
+            else:
+                raise RuntimeError("Index must be an integer")
+            return val.elements[index]
         if isinstance(val, fim_callable.FimCallable) and val.arity() == 0:
             return val.call(self, [])
         return val
@@ -255,12 +261,20 @@ class Interpreter(NodeVisitor):
 
     def visit_Get(self, node):
         obj = self.visit(node.object)
+        if isinstance(obj, fim_callable.FimArray):
+            array = self.visit(node.object)
+            index = self.visit(node.name)
+            if is_float_and_int(index):
+                index = int(index)
+            else:
+                raise RuntimeError("Index must be an integer")
+            return array.elements[index]
         if isinstance(obj, fim_callable.FimInstance):
             field = obj.get(node.name)
             if isinstance(field, FimCallable) and not node.has_parameters:
                 return field.call(self, [])
             return field
-        raise RuntimeError("{} only instances have properties".format(obj))
+        raise RuntimeError(f"{obj} only instances or arrays have properties")
 
     def visit_Set(self, node):
         obj = self.visit(node.object)
@@ -283,10 +297,33 @@ class Interpreter(NodeVisitor):
     def visit_Import(self, node):
         pass
 
+    def visit_Array(self, node):
+        array_name = node.name.value
+        elements = []
+        if isinstance(node.elements, fim_ast.BinOp):
+            bin_op = node.elements
+            while isinstance(bin_op, fim_ast.BinOp):
+                elements.append(self.visit(bin_op.right))
+                bin_op = bin_op.left
+
+        self.environment.define(array_name, fim_callable.FimArray(elements))
+
+    def visit_ArrayElementAssignment(self, node):
+        array = self.lookup_variable(node.left.token, node.left)
+        if not isinstance(node.index, int):
+            index = self.visit(node.index)
+            if is_float_and_int(index):
+                index = int(index)
+            node.index = index
+        if node.index >= len(array.elements):
+            array.elements.extend([None] * (node.index - len(array.elements) + 1))
+        array.elements[node.index] = self.visit(node.right)
+        pass
+
 
 def stringify(obj):
     # if res is float and can be int, convert it to int
-    if type(obj) == float and int(obj) == float(obj):
+    if is_float_and_int(obj):
         return str(int(obj))
     if obj is None:
         return "nothing"
@@ -295,6 +332,11 @@ def stringify(obj):
     if obj is False:
         return "false"
     return str(obj)
+
+
+def is_float_and_int(obj):
+    return type(obj) == float and int(obj) == float(obj) \
+           or isinstance(obj, int) and not isinstance(obj, bool)
 
 
 # class FunctionWrapper:

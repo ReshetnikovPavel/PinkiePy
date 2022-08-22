@@ -59,12 +59,14 @@ class Literals(Enum):
     FALSE = 4
     NULL = 5
     ID = 6
+    ARRAY = 8
 
     def __str__(self):
         return self.name
 
 
 class Keywords(Enum):
+    ARRAY = 45
     COMMENT = 0
     PUNCTUATION = 1
     DO_WHILE = 2
@@ -102,7 +104,6 @@ class Keywords(Enum):
     FOR = 34
     CONST = 35
     XOR = 36
-    ITER = 37
     LISTING_PARAGRAPH_PARAMETERS = 38
     EQUAL = 39
     AND = 40
@@ -400,8 +401,11 @@ class Lexer:
             r'\blikes?\b',
             Keywords.VAR, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
-            r'\bfrom\b',
-            Keywords.ITER, Block.BEGIN_PARTNER, Suffix.PREFIX),
+            r'\bmany\b',
+            Keywords.ARRAY, Block.NONE, Suffix.NONE),
+        ReservedWord(
+            rf'\bfrom\b{any_allowed_char_pattern}+\bto\b',
+            Keywords.FOR, Block.END_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\busing\b',
             Keywords.LISTING_PARAGRAPH_PARAMETERS, Block.NONE, Suffix.PREFIX),
@@ -476,9 +480,6 @@ class Lexer:
         ReservedWord(
             r'\bIf\b',
             Keywords.IF, Block.BEGIN, Suffix.PREFIX),
-        ReservedWord(
-            r'\bto\b',
-            Keywords.ITER, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bor\b',
             Keywords.OR, Block.NONE, Suffix.INFIX),

@@ -31,5 +31,35 @@ def interpret_from_command_line():
         sys.exit(1)
     interpret_file(sys.argv[1])
 
+interpret("""
+Dear Princess Celestia: Arrays!
+
+
+Today I learned how to make arrays!
+
+    (Without initialized values)
+    Did you know that banana is the word "Banana Cake"?
+    Did you know that carrot is the number 4? (Pointer - 4)
+
+    Did you know that cake has many words?
+    cake 1 is the word "Mango Cake". (Index 1)
+    cake 2 is "Strawberry Cake". (Index 2)
+    cake 3 is banana. (Index 3)
+    cake`s carrot is "Carrot Cake". (Index 4)
+
+    carrot got one less.
+
+    I said cake`s carrot. (Index 3)
+
+    (With initialized values)
+    Did you know that Apples has words "Gala" and "Red Delicious" and "Mcintosh" and "Honeycrisp"?
+
+    I said Apples 1.
+
+That's all about how to make arrays.
+
+
+Your faithful student, Vinyla Jaezmien Gael.""")
+
 if __name__ == '__main__':
     interpret_from_command_line()

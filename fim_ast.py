@@ -1,3 +1,4 @@
+import re
 from fim_lexer import Literals
 
 
@@ -29,7 +30,10 @@ class Print(AST):
 class Var(AST):
     def __init__(self, token):
         self.token = token
-        self.value = token.value
+
+    @property
+    def value(self):
+        return self.token.value
 
     def __repr__(self):
         return f"Var({self.token})"
@@ -71,16 +75,15 @@ class Char(AST):
 class Bool(AST):
     def __init__(self, token):
         self.token = token
-        self.value = self._convert(token.type)
 
-    @staticmethod
-    def _convert(token_name):
-        if token_name == Literals.TRUE:
+    @property
+    def value(self):
+        if self.token.type == Literals.TRUE:
             return True
-        elif token_name == Literals.FALSE:
+        elif self.token.type == Literals.FALSE:
             return False
         else:
-            raise NameError(repr(token_name))
+            raise NameError(repr(self.token.type))
 
 
 class Null(AST):
@@ -218,3 +221,36 @@ class DoWhile(AST):
 class Import(AST):
     def __init__(self, name):
         self.name = name
+
+
+class Array(AST):
+    def __init__(self, name, type, elements=None):
+        self.name = name
+        self.type = type
+        self.elements = elements
+
+
+class ArrayElementAssignment(AST):
+    def __init__(self, left, right, index=None):
+        self.left = left
+        self.right = right
+        if index is None:
+            self.index = self._separate_index()
+        else:
+            self.index = index
+        self.array_name = self._separate_array_name()
+        self.left.token.value = self.array_name
+
+    def _separate_index(self):
+        m = re.search(r'\d+$', self.left.token.value)
+        return int(m.group()) if m else None
+
+    def _separate_array_name(self):
+        return re.sub(r'\s+\d+$', '', self.left.value)
+
+
+class ArrayElement(AST):
+    def __init__(self, name, index):
+        self.name = name
+        self.index = index
+
