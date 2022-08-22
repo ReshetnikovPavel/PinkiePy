@@ -1,3 +1,4 @@
+import fim_ast
 import fim_callable
 import special_words
 from fim_interpreter import Interpreter
@@ -122,14 +123,33 @@ class Resolver(NodeVisitor):
         if len(self.scopes) != 0 and self.scopes[-1].get(node.value) is False:
             raise ResolverException()
 
-        variable_type = None
+        array_name = self._separate_array_name(node.value)
+        array_index = self._separate_index(node.value)
+        if array_index is not None:
+            if self.scopes[-1].get(array_name) \
+                    and isinstance(self.get_type(array_name), tuple) \
+                    and self.get_type(array_name)[0] == Literals.ARRAY:
+                node.token.value = array_name
+                node.index = array_index
+                self.resolve_local(node, node.token)
+                variable_type, variable_token = self.typecheck(node.token)
+                return variable_type[1]
+
         variable_type, variable_token = self.typecheck(node.token)
         node.token = variable_token
-        node.value = variable_token.value
 
         self.resolve_local(node, node.token)
 
         return variable_type
+
+    @staticmethod
+    def _separate_index(string):
+        m = re.search(r'\d+$', string)
+        return int(m.group()) if m else None
+
+    @staticmethod
+    def _separate_array_name(string):
+        return re.sub(r'\s+\d+$', '', string)
 
     def typecheck(self, token):
         variable_type, variable_token = self.separate_type(token)
@@ -146,8 +166,8 @@ class Resolver(NodeVisitor):
 
     def get_type(self, name):
         for i in reversed(range(len(self.scopes_for_typechecking))):
-            if name.value in self.scopes_for_typechecking[i]:
-                return self.scopes_for_typechecking[i][name.value]
+            if name in self.scopes_for_typechecking[i]:
+                return self.scopes_for_typechecking[i][name]
         return None
 
     def visit_Assign(self, node):
@@ -185,6 +205,9 @@ class Resolver(NodeVisitor):
         self.end_scope()
 
     def visit_Get(self, node):
+        type = self.get_type(node.object.value)
+        if isinstance(type, tuple) and type[0] == Literals.ARRAY:
+            self.resolve(node.name)
         self.resolve(node.object)
 
     def visit_Set(self, node):
@@ -274,7 +297,6 @@ class Resolver(NodeVisitor):
     def visit_Bool(self, node):
         variable_type, variable_token = self.typecheck(node.token)
         node.token = variable_token
-        node.value = variable_token.value
         return variable_type
 
     def visit_Null(self, node):
@@ -352,7 +374,7 @@ class Resolver(NodeVisitor):
         #                 return None, token
         #             token.value = value
         #             return name, token
-        return None, token
+        return self.get_type(token.value), token
 
     def is_instance(self, type, token):
         if type is None:
@@ -360,4 +382,37 @@ class Resolver(NodeVisitor):
         if token.type != Literals.ID:
             return type == token.type
         else:
-            return type == self.get_type(token)
+            return type == self.get_type(token.value)
+
+    def visit_Array(self, node):
+        self.declare(node.name.token)
+        self.define(node.name.token)
+        self.resolve_local(node, node.name.token)
+        type = node.type.token.value
+        if type.endswith('es'):
+            type = type[:-2]
+        elif type.endswith('s'):
+            type = type[:-1]
+        else:
+            raise ResolverException(
+                f"Array type should be in plural form: {type}")
+        for key, regex in self.builtin_type_names.items():
+            if re.match(regex, type):
+                type = key
+                self.set_type(node.name.token, (Literals.ARRAY, type))
+                return
+        raise ResolverException(f"Cannot make array of this type: {type}")
+
+    def visit_ArrayElementAssignment(self, node):
+        expected_type = self.get_type(node.array_name)
+        if expected_type[0] != Literals.ARRAY:
+            raise ResolverException(f"{node.array_name} is not an array")
+        right_type = self.visit(node.right)
+        self.visit(node.left)
+        if not isinstance(node.index, int):
+            self.visit(node.index)
+        if right_type is None:
+            right_type = node.right.token.type
+        if expected_type[1] != right_type:
+            raise ResolverException(
+                f"Expected {expected_type} but got {right_type}")

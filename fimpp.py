@@ -31,5 +31,6 @@ def interpret_from_command_line():
         sys.exit(1)
     interpret_file(sys.argv[1])
 
+
 if __name__ == '__main__':
     interpret_from_command_line()

@@ -22,7 +22,7 @@ class FimFunction(FimCallable):
         for i in range(len(self.declaration.params)):
             environment.define(self.declaration.params[i].value, arguments[i])
         try:
-            interpreter.execute_compound(self.declaration.body.children, Environment(environment)) #TODO this might be a potential fix
+            interpreter.execute_compound(self.declaration.body.children, Environment(environment))
         except FimReturn as return_value:
             return return_value.value
         return None
@@ -101,3 +101,7 @@ class FimInstance:
     def set(self, token, value):
         self.fields[token.value] = value
 
+
+class FimArray:
+    def __init__(self, elements):
+        self.elements = elements

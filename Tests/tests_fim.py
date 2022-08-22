@@ -191,7 +191,7 @@ If all else fails...
 I said “She’s just being Pinkie Pie.”.
 That’s what I did.""", 'She’s just being Pinkie Pie.\n')
 
-    def testInterface(self):
+    def testInterface1(self):
         self.assert_printed("""Princess Luna:
 
 I learned how to fly.
@@ -202,9 +202,9 @@ Your faithful student, Kyli Rouge.
 
 Dear Princess Celestia and Princess Luna: Interface Name!
 
-Today I learned how to do many things!
+Today I learned how to do a lot of things!
     I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
-That's all about how to do many things.
+That's all about how to do a lot of things.
 
 I learned how to fly.
     I said "I can fly now".
@@ -220,12 +220,13 @@ That's all about how to raise the moon.
 
 Your faithful student, Pavel Reshetnikov.""", 'I can fly now\nShazam\ncnreicofnouqefcnf\n')
 
+    def testInterface2(self):
         self.assert_printed("""
         Dear Princess Celestia and Princess Luna: Interface Name!
 
-        Today I learned how to do many things!
+        Today I learned how to do a lot of things!
             I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
-        That's all about how to do many things.
+        That's all about how to do a lot of things.
 
         I learned how to fly.
             I said "I can fly now".
@@ -250,6 +251,7 @@ Your faithful student, Pavel Reshetnikov.""", 'I can fly now\nShazam\ncnreicofno
         Your faithful student, Kyli Rouge.""",
                             'I can fly now\nShazam\na\n')
 
+    def testInterface3(self):
         self.assert_printed("""
         Interface 1:
         I learned method 1!
@@ -275,6 +277,7 @@ Your faithful student, Pavel Reshetnikov.""", 'I can fly now\nShazam\ncnreicofno
         
         Your faithful student, Pavel Reshetnikov.""", 'method 1\nmethod 2\n')
 
+    def testInterface4(self):
         with self.assertRaises(Exception):
             self.assert_printed("""Princess Luna:
 
@@ -286,9 +289,9 @@ Your faithful student, Kyli Rouge.
 
 Dear Princess Celestia and Princess Luna: Interface Name!
 
-Today I learned how to do many things!
+Today I learned how to do a lot of things!
     I remembered how to fly, I remembered how to raise the moon!
-That's all about how to do many things.
+That's all about how to do a lot of things.
 
 I learned how to fly.
     I said "I can fly now".
@@ -299,6 +302,37 @@ I learned how to raise the moon.
 That's all about how to raise the moon.
 
 Your faithful student, Pavel Reshetnikov.""", 'I can fly now\ncnreicofnouqefcnf\n')
+
+    def testArrays(self):
+        self.assert_printed("""
+Dear Princess Celestia: Arrays!
+
+
+Today I learned how to make arrays!
+
+    (Without initialized values)
+    Did you know that banana is the word "Banana Cake"?
+    Did you know that carrot is the number 4? (Pointer - 4)
+
+    Did you know that cake has many words?
+    cake 1 is the word "Mango Cake". (Index 1)
+    cake 2 is "Strawberry Cake". (Index 2)
+    cake 3 is banana. (Index 3)
+    cake`s carrot is "Carrot Cake". (Index 4)
+
+    carrot got one less.
+
+    I said cake`s carrot. (Index 3)
+
+    (With initialized values)
+    Did you know that Apples has words "Gala" and "Red Delicious" and "Mcintosh" and "Honeycrisp"?
+
+    I said Apples 1.
+
+That's all about how to make arrays.
+
+
+Your faithful student, Vinyla Jaezmien Gael.""", 'Banana Cake\nMcintosh\n')
 
 
 if __name__ == '__main__':
