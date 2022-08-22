@@ -42,9 +42,7 @@ class Resolver(NodeVisitor):
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.scopes = []
-        self.globals = {}
         self.scopes_for_typechecking = []
-        self.globals_for_typechecking = {}
         self.current_function = FunctionType.NONE
         self.current_class = ClassType.NONE
         self.interpreter.set_builtin_globals()
@@ -103,9 +101,6 @@ class Resolver(NodeVisitor):
 
     def declare(self, name):
         if len(self.scopes) == 0:
-            if name.value in self.globals:
-                raise ResolverException(f"{name.value} is already defined")
-            self.globals[name.value] = False
             return
         scope = self.scopes[-1]
         if name.value in scope:
@@ -114,7 +109,6 @@ class Resolver(NodeVisitor):
 
     def define(self, name):
         if len(self.scopes) == 0:
-            self.globals[name.value] = True
             return
         scope = self.scopes[-1]
         scope[name.value] = True
@@ -125,30 +119,21 @@ class Resolver(NodeVisitor):
         scope = self.scopes_for_typechecking[-1]
         scope[name.value] = type
 
-    def is_in_scopes(self, name):
-        for scope in reversed(self.scopes):
-            if name in scope:
-                return scope[name]
-        return False
-
     def visit_Var(self, node):
-        if len(self.scopes) != 0:
-            is_defined = self.is_in_scopes(node.value) \
-                         or self.globals.get(node.value) \
-                         or node.value in self.interpreter.globals._values
-            if not is_defined:
-                array_name = self._separate_array_name(node.value)
-                array_index = self._separate_index(node.value)
-                if self.scopes[-1].get(array_name) \
-                        and isinstance(self.get_type(array_name), tuple) \
-                        and self.get_type(array_name)[0] == Literals.ARRAY:
-                    node.token.value = array_name
-                    node.index = array_index
-                    self.resolve_local(node, node.token)
-                    variable_type, variable_token = self.typecheck(node.token)
-                    return variable_type[1]
+        if len(self.scopes) != 0 and self.scopes[-1].get(node.value) is False:
+            raise ResolverException()
 
-                raise ResolverException(f"{node.value} is not defined")
+        array_name = self._separate_array_name(node.value)
+        array_index = self._separate_index(node.value)
+        if array_index is not None:
+            if self.scopes[-1].get(array_name) \
+                    and isinstance(self.get_type(array_name), tuple) \
+                    and self.get_type(array_name)[0] == Literals.ARRAY:
+                node.token.value = array_name
+                node.index = array_index
+                self.resolve_local(node, node.token)
+                variable_type, variable_token = self.typecheck(node.token)
+                return variable_type[1]
 
         variable_type, variable_token = self.typecheck(node.token)
         node.token = variable_token
@@ -211,7 +196,7 @@ class Resolver(NodeVisitor):
                 self.interfaces_to_be_checked[interface_token.value] = [node]
 
         self.begin_scope()
-        self.scopes[-1][special_words.this] = True
+        self.scopes[-1]["this"] = True
 
         for method in node.methods:
             declaration = FunctionType.METHOD
@@ -230,8 +215,9 @@ class Resolver(NodeVisitor):
         self.resolve(node.object)
 
     def visit_Function(self, node):
-        self.declare(node.name)
-        self.define(node.name)
+        self.declare(node.token)
+        self.define(node.token)
+        self.set_type(node.token, node.return_type)
         self.resolve_function(node, FunctionType.FUNCTION)
 
     def resolve_function(self, node, function_type):
