@@ -66,6 +66,7 @@ class Literals(Enum):
 
 
 class Keywords(Enum):
+    TO = 46
     ARRAY = 45
     COMMENT = 0
     PUNCTUATION = 1
@@ -371,6 +372,9 @@ class Lexer:
             r'\bFor every\b',
             Keywords.FOR, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
+            r'(?=\bFor every\b) ',
+            Keywords.TO, Block.BEGIN_PARTNER, Suffix.PREFIX),
+        ReservedWord(
             r'\bbecomes?\b',
             Keywords.ASSIGN, Block.NONE, Suffix.INFIX),
         ReservedWord(
@@ -404,7 +408,7 @@ class Lexer:
             r'\bmany\b',
             Keywords.ARRAY, Block.NONE, Suffix.NONE),
         ReservedWord(
-            rf'\bfrom\b{any_allowed_char_pattern}+\bto\b',
+            r'\bfrom\b',
             Keywords.FOR, Block.END_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\busing\b',
@@ -443,7 +447,7 @@ class Lexer:
             rf'\badd(?={any_allowed_char_pattern}+?)'
             rf'(?!{punctuation_pattern})'
             rf'(?={any_allowed_char_pattern}+?to)\b',
-            Keywords.INCREMENT, Block.NONE, Suffix.PREFIX),
+            Keywords.INCREMENT, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\band\b',
             Keywords.ADDITION, Block.END_PARTNER, Suffix.INFIX),
@@ -501,6 +505,12 @@ class Lexer:
         ReservedWord(
             r'\bby\b',
             Keywords.DIVISION, Block.END_PARTNER, Suffix.INFIX),
+        ReservedWord(
+            r'\bto\b',
+            Keywords.TO, Block.END_PARTNER, Suffix.PREFIX),
+        ReservedWord(
+            r'\bto\b',
+            Keywords.INCREMENT, Block.END_PARTNER, Suffix.PREFIX),
     ]
 
     def set_source(self, source):

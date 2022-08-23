@@ -176,15 +176,17 @@ class Prompt(AST):
 
 
 class VariableDeclaration(AST):
-    def __init__(self, left, op, right):
+    def __init__(self, left, op, right, is_const=False):
         self.left = left
         self.token = self.op = op
         self.right = right
+        self.is_const = is_const
 
 
 class Increment(AST):
-    def __init__(self, variable):
+    def __init__(self, variable, value=1):
         self.variable = variable
+        self.value = value
 
 
 class Decrement(AST):

@@ -264,6 +264,8 @@ class Resolver(NodeVisitor):
 
     def visit_Increment(self, node):
         self.resolve(node.variable)
+        if not isinstance(node.value, int):
+            self.resolve(node.value)
 
     def visit_Decrement(self, node):
         self.resolve(node.variable)

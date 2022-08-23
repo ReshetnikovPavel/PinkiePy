@@ -316,13 +316,21 @@ class Parser:
         left = self.variable()
         token = self.current_token
         self.eat(Keywords.VAR, token_suffix=Suffix.INFIX)
+
+        is_const = False
+        if self.current_token.type == Keywords.CONST:
+            self.eat(Keywords.CONST)
+            is_const = True
+
         if self.current_token.type == Keywords.ARRAY:
             return self.array_declaration(left)
+
         if self.current_token.type == Literals.ID \
                 and self.current_token.value.endswith('s'):
             return self.inline_array_declaration(left)
+
         right = self.expr()
-        node = fim_ast.VariableDeclaration(left, token, right)
+        node = fim_ast.VariableDeclaration(left, token, right, is_const)
         return node
 
     def array_declaration(self, name):
@@ -502,6 +510,13 @@ class Parser:
         return node
 
     def term(self):
+        if self.current_token.type == Keywords.INCREMENT:
+            self.eat(Keywords.INCREMENT, token_suffix=Suffix.PREFIX)
+            value = self.term()
+            self.eat(Keywords.INCREMENT, token_block=Block.END_PARTNER)
+            variable = self.variable()
+            node = fim_ast.Increment(variable, value)
+            return node
         if self.current_token.type in (Keywords.ADDITION, Keywords.SUBTRACTION) \
                 and self.current_token.suffix == Suffix.PREFIX:
             token = self.current_token
@@ -523,8 +538,6 @@ class Parser:
 
                     if self.is_currently_parsing_call_arguments_count != 0:
                         return node
-
-                    #   TODO: while typechecking should become ADDITION
                     self.eat(Keywords.AND, token_suffix=Suffix.INFIX)
                 elif token.type == Keywords.SUBTRACTION:
                     self.eat(Keywords.SUBTRACTION, token_suffix=Suffix.INFIX)

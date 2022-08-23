@@ -203,7 +203,12 @@ class Interpreter(NodeVisitor):
 
     def visit_Increment(self, node):
         distance = self.locals.get(node.variable)
-        self.environment.modify_at(distance, node.variable.token, operator.add, 1)
+        if isinstance(node.value, int):
+            value = node.value
+        else:
+            value = self.visit(node.value)
+        self.environment.modify_at(
+            distance, node.variable.token, operator.add, value)
 
     def visit_Decrement(self, node):
         distance = self.locals.get(node.variable)
