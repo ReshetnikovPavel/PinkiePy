@@ -363,6 +363,28 @@ For every number x from 1 to 5,
 I said x!
 That’s what I did.""", '1\n2\n3\n4\n5\n')
 
+    def testForIter(self):
+        self.assert_printed("""
+Did you know that Berry Punch likes the phrase “Cheerwine”?
+For every character c in Berry Punch...
+I said c.
+That’s what I did.""", 'C\nh\ne\ne\nr\nw\ni\nn\ne\n')
+
+    def testForIter2(self):
+        self.assert_printed("""Did you know that A likes many numbers?
+A 0 is 0, A 1 is 42, A 2 is 69.
+For every number c in A...
+I said c.
+That’s what I did.""", '0\n42\n69\n')
+
+    def testForIter3(self):
+        with self.assertRaises(Exception):
+            self.assert_printed("""Did you know that A likes many numbers?
+A 0 is 0, A 1 is 42, A 2 is 69.
+For every character c in A...
+I said c.
+That’s what I did.""", '0\n42\n69\n')
+
 
 if __name__ == '__main__':
     unittest.main()

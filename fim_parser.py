@@ -212,8 +212,12 @@ class Parser:
                 and self.current_token.block == Block.BEGIN:
             node = self.do_while_statement()
         elif self.current_token.type == Keywords.FOR \
-                and self.current_token.block == Block.BEGIN_PARTNER:
+                and self.current_token.block == Block.BEGIN_PARTNER\
+                and self.lexer.peek().type == Keywords.FROM\
+                and self.lexer.peek().block == Block.BEGIN_PARTNER:
             node = self.for_statement()
+        elif self.current_token.type == Keywords.FOR:
+            node = self.for_iter_statement()
         elif self.current_token.type == Keywords.RUN:
             node = self.run_statement()
         elif self.current_token.type == Keywords.PARAGRAPH \
@@ -317,6 +321,22 @@ class Parser:
         return fim_ast.For(
             fim_ast.VariableDeclaration(variable, None, from_value),
             to_value, body)
+
+    def for_iter_statement(self):
+        self.eat(Keywords.FOR, token_block=Block.BEGIN_PARTNER)
+        variable = self.variable()
+        self.eat(Keywords.FOR, token_block=Block.END_PARTNER)
+        iterable = self.expr()
+        self.eat(Keywords.PUNCTUATION)
+        body = self.compound_statement(end_token_names=(Keywords.END_LOOP,))
+        self.eat(Keywords.END_LOOP, token_block=Block.END)
+
+        nothing_token = Token('nothing', Literals.NULL, None, None, None, None)
+
+        return fim_ast.ForIter(
+            fim_ast.VariableDeclaration(
+                variable, None, fim_ast.Null(nothing_token)),
+            iterable, body)
 
     def postfix_statement(self):
         if self.lexer.peek().suffix == Suffix.POSTFIX:

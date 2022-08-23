@@ -33,8 +33,10 @@ def interpret_from_command_line():
 
 
 interpret("""
-For every number x from 1 to 5,
-I said x!
+Did you know that A likes many numbers?
+A 0 is 0, A 1 is 42, A 2 is 69.
+For every number c in A...
+I said c.
 That’s what I did.
 """)
 

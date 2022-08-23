@@ -43,6 +43,7 @@ class Resolver(NodeVisitor):
         self.interpreter = interpreter
         self.scopes = []
         self.scopes_for_typechecking = []
+        self.globals_for_typechecking = {}
         self.current_function = FunctionType.NONE
         self.current_class = ClassType.NONE
         self.interpreter.set_builtin_globals()
@@ -115,6 +116,7 @@ class Resolver(NodeVisitor):
 
     def set_type(self, name, type):
         if len(self.scopes_for_typechecking) == 0:
+            self.globals_for_typechecking[name.value] = type
             return
         scope = self.scopes_for_typechecking[-1]
         scope[name.value] = type
@@ -168,6 +170,8 @@ class Resolver(NodeVisitor):
         for i in reversed(range(len(self.scopes_for_typechecking))):
             if name in self.scopes_for_typechecking[i]:
                 return self.scopes_for_typechecking[i][name]
+        if name in self.globals_for_typechecking:
+            return self.globals_for_typechecking[name]
         return None
 
     def visit_Assign(self, node):
@@ -270,6 +274,19 @@ class Resolver(NodeVisitor):
         self.resolve(node.to_value)
         self.resolve(node.body)
 
+    def visit_ForIter(self, node):
+        variable_type, variable_token = self.separate_type(node.init.left.token)
+        node.token = variable_token
+        self.set_type(node.init.left.token, variable_type)
+        self.resolve(node.init)
+        self.resolve(node.iterable)
+        type = self.get_type(node.iterable.token.value)
+        if isinstance(type, tuple) and type[0] == Literals.ARRAY:
+            if type[1] != variable_type:
+                raise ResolverException(
+                    f"{node.init.left.token.value} is not an instance of {type[1]}")
+        self.resolve(node.body)
+
     def visit_Increment(self, node):
         self.resolve(node.variable)
         if not isinstance(node.value, int):
@@ -279,6 +296,11 @@ class Resolver(NodeVisitor):
         self.resolve(node.variable)
 
     def visit_String(self, node):
+        variable_type, variable_token = self.typecheck(node.token)
+        node.token = variable_token
+        return variable_type
+
+    def visit_Char(self, node):
         variable_type, variable_token = self.typecheck(node.token)
         node.token = variable_token
         return variable_type

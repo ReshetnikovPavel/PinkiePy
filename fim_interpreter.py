@@ -140,6 +140,12 @@ class Interpreter(NodeVisitor):
         body.children.append(increment)
         self.visit(fim_ast.While(condition, body))
 
+    def visit_ForIter(self, node):
+        self.visit(node.init)
+        for i in iter(self.visit(node.iterable)):
+            self.environment.assign(node.init.left, i)
+            self.visit(node.body)
+
     def visit_StatementList(self, node):
         for child in node.children:
             self.visit(child)

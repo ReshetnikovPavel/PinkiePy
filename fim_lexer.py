@@ -372,7 +372,7 @@ class Lexer:
             r'\bFor every\b',
             Keywords.FOR, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
-            r'(?<=\bFor every\b\s)',
+            r'(?<=\bFor every\b\s(?=(?:.*?\bfrom\b)))',
             Keywords.FROM, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\bbecomes?\b',

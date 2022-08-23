@@ -105,3 +105,9 @@ class FimInstance:
 class FimArray:
     def __init__(self, elements):
         self.elements = elements
+
+    def __iter__(self):
+        return iter(self.elements)
+
+    def __str__(self):
+        return f'{", ".join(map(str, self.elements))}'

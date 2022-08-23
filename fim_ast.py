@@ -103,6 +103,9 @@ class String(AST):
             return self.token.value[1:-1]
         return self.token.value
 
+    def __iter__(self):
+        return iter(self.value)
+
 
 class NoOp(AST):
     pass
@@ -261,4 +264,11 @@ class For(AST):
     def __init__(self, init, to_value, body):
         self.init = init
         self.to_value = to_value
+        self.body = body
+
+
+class ForIter(AST):
+    def __init__(self, init, iterable, body):
+        self.init = init
+        self.iterable = iterable
         self.body = body
