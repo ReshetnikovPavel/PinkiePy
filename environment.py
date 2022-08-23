@@ -36,10 +36,11 @@ class Environment:
         raise NameError('Undefined variable: %s' % name.value)
 
     def modify(self, name, relate, value):
-        return self.assign(name, relate(self.get(name), value))
+        return self.assign(name, relate(self.get(name.value), value))
 
     def modify_at(self, distance, name, relate, value):
-        return self.assign_at(distance, name, relate(self.get_at(distance, name.value), value))
+        return self.assign_at(distance, name,
+                              relate(self.get_at(distance, name.value), value))
 
     def get_at(self, distance, name):
         return self.ancestor(distance).get(name)

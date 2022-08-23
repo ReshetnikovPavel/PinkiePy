@@ -256,3 +256,9 @@ class ArrayElement(AST):
         self.name = name
         self.index = index
 
+
+class For(AST):
+    def __init__(self, init, to_value, body):
+        self.init = init
+        self.to_value = to_value
+        self.body = body

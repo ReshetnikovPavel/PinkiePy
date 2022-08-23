@@ -211,6 +211,9 @@ class Parser:
         elif self.current_token.type == Keywords.DO_WHILE \
                 and self.current_token.block == Block.BEGIN:
             node = self.do_while_statement()
+        elif self.current_token.type == Keywords.FOR \
+                and self.current_token.block == Block.BEGIN_PARTNER:
+            node = self.for_statement()
         elif self.current_token.type == Keywords.RUN:
             node = self.run_statement()
         elif self.current_token.type == Keywords.PARAGRAPH \
@@ -298,6 +301,22 @@ class Parser:
         condition = self.expr()
 
         return fim_ast.DoWhile(condition, body)
+
+    def for_statement(self):
+        self.eat(Keywords.FOR, token_block=Block.BEGIN_PARTNER)
+        self.eat(Keywords.FROM, token_block=Block.BEGIN_PARTNER)
+        variable = self.variable()
+        self.eat(Keywords.FROM, token_block=Block.END_PARTNER)
+        from_value = self.expr()
+        self.eat(Keywords.FOR, token_block=Block.END_PARTNER)
+        to_value = self.expr()
+        self.eat(Keywords.PUNCTUATION)
+        body = self.compound_statement(end_token_names=(Keywords.END_LOOP,))
+        self.eat(Keywords.END_LOOP, token_block=Block.END)
+
+        return fim_ast.For(
+            fim_ast.VariableDeclaration(variable, None, from_value),
+            to_value, body)
 
     def postfix_statement(self):
         if self.lexer.peek().suffix == Suffix.POSTFIX:

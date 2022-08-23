@@ -357,6 +357,12 @@ That’s all about the sum of everything from 1 to 100. (End of the method)
 Your faithful student, Kyli Rouge. (End the class and sign your name)""",
                             '5050\n')
 
+    def testFor(self):
+        self.assert_printed("""
+For every number x from 1 to 5,
+I said x!
+That’s what I did.""", '1\n2\n3\n4\n5\n')
+
 
 if __name__ == '__main__':
     unittest.main()

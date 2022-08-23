@@ -262,6 +262,14 @@ class Resolver(NodeVisitor):
         self.resolve(node.body)
         self.resolve(node.condition)
 
+    def visit_For(self, node):
+        variable_type, variable_token = self.separate_type(node.init.left.token)
+        node.token = variable_token
+        self.set_type(node.init.left.token, variable_type)
+        self.resolve(node.init)
+        self.resolve(node.to_value)
+        self.resolve(node.body)
+
     def visit_Increment(self, node):
         self.resolve(node.variable)
         if not isinstance(node.value, int):

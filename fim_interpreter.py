@@ -2,7 +2,7 @@ import copy
 import special_words
 
 import fim_ast
-from fim_lexer import Literals
+from fim_lexer import Literals, Block, Suffix
 from fim_lexer import Keywords, Token
 from fim_callable import FimClass, FimCallable
 from environment import Environment
@@ -127,6 +127,19 @@ class Interpreter(NodeVisitor):
             if not self.visit(node.condition):
                 break
 
+    def visit_For(self, node):
+        self.visit(node.init)
+        condition = fim_ast.BinOp(
+            node.init.left,
+            Token('', Keywords.LESS_THAN_OR_EQUAL,
+                  Block.NONE, Suffix.NONE,
+                  node.to_value.token.start, node.to_value.token.end),
+            node.to_value)
+        increment = fim_ast.Increment(node.init.left)
+        body = node.body
+        body.children.append(increment)
+        self.visit(fim_ast.While(condition, body))
+
     def visit_StatementList(self, node):
         for child in node.children:
             self.visit(child)
@@ -207,12 +220,19 @@ class Interpreter(NodeVisitor):
             value = node.value
         else:
             value = self.visit(node.value)
-        self.environment.modify_at(
-            distance, node.variable.token, operator.add, value)
+        if distance is None:
+            self.environment.modify(node.variable.token, operator.add, value)
+        else:
+            self.environment.modify_at(
+                distance, node.variable.token, operator.add, value)
 
     def visit_Decrement(self, node):
         distance = self.locals.get(node.variable)
-        self.environment.modify_at(distance, node.variable.token, operator.sub, 1)
+        if distance is None:
+            self.environment.modify(node.variable.token, operator.sub, 1)
+        else:
+            self.environment.modify_at(
+                distance, node.variable.token, operator.sub, 1)
 
     def visit_Print(self, node):
         res = self.visit(node.expr)

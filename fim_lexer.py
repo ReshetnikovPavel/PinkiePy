@@ -66,7 +66,7 @@ class Literals(Enum):
 
 
 class Keywords(Enum):
-    TO = 46
+    FROM = 46
     ARRAY = 45
     COMMENT = 0
     PUNCTUATION = 1
@@ -372,8 +372,8 @@ class Lexer:
             r'\bFor every\b',
             Keywords.FOR, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
-            r'(?=\bFor every\b) ',
-            Keywords.TO, Block.BEGIN_PARTNER, Suffix.PREFIX),
+            r'(?<=\bFor every\b\s)',
+            Keywords.FROM, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\bbecomes?\b',
             Keywords.ASSIGN, Block.NONE, Suffix.INFIX),
@@ -409,7 +409,7 @@ class Lexer:
             Keywords.ARRAY, Block.NONE, Suffix.NONE),
         ReservedWord(
             r'\bfrom\b',
-            Keywords.FOR, Block.END_PARTNER, Suffix.PREFIX),
+            Keywords.FROM, Block.END_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\busing\b',
             Keywords.LISTING_PARAGRAPH_PARAMETERS, Block.NONE, Suffix.PREFIX),
@@ -507,7 +507,7 @@ class Lexer:
             Keywords.DIVISION, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bto\b',
-            Keywords.TO, Block.END_PARTNER, Suffix.PREFIX),
+            Keywords.FOR, Block.END_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\bto\b',
             Keywords.INCREMENT, Block.END_PARTNER, Suffix.PREFIX),

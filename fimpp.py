@@ -31,8 +31,11 @@ def interpret_from_command_line():
         sys.exit(1)
     interpret_file(sys.argv[1])
 
-interpret("""
 
+interpret("""
+For every number x from 1 to 5,
+I said x!
+That’s what I did.
 """)
 
 if __name__ == '__main__':
