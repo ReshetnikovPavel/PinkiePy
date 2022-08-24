@@ -232,6 +232,9 @@ class Resolver(NodeVisitor):
 
         self.begin_scope()
         for param in node.params:
+            variable_type, variable_token = self.separate_type(param)
+            param = variable_token
+            self.set_type(param, variable_type)
             self.declare(param)
             self.define(param)
         self.resolve(node.body)
@@ -331,7 +334,7 @@ class Resolver(NodeVisitor):
         pass
 
     def visit_Read(self, node):
-        pass
+        self.resolve(node.variable)
 
     def visit_Interface(self, node):
         self.interpreter.globals.define(node.name.value, node)
@@ -410,7 +413,10 @@ class Resolver(NodeVisitor):
         if type is None:
             return True
         if token.type != Literals.ID:
-            return type == token.type
+            token_type = Literals.BOOL\
+                if token.type == Literals.TRUE or token.type == Literals.FALSE\
+                else token.type
+            return type == token_type
         else:
             return type == self.get_type(token.value)
 

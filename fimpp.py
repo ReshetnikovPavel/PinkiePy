@@ -33,31 +33,33 @@ def interpret_from_command_line():
 
 
 interpret("""
-Dear Princess Celestia: For loops!
+Dear Princess Celestia: Recursion!
 
+I learned how to do recursion using the number x!
 
-Today I learned how to do a for loop!
+    When x had more than 0.
 
-    Did you know that Applejack is the word "Apples"?
+        I said x!
 
-    For every number index from 0 to 100...
-        I said index.
-    That's what I did.
+        Did you know that y is the number x?
+        y got one less.
+        I remembered how to do recursion using y.
 
-    For every character c in Applejack...
-        I said c.
-    That's what I did.
+    That's what I would do.
 
-    Did you know that Apples has the words "Gala" and "Red Delicious" and "Mcintosh" and "Honeycrisp"?
+That's all about how to do recursion.
 
-    For every word type in Apples...
-        I said type.
-    That's what I did.
+Today I learned how to make recursion functions!
 
-That's all about how to do a for loop.
+    Did you know that Twilight is the number 108?
+    (Unfortunately it cannot handle bigger number)
+    I remembered how to do recursion using Twilight.
+
+That's all about how to make recursion functions.
 
 
 Your faithful student, Twilight Sparkle.
+
 """)
 
 

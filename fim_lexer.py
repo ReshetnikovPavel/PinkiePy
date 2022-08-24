@@ -194,6 +194,11 @@ class Lexer:
             # works the same as . in Java or C#, for instance
             r'`s|`',
             Keywords.ACCESS_FROM_OBJECT, Block.NONE, Suffix.NONE),
+        ReservedWord(r"\b\bis(?:(?:n['‘’]t)|(?: not)) equal to",
+                     Keywords.NOT_EQUAL, Block.NONE, Suffix.INFIX),
+        ReservedWord(
+            r'\bis equal to\b',
+            Keywords.EQUAL, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bI did this as long as\b',
             Keywords.DO_WHILE, Block.END, Suffix.PREFIX),
