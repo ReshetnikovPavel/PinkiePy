@@ -203,8 +203,8 @@ class ResolverTests(Base):
                       None)),
             [],
             body,
-            [],
-            [],
+            {},
+            {},
             Token('Programmer Name', Literals.ID, None, None, None, None)))
         self.assertTrue('A' in self.resolver.scopes[-1])
         self.assertTrue(self.resolver.scopes[-1]['A'] is True)

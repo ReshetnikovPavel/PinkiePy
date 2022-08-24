@@ -83,14 +83,14 @@ class Parser:
         self.eat(Keywords.PUNCTUATION)
         body = self.compound_statement(end_token_names=(Keywords.REPORT,))
 
-        methods = []
-        fields = []
+        methods = {}
+        fields = {}
         for child in body.children:
             if isinstance(child, fim_ast.Function):
                 child.is_class_method = True
-                methods.append(child)
+                methods[child.name.value] = child
             elif isinstance(child, fim_ast.VariableDeclaration):
-                fields.append(child)
+                fields[child.left.value] = child
 
         self.eat(Keywords.REPORT, token_block=Block.END)
         programmer_token = self.current_token

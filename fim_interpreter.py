@@ -271,14 +271,14 @@ class Interpreter(NodeVisitor):
 
         methods = {}
         main_method_token = None
-        for method in node.methods:
+        for method in node.methods.values():
             function = fim_callable.FimFunction(method, self.environment)
             methods[method.token.value] = function
             if method.is_main:
                 main_method_token = function.declaration.token
 
         fields = {}
-        for field in node.fields:
+        for field in node.fields.values():
             fields[field.left.value] = self.visit(field.right)
 
         fim_class = FimClass(node.name.value, superclass, methods, fields)

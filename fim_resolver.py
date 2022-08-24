@@ -46,7 +46,7 @@ class Resolver(NodeVisitor):
         self.scopes_for_typechecking = []
         self.globals_for_typechecking = {}
         self.current_function = FunctionType.NONE
-        self.current_class = ClassType.NONE
+        self.current_class = None
         self.interpreter.set_builtin_globals()
         self.main_was_initialized = False
         self.interfaces_to_be_checked = {}
@@ -59,14 +59,6 @@ class Resolver(NodeVisitor):
         self.new_type_names = {}
         for type_name, regex in self.builtin_type_names.items():
             self.builtin_type_names[type_name] = re.compile(regex)
-
-    def reset(self):
-        self.scopes = []
-        self.current_function = FunctionType.NONE
-        self.current_class = ClassType.NONE
-        self.interpreter.set_builtin_globals()
-        self.main_was_initialized = False
-        self.interfaces_to_be_checked = {}
 
     def visit_Compound(self, node):
         self.begin_scope()
@@ -166,6 +158,12 @@ class Resolver(NodeVisitor):
         for i in reversed(range(len(self.scopes_for_typechecking))):
             if name in self.scopes_for_typechecking[i]:
                 return self.scopes_for_typechecking[i][name]
+        if self.current_class is not None and \
+                name in map(lambda x: x.name.value, self.current_class.methods.values()):
+            return_type_token = self.current_class.methods[name].return_type
+            if return_type_token is not None:
+                return_type, token = self.separate_type(return_type_token)
+                return return_type
         if name in self.globals_for_typechecking:
             return self.globals_for_typechecking[name]
         return None
@@ -196,12 +194,14 @@ class Resolver(NodeVisitor):
                 self.interfaces_to_be_checked[interface_token.value] = [node]
 
         self.begin_scope()
-        self.scopes[-1]["this"] = True
+        self.scopes[-1][special_words.this] = True
+        self.current_class = node
 
-        for method in node.methods:
+        for method in node.methods.values():
             declaration = FunctionType.METHOD
             self.resolve_function(method, declaration)
 
+        self.current_class = None
         self.end_scope()
 
     def visit_Get(self, node):
@@ -346,7 +346,7 @@ class Resolver(NodeVisitor):
     def check_interface(interface, fim_class):
         for method in interface.methods:
             if method.name.value not in map(lambda m: m.name.value,
-                                            fim_class.methods):
+                                            fim_class.methods.values()):
                 raise ResolverException(
                     f"{fim_class.name.value} does not implement {method.name.value}")
 

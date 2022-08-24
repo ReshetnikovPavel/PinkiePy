@@ -870,8 +870,11 @@ class TestBranchingStatements(Base):
                            '\nI said x!'
                            '\nThat’s what I did.',
                            ('FOR', 'For every'),
+                           ('FROM', ''),
                            ('ID', 'number x'),
-                           ('FOR', 'from 1 to'),
+                           ('from', 'from'),
+                           ('NUMBER', '1'),
+                           ('FOR', 'to'),
                            ('NUMBER', '100'),
                            ('PUNCTUATION', ','),
                            ('PRINT', 'I said'),

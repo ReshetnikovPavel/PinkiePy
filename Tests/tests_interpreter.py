@@ -112,8 +112,8 @@ class InterpreterTests(Base):
             fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
-            [],
-            [],
+            {},
+            {},
             Token('Programmer Name', Literals.ID, None, None, None, None))
         self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
@@ -184,8 +184,8 @@ class InterpreterTests(Base):
             fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
-            [method],
-            [],
+            {'func': method},
+            {},
             Token('Programmer Name', Literals.ID, None, None, None, None))
         self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
@@ -198,8 +198,8 @@ class InterpreterTests(Base):
             fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             fim_ast.Compound(),
-            [],
-            [],
+            {},
+            {},
             Token('Programmer Name', Literals.ID, None, None, None, None))
         self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)

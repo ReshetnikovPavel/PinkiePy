@@ -33,29 +33,27 @@ def interpret_from_command_line():
 
 
 interpret("""
-Dear Princess Celestia: Recursion!
+Dear Princess Celestia: Fibonacci Sequence!
 
-I learned how to do recursion using the number x!
+I learned how to find the fibonacci sequence to get a number using the number x!
 
-    When x had more than 0.
-
-        I said x!
-
-        Did you know that y is the number x?
-        y got one less.
-        I remembered how to do recursion using y.
-
+    If x had no more than 1 then,
+        Then you get x!
     That's what I would do.
 
-That's all about how to do recursion.
+    Did you know that ya is the number how to find the fibonacci sequence using x minus 1?
+    Did you know that yb is the number how to find the fibonacci sequence using x minus 2?
+    Then you get ya added to yb.
 
-Today I learned how to make recursion functions!
+That's all about how to find the fibonacci sequence.
 
-    Did you know that Twilight is the number 108?
-    (Unfortunately it cannot handle bigger number)
-    I remembered how to do recursion using Twilight.
 
-That's all about how to make recursion functions.
+Today I learned how to run a program!
+
+    Did you know that Twilight is the number 9?
+    I said how to find the fibonacci sequence using Twilight. (Expected: 34)
+
+That's all about how to run a program.
 
 
 Your faithful student, Twilight Sparkle.
