@@ -7,6 +7,7 @@ from fim_parser import Parser
 from node_visitor import NodeVisitor
 from enum import Enum
 import re
+import utility
 
 
 def interpret(program):
@@ -125,8 +126,8 @@ class Resolver(NodeVisitor):
         if len(self.scopes) != 0 and self.scopes[-1].get(node.value) is False:
             raise ResolverException()
 
-        array_name = self._separate_array_name(node.value)
-        array_index = self._separate_index(node.value)
+        array_name = utility.separate_array_name(node.value)
+        array_index = utility.separate_index(node.value)
         if array_index is not None:
             if self.scopes[-1].get(array_name) \
                     and isinstance(self.get_type(array_name), tuple) \
@@ -143,15 +144,6 @@ class Resolver(NodeVisitor):
         self.resolve_local(node, node.token)
 
         return variable_type
-
-    @staticmethod
-    def _separate_index(string):
-        m = re.search(r'\d+$', string)
-        return int(m.group()) if m else None
-
-    @staticmethod
-    def _separate_array_name(string):
-        return re.sub(r'\s+\d+$', '', string)
 
     def typecheck(self, token):
         variable_type, variable_token = self.separate_type(token)

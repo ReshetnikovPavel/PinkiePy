@@ -33,12 +33,37 @@ def interpret_from_command_line():
 
 
 interpret("""
-Did you know that A likes many numbers?
-A 0 is 0, A 1 is 42, A 2 is 69.
-For every number c in A...
-I said c.
-That’s what I did.
-""")
+Dear Princess Celestia: Digital Root!
+
+
+I learned how to find the digital root to get a number using a number x!
+
+    Did you know that y is the number 0?
+    Did you know that z is the word convert a number to literal string using x.
+
+    For every character v in z...
+        Did you know that w is the number convert a char to literal num using v?
+        w became y plus w.
+        w became w minus 1.
+        w became w mod 9.
+        w became 1 plus w.
+        y became w.
+    That's what I did.
+    
+    Then you get y!
+
+That's all about how to find the digital root.
+
+Today I learned how to run a program!
+
+    I said how to find the digital root using 34758. (Expected: 9)
+
+That's all about how to run a program.
+
+
+Your faithful student, Jaezmien Naejara.
+P.S. https://esolangs.org/wiki/Digital_root_calculator""")
+
 
 if __name__ == '__main__':
     interpret_from_command_line()

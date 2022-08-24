@@ -236,23 +236,14 @@ class Array(AST):
 
 
 class ArrayElementAssignment(AST):
-    def __init__(self, left, right, index=None):
+    def __init__(self, left, index, right):
         self.left = left
+        self.index = index
         self.right = right
-        if index is None:
-            self.index = self._separate_index()
-        else:
-            self.index = index
-        self.array_name = self._separate_array_name()
-        self.left.token.value = self.array_name
 
-    def _separate_index(self):
-        m = re.search(r'\d+$', self.left.token.value)
-        return int(m.group()) if m else None
-
-    def _separate_array_name(self):
-        return re.sub(r'\s+\d+$', '', self.left.value)
-
+    @property
+    def array_name(self):
+        return self.left.token.value
 
 class ArrayElement(AST):
     def __init__(self, name, index):

@@ -1,3 +1,4 @@
+import utility
 import fim_ast
 from fim_lexer import Literals, Block, Suffix, Keywords, Token
 
@@ -197,11 +198,10 @@ class Parser:
         elif self.current_token.type == Keywords.DECREMENT:
             node = self.decrement_statement()
         elif self.current_token.type == Literals.ID \
-                and self.lexer.peek().type == Keywords.ASSIGN:
-            node = self.assignment()
-        elif self.current_token.type == Literals.ID \
                 and self.lexer.peek().suffix == Suffix.POSTFIX:
             node = self.postfix_statement()
+        elif self.current_token.type == Literals.ID:
+            node = self.assignment()
         elif self.current_token.type == Keywords.IF \
                 and self.current_token.block == Block.BEGIN:
             node = self.if_statement()
@@ -212,8 +212,8 @@ class Parser:
                 and self.current_token.block == Block.BEGIN:
             node = self.do_while_statement()
         elif self.current_token.type == Keywords.FOR \
-                and self.current_token.block == Block.BEGIN_PARTNER\
-                and self.lexer.peek().type == Keywords.FROM\
+                and self.current_token.block == Block.BEGIN_PARTNER \
+                and self.lexer.peek().type == Keywords.FROM \
                 and self.lexer.peek().block == Block.BEGIN_PARTNER:
             node = self.for_statement()
         elif self.current_token.type == Keywords.FOR:
@@ -232,8 +232,6 @@ class Parser:
             node = self.read_statement()
         elif self.current_token.type == Keywords.SWITCH:
             node = self.switch_statement()
-        elif self.current_token.type == Literals.ID:
-            node = self.array_element_assignment()
         else:
             node = self.empty()
         return node
@@ -384,21 +382,6 @@ class Parser:
         node = fim_ast.Array(name, type, elements=elements)
         return node
 
-    def array_element_assignment(self):
-        left = self.variable()
-        index = None
-        if self.current_token.type == Keywords.ACCESS_FROM_OBJECT:
-            self.eat(Keywords.ACCESS_FROM_OBJECT)
-            index = self.call()
-        if self.current_token.value == 'is':
-            self.eat(Keywords.EQUAL)
-        else:
-            self.error()
-
-        right = self.expr()
-        node = fim_ast.ArrayElementAssignment(left, right, index=index)
-        return node
-
     def print_statement(self):
         self.eat(Keywords.PRINT)
         node = fim_ast.Print(self.expr())
@@ -443,10 +426,10 @@ class Parser:
         return fim_ast.NoOp()
 
     def expr(self):
-        return self.assignment()
+        return self.logic()
 
     def assignment(self):
-        expr = self.logic()
+        expr = self.term()
         if self.current_token.type == Keywords.ASSIGN:
             self.eat(Keywords.ASSIGN)
             value = self.assignment()
@@ -458,6 +441,20 @@ class Parser:
                 get = expr
                 return fim_ast.Set(get.object, get.name, value)
             raise Exception("Invalid assignment target")
+        elif self.current_token.type == Keywords.EQUAL and \
+                self.current_token.value == 'is':
+            self.eat(Keywords.EQUAL)
+            value = self.assignment()
+
+            if isinstance(expr, fim_ast.Var):
+                array_name = utility.separate_array_name(expr.value)
+                index = utility.separate_index(expr.value)
+                expr.token.value = array_name
+                return fim_ast.ArrayElementAssignment(expr, index, value)
+            elif isinstance(expr, fim_ast.Get):
+                get = expr
+                return fim_ast.ArrayElementAssignment(get.object, get.name,
+                                                      value)
         return expr
 
     def logic(self):
