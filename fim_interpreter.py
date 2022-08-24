@@ -138,16 +138,8 @@ class Interpreter(NodeVisitor):
 
     def visit_For(self, node):
         self.visit(node.init)
-        condition = fim_ast.BinOp(
-            node.init.left,
-            Token('', Keywords.LESS_THAN_OR_EQUAL,
-                  Block.NONE, Suffix.NONE,
-                  node.to_value.token.start, node.to_value.token.end),
-            node.to_value)
-        increment = fim_ast.Increment(node.init.left)
         body = node.body
-        body.children.append(increment)
-        self.visit(fim_ast.While(condition, body))
+        self.visit(fim_ast.While(node.condition, body))
 
     def visit_ForIter(self, node):
         self.visit(node.init)

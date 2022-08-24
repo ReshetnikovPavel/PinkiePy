@@ -33,38 +33,31 @@ def interpret_from_command_line():
 
 
 interpret("""
-Dear Princess Celestia: Fizzbuzz!
+Dear Princess Celestia: For loops!
 
 
-Today I learned how to play fizzbuzz!
+Today I learned how to do a for loop!
 
-    Did you know that Applebloom is the number 1?
+    Did you know that Applejack is the word "Apples"?
 
-    As long as Applebloom had no more than 100,
-
-        Did you know that Babs Seed is the word ""? (Store the result!)
-
-        If Applebloom modulo 3 is 0 then, (...Is Applebloom divisible by 3?)
-            Babs Seed became Babs Seed plus "Fizz".
-        That's what I would do.
-        If Applebloom modulo 5 is 0 then, (... Is Applebloom divisible by 5?)
-            Babs Seed became Babs Seed plus "Buzz".
-        That's what I would do.
-
-        (Now we check if result is still empty, which means it's not divisible by 3 or 5!)
-        If Babs Seed is the word nothing then,
-            Babs Seed became Applebloom. (String conversion!)
-        That's what I would do.
-
-        I said Applebloom " - " Babs Seed.
-        Applebloom got one more.
-
+    For every number index from 0 to 100...
+        I said index.
     That's what I did.
-    
-That's all about how to play fizzbuzz.
+
+    For every character c in Applejack...
+        I said c.
+    That's what I did.
+
+    Did you know that Apples has the words "Gala" and "Red Delicious" and "Mcintosh" and "Honeycrisp"?
+
+    For every word type in Apples...
+        I said type.
+    That's what I did.
+
+That's all about how to do a for loop.
 
 
-Your faithful student, Jaezmien Naejara.
+Your faithful student, Twilight Sparkle.
 """)
 
 

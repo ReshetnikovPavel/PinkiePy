@@ -1,5 +1,6 @@
+import copy
 import re
-from fim_lexer import Literals
+from fim_lexer import Literals, Token, Keywords, Block, Suffix
 
 
 class AST:
@@ -256,6 +257,14 @@ class For(AST):
         self.init = init
         self.to_value = to_value
         self.body = body
+        self.body.children.append(Increment(self.init.left))
+        self.condition = BinOp(
+            copy.copy(self.init.left),
+            Token('', Keywords.LESS_THAN_OR_EQUAL,
+                  Block.NONE, Suffix.NONE,
+                  self.to_value.token.start, self.to_value.token.end),
+            self.to_value)
+
 
 
 class ForIter(AST):

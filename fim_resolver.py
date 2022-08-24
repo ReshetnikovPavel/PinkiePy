@@ -2,7 +2,7 @@ import fim_ast
 import fim_callable
 import special_words
 from fim_interpreter import Interpreter
-from fim_lexer import Lexer, Literals
+from fim_lexer import Lexer, Literals, Token, Keywords, Block, Suffix
 from fim_parser import Parser
 from node_visitor import NodeVisitor
 from enum import Enum
@@ -267,7 +267,7 @@ class Resolver(NodeVisitor):
         node.token = variable_token
         self.set_type(node.init.left.token, variable_type)
         self.resolve(node.init)
-        self.resolve(node.to_value)
+        self.resolve(node.condition)
         self.resolve(node.body)
 
     def visit_ForIter(self, node):
