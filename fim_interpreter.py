@@ -2,6 +2,7 @@ import copy
 import special_words
 
 import fim_ast
+import utility
 from fim_lexer import Literals, Block, Suffix
 from fim_lexer import Keywords, Token
 from fim_callable import FimClass, FimCallable
@@ -34,7 +35,9 @@ class Interpreter(NodeVisitor):
 
     def set_builtin_globals(self):
         self.globals.define(
-            special_words.base_class_name, FimClass(special_words.base_class_name, None, {}, {}))
+            special_words.base_class_name,
+            FimClass(special_words.base_class_name, None, {}, {}))
+        self.define_builtin_types()
 
     def visit_BinOp(self, node):
         if node.op.type == Keywords.ADDITION:
@@ -54,6 +57,8 @@ class Interpreter(NodeVisitor):
         elif node.op.type == Keywords.LESS_THAN_OR_EQUAL:
             return self.visit(node.left) <= self.visit(node.right)
         elif node.op.type == Keywords.EQUAL:
+            left = self.visit(node.left)
+            right = self.visit(node.right)
             return self.visit(node.left) == self.visit(node.right)
         elif node.op.type == Keywords.NOT_EQUAL:
             return self.visit(node.left) != self.visit(node.right)
@@ -72,6 +77,10 @@ class Interpreter(NodeVisitor):
             left = self.visit(node.left)
             right = self.visit(node.right)
             return stringify(left) + stringify(right)
+        elif node.op.type == Keywords.MODULO:
+            return self.visit(node.left) % self.visit(node.right)
+        else:
+            raise Exception(f"Unknown operator: {node.op}")
 
     def visit_UnaryOp(self, node):
         op = node.op.type
@@ -174,7 +183,7 @@ class Interpreter(NodeVisitor):
     def visit_Var(self, node):
         val = self.lookup_variable(node.token, node)
         if hasattr(node, 'index'):
-            if is_float_and_int(node.index):
+            if utility.is_float_and_int(node.index):
                 index = int(node.index)
             else:
                 raise RuntimeError("Index must be an integer")
@@ -295,7 +304,7 @@ class Interpreter(NodeVisitor):
         if isinstance(obj, fim_callable.FimArray):
             array = self.visit(node.object)
             index = self.visit(node.name)
-            if is_float_and_int(index):
+            if utility.is_float_and_int(index):
                 index = int(index)
             else:
                 raise RuntimeError("Index must be an integer")
@@ -343,7 +352,7 @@ class Interpreter(NodeVisitor):
         array = self.lookup_variable(node.left.token, node.left)
         if not isinstance(node.index, int):
             index = self.visit(node.index)
-            if is_float_and_int(index):
+            if utility.is_float_and_int(index):
                 index = int(index)
             node.index = index
         if node.index >= len(array.elements):
@@ -351,10 +360,41 @@ class Interpreter(NodeVisitor):
         array.elements[node.index] = self.visit(node.right)
         pass
 
+    def define_builtin_types(self):
+        self.globals.define('number', None)
+        self.globals.define('a number', None)
+        self.globals.define('the number', None)
+        self.globals.define('letter', None)
+        self.globals.define('a letter', None)
+        self.globals.define('the letter', None)
+        self.globals.define('character', None)
+        self.globals.define('a character', None)
+        self.globals.define('the character', None)
+        self.globals.define('sentence', None)
+        self.globals.define('phrase', None)
+        self.globals.define('quote', None)
+        self.globals.define('word', None)
+        self.globals.define('name', None)
+        self.globals.define('a sentence', None)
+        self.globals.define('a phrase', None)
+        self.globals.define('a quote', None)
+        self.globals.define('a word', None)
+        self.globals.define('a name', None)
+        self.globals.define('the sentence', None)
+        self.globals.define('the phrase', None)
+        self.globals.define('the quote', None)
+        self.globals.define('the word', None)
+        self.globals.define('the name', None)
+        self.globals.define('logic', None)
+        self.globals.define('the logic', None)
+        self.globals.define('argument', None)
+        self.globals.define('an argument', None)
+        self.globals.define('the argument', None)
+
 
 def stringify(obj):
     # if res is float and can be int, convert it to int
-    if is_float_and_int(obj):
+    if utility.is_float_and_int(obj):
         return str(int(obj))
     if obj is None:
         return "nothing"
@@ -365,9 +405,7 @@ def stringify(obj):
     return str(obj)
 
 
-def is_float_and_int(obj):
-    return type(obj) == float and int(obj) == float(obj) \
-           or isinstance(obj, int) and not isinstance(obj, bool)
+
 
 
 # class FunctionWrapper:

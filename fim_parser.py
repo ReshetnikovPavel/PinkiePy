@@ -183,9 +183,6 @@ class Parser:
             results.append(self.statement())
             self.eat(Keywords.PUNCTUATION)
 
-        if self.current_token.type == Literals.ID:
-            self.error()
-
         return results
 
     def statement(self):
@@ -524,7 +521,7 @@ class Parser:
         return left
 
     def comparison(self):
-        node = self.term()
+        node = self.arithmetic()
         while self.current_token.type in \
                 (Keywords.GREATER_THAN,
                  Keywords.GREATER_THAN_OR_EQUAL,
@@ -542,7 +539,16 @@ class Parser:
                 self.eat(Keywords.LESS_THAN_OR_EQUAL, token_suffix=Suffix.INFIX)
             elif token.type == Keywords.LESS_THAN:
                 self.eat(Keywords.LESS_THAN, token_suffix=Suffix.INFIX)
-            node = fim_ast.BinOp(left=node, op=token, right=self.term())
+            node = fim_ast.BinOp(left=node, op=token, right=self.arithmetic())
+        return node
+
+    def arithmetic(self):
+        node = self.term()
+        while self.current_token.type in (Keywords.MODULO,):
+            token = self.current_token
+            if token.type == Keywords.MODULO:
+                self.eat(Keywords.MODULO)
+                node = fim_ast.BinOp(left=node, op=token, right=self.term())
         return node
 
     def term(self):
@@ -638,9 +644,8 @@ class Parser:
 
     def concatenation(self):
         next_token = self.lexer.peek()
-        if self.current_token.type == Literals.STRING \
-                and (next_token.type == Literals.STRING
-                     or next_token.type == Literals.ID):
+        if (self.current_token.type in (Literals.STRING, Literals.ID)) \
+                and (next_token.type in (Literals.STRING, Literals.ID)):
             left = self.primary()
             right = self.expr()
 

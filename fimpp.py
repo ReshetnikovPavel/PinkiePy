@@ -33,36 +33,39 @@ def interpret_from_command_line():
 
 
 interpret("""
-Dear Princess Celestia: Digital Root!
+Dear Princess Celestia: Fizzbuzz!
 
 
-I learned how to find the digital root to get a number using a number x!
+Today I learned how to play fizzbuzz!
 
-    Did you know that y is the number 0?
-    Did you know that z is the word convert a number to literal string using x.
+    Did you know that Applebloom is the number 1?
 
-    For every character v in z...
-        Did you know that w is the number convert a char to literal num using v?
-        w became y plus w.
-        w became w minus 1.
-        w became w mod 9.
-        w became 1 plus w.
-        y became w.
+    As long as Applebloom had no more than 100,
+
+        Did you know that Babs Seed is the word ""? (Store the result!)
+
+        If Applebloom modulo 3 is 0 then, (...Is Applebloom divisible by 3?)
+            Babs Seed became Babs Seed plus "Fizz".
+        That's what I would do.
+        If Applebloom modulo 5 is 0 then, (... Is Applebloom divisible by 5?)
+            Babs Seed became Babs Seed plus "Buzz".
+        That's what I would do.
+
+        (Now we check if result is still empty, which means it's not divisible by 3 or 5!)
+        If Babs Seed is the word nothing then,
+            Babs Seed became Applebloom. (String conversion!)
+        That's what I would do.
+
+        I said Applebloom " - " Babs Seed.
+        Applebloom got one more.
+
     That's what I did.
     
-    Then you get y!
-
-That's all about how to find the digital root.
-
-Today I learned how to run a program!
-
-    I said how to find the digital root using 34758. (Expected: 9)
-
-That's all about how to run a program.
+That's all about how to play fizzbuzz.
 
 
 Your faithful student, Jaezmien Naejara.
-P.S. https://esolangs.org/wiki/Digital_root_calculator""")
+""")
 
 
 if __name__ == '__main__':

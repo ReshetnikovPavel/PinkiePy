@@ -1,5 +1,6 @@
 import copy
 import special_words
+import utility
 
 from environment import Environment
 
@@ -22,7 +23,8 @@ class FimFunction(FimCallable):
         for i in range(len(self.declaration.params)):
             environment.define(self.declaration.params[i].value, arguments[i])
         try:
-            interpreter.execute_compound(self.declaration.body.children, Environment(environment))
+            interpreter.execute_compound(self.declaration.body.children,
+                                         Environment(environment))
         except FimReturn as return_value:
             return return_value.value
         return None
@@ -111,3 +113,39 @@ class FimArray:
 
     def __str__(self):
         return f'{", ".join(map(str, self.elements))}'
+
+
+class FimBuiltInClass(FimClass):
+    def __init__(self, value, name):
+        super().__init__(name, superclass=None, methods={}, fields={})
+        self.value = value
+
+    def call(self, interpreter, arguments):
+        return self.value
+
+    def __str__(self):
+        if utility.is_float_and_int(self.value):
+            return str(int(self.value))
+        else:
+            return str(self.value)
+
+    def __add__(self, other):
+        return FimBuiltInClass(self.value + other.value, self.name)
+
+    def __sub__(self, other):
+        return FimBuiltInClass(self.value - other.value, self.name)
+
+    def __mul__(self, other):
+        return FimBuiltInClass(self.value * other.value, self.name)
+
+    def __truediv__(self, other):
+        return FimBuiltInClass(self.value / other.value, self.name)
+
+    def __floordiv__(self, other):
+        return FimBuiltInClass(self.value // other.value, self.name)
+
+    def __mod__(self, other):
+        return FimBuiltInClass(self.value % other.value, self.name)
+
+    def __pow__(self, other):
+        return FimBuiltInClass(self.value ** other.value, self.name)

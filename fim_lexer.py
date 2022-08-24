@@ -66,6 +66,7 @@ class Literals(Enum):
 
 
 class Keywords(Enum):
+    MODULO = 47
     FROM = 46
     ARRAY = 45
     COMMENT = 0
@@ -333,6 +334,9 @@ class Lexer:
             r'\bare now\b',
             Keywords.ASSIGN, Block.NONE, Suffix.INFIX),
         ReservedWord(
+            r'\bmodulo\b',
+            Keywords.MODULO, Block.NONE, Suffix.INFIX),
+        ReservedWord(
             r'\bOn the\b',
             Keywords.CASE, Block.BEGIN_PARTNER, Suffix.INFIX),
         ReservedWord(
@@ -376,6 +380,9 @@ class Lexer:
             Keywords.FROM, Block.BEGIN_PARTNER, Suffix.PREFIX),
         ReservedWord(
             r'\bbecomes?\b',
+            Keywords.ASSIGN, Block.NONE, Suffix.INFIX),
+        ReservedWord(
+            r'\bbecame\b',
             Keywords.ASSIGN, Block.NONE, Suffix.INFIX),
         ReservedWord(
             rf'\bsubtract(?={any_allowed_char_pattern}+?)'

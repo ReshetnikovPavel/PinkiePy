@@ -385,6 +385,14 @@ For every character c in A...
 I said c.
 That’s what I did.""", '0\n42\n69\n')
 
+    def testNothing(self):
+        self.assert_printed("""
+    Did you know that string is a word?
+    Did you know that string 2 is the word nothing?
+    I said string.
+    I said string 2.
+    """, 'nothing\nnothing\n')
+
 
 if __name__ == '__main__':
     unittest.main()

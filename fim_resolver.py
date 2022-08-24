@@ -129,7 +129,11 @@ class Resolver(NodeVisitor):
         array_name = utility.separate_array_name(node.value)
         array_index = utility.separate_index(node.value)
         if array_index is not None:
-            if self.scopes[-1].get(array_name) \
+            if len(self.scopes) == 0:
+                is_defined = array_name in self.interpreter.globals._values
+            else:
+                is_defined = self.scopes[-1].get(array_name)
+            if is_defined \
                     and isinstance(self.get_type(array_name), tuple) \
                     and self.get_type(array_name)[0] == Literals.ARRAY:
                 node.token.value = array_name
@@ -385,7 +389,9 @@ class Resolver(NodeVisitor):
             match = re.match(regex, token.value)
             if match:
                 value = str.removeprefix(token.value, match.group(0)).strip()
-                if value == "":
+                if value == "" or value == 'nothing':
+                    token.value = str.removesuffix(token.value, value).strip()
+                    token.type = type_name
                     return type_name, token
                 token.value = value
                 return type_name, token
