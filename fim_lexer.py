@@ -2,9 +2,6 @@ import re
 from enum import Enum
 
 
-# TODO: refactor this to be more readable
-
-
 class ReservedWord:
     def __init__(self, regex, type, block, suffix):
         self.regex = regex
@@ -354,6 +351,9 @@ class Lexer:
             r'\bI sang\b',
             Keywords.PRINT, Block.NONE, Suffix.PREFIX),
         ReservedWord(
+            r'\bI thought\b',
+            Keywords.PRINT, Block.NONE, Suffix.PREFIX),
+        ReservedWord(
             r'\bI read\b',
             Keywords.READLINE, Block.NONE, Suffix.PREFIX),
         ReservedWord(
@@ -642,7 +642,7 @@ class Lexer:
                 self._add_keyword_to_stack(stack, keyword)
                 continue
 
-        if stack[-1].end != len(self.source):
+        if len(stack) > 0 and stack[-1].end != len(self.source):
             self._add_literals_to_stack(stack, Token(
                 self.source[stack[-1].end:],
                 Literals.ID,
@@ -652,7 +652,16 @@ class Lexer:
                 len(self.source)))
 
         self.tokens = stack
-        stack.append(Token('EOF', 'EOF', Block.NONE, Suffix.NONE, len(self.source), len(self.source)))
+        stack.append(
+            Token('EOF',
+                  'EOF',
+                  Block.NONE,
+                  Suffix.NONE,
+                  len(self.source),
+                  len(self.source)))
+
+        self.add_line_count_to_tokens()
+
         return stack
 
     def _add_keyword_to_stack(self, stack, keyword):
@@ -701,6 +710,26 @@ class Lexer:
                     literal.end + name_regex_info.start)
                 start_index = literal.end
                 yield previous
+
+    def _get_new_line_positions(self):
+        new_line_positions = []
+        for index, char in enumerate(self.source):
+            if char == '\n':
+                new_line_positions.append(index)
+        return new_line_positions
+
+    def add_line_count_to_tokens(self):
+        new_line_positions = self._get_new_line_positions()
+        line_count = 0
+        latest_new_line_pos = 0
+        for index, token in enumerate(self.tokens):
+            while len(new_line_positions) > line_count \
+                    and token.start > new_line_positions[line_count]:
+                latest_new_line_pos = new_line_positions[line_count]
+                line_count += 1
+            token.line = line_count
+            offset = 0 if line_count == 0 else 1
+            token.column = token.start - latest_new_line_pos - offset
 
     def get_next_token(self):
         if len(self.tokens) == 0:

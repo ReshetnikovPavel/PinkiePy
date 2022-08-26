@@ -1,9 +1,8 @@
-import copy
 import special_words
 
 import fim_ast
 import utility
-from fim_lexer import Literals, Block, Suffix
+from fim_lexer import Literals
 from fim_lexer import Keywords, Token
 from fim_callable import FimClass, FimCallable
 from environment import Environment
@@ -57,8 +56,6 @@ class Interpreter(NodeVisitor):
         elif node.op.type == Keywords.LESS_THAN_OR_EQUAL:
             return self.visit(node.left) <= self.visit(node.right)
         elif node.op.type == Keywords.EQUAL:
-            left = self.visit(node.left)
-            right = self.visit(node.right)
             return self.visit(node.left) == self.visit(node.right)
         elif node.op.type == Keywords.NOT_EQUAL:
             return self.visit(node.left) != self.visit(node.right)
@@ -208,7 +205,8 @@ class Interpreter(NodeVisitor):
             arguments.append(self.visit(argument))
 
         if len(arguments) != function.arity():
-            raise RuntimeError("Function '{}' expected {} arguments, got {}".format(node, function.arity(), len(arguments)))
+            raise RuntimeError(f"Function '{node}' expected {function.arity()}"
+                               f" arguments, got {len(arguments)}")
 
         if isinstance(function, fim_callable.FimCallable):
             return function.call(self, arguments)
@@ -258,7 +256,8 @@ class Interpreter(NodeVisitor):
         self.environment.assign(node.name, fim_function)
 
     def visit_Class(self, node):
-        superclass = self.lookup_variable(node.superclass.token, node.superclass)
+        superclass = self.lookup_variable(
+            node.superclass.token, node.superclass)
 
         if isinstance(superclass, fim_ast.AST):
             superclass = self.visit(superclass)
@@ -342,46 +341,30 @@ class Interpreter(NodeVisitor):
 
     def visit_ArrayElementAssignment(self, node):
         array = self.lookup_variable(node.left.token, node.left)
+
         if not isinstance(node.index, int):
             index = self.visit(node.index)
             if utility.is_float_and_int(index):
                 index = int(index)
             node.index = index
+
         if node.index >= len(array.elements):
-            array.elements.extend([None] * (node.index - len(array.elements) + 1))
+            array.elements.extend(
+                [None] * (node.index - len(array.elements) + 1))
         array.elements[node.index] = self.visit(node.right)
-        pass
 
     def define_builtin_types(self):
-        self.globals.define('number', None)
-        self.globals.define('a number', None)
-        self.globals.define('the number', None)
-        self.globals.define('letter', None)
-        self.globals.define('a letter', None)
-        self.globals.define('the letter', None)
-        self.globals.define('character', None)
-        self.globals.define('a character', None)
-        self.globals.define('the character', None)
-        self.globals.define('sentence', None)
-        self.globals.define('phrase', None)
-        self.globals.define('quote', None)
-        self.globals.define('word', None)
-        self.globals.define('name', None)
-        self.globals.define('a sentence', None)
-        self.globals.define('a phrase', None)
-        self.globals.define('a quote', None)
-        self.globals.define('a word', None)
-        self.globals.define('a name', None)
-        self.globals.define('the sentence', None)
-        self.globals.define('the phrase', None)
-        self.globals.define('the quote', None)
-        self.globals.define('the word', None)
-        self.globals.define('the name', None)
-        self.globals.define('logic', None)
-        self.globals.define('the logic', None)
-        self.globals.define('argument', None)
-        self.globals.define('an argument', None)
-        self.globals.define('the argument', None)
+        builtin_types = [
+            'number', 'a number', 'the number',
+            'letter', 'a letter', 'the letter',
+            'character', 'a character', 'the character',
+            'sentence', 'phrase', 'quote', 'word', 'name',
+            'a sentence', 'a phrase', 'a quote', 'a word', 'a name',
+            'the sentence', 'the phrase', 'the quote', 'the word', 'the name',
+            'logic', 'the logic', 'argument', 'an argument', 'the argument']
+
+        for name in builtin_types:
+            self.environment.define(name, None)
 
 
 def stringify(obj):
@@ -395,11 +378,3 @@ def stringify(obj):
     if obj is False:
         return "false"
     return str(obj)
-
-
-
-
-
-# class FunctionWrapper:
-#     def __init__(self, function):
-#         self.function = function

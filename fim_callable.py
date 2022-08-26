@@ -113,39 +113,3 @@ class FimArray:
 
     def __str__(self):
         return f'{", ".join(map(str, self.elements))}'
-
-
-class FimBuiltInClass(FimClass):
-    def __init__(self, value, name):
-        super().__init__(name, superclass=None, methods={}, fields={})
-        self.value = value
-
-    def call(self, interpreter, arguments):
-        return self.value
-
-    def __str__(self):
-        if utility.is_float_and_int(self.value):
-            return str(int(self.value))
-        else:
-            return str(self.value)
-
-    def __add__(self, other):
-        return FimBuiltInClass(self.value + other.value, self.name)
-
-    def __sub__(self, other):
-        return FimBuiltInClass(self.value - other.value, self.name)
-
-    def __mul__(self, other):
-        return FimBuiltInClass(self.value * other.value, self.name)
-
-    def __truediv__(self, other):
-        return FimBuiltInClass(self.value / other.value, self.name)
-
-    def __floordiv__(self, other):
-        return FimBuiltInClass(self.value // other.value, self.name)
-
-    def __mod__(self, other):
-        return FimBuiltInClass(self.value % other.value, self.name)
-
-    def __pow__(self, other):
-        return FimBuiltInClass(self.value ** other.value, self.name)

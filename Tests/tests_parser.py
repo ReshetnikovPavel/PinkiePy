@@ -17,7 +17,8 @@ class Base(unittest.TestCase):
 
 class ParserTests(Base):
     def testVariable(self):
-        self.parser.lexer.tokens = [Token('a', Literals.ID, None, None, None, None)]
+        self.parser.lexer.tokens = [
+            Token('a', Literals.ID, None, None, None, None)]
         self.parser.current_token = self.lexer.get_next_token()
         res = self.parser.variable()
         self.assertTrue(res.value == 'a')

@@ -62,12 +62,15 @@ class InterpreterTests(Base):
             fim_ast.Return(
                 fim_ast.Number(
                     Token(1, Literals.NUMBER, None, None, None, None))))
-        function_declaration = fim_ast.Function(token, None, [], function_body, False)
-        function = FimFunction(function_declaration, self.interpreter.environment)
+        function_declaration = fim_ast.Function(
+            token, None, [], function_body, False)
+        function = FimFunction(
+            function_declaration, self.interpreter.environment)
 
         self.interpreter.environment.define(token.value, function)
         for i in range(distance):
-            self.interpreter.environment = Environment(self.interpreter.environment)
+            self.interpreter.environment = Environment(
+                self.interpreter.environment)
         res = self.interpreter.visit_Var(expr)
         self.assertTrue(res == 1)
 
@@ -78,7 +81,8 @@ class InterpreterTests(Base):
         self.interpreter.locals[expr] = distance
         self.interpreter.environment.define(token.value, "Hello World!")
         for i in range(distance):
-            self.interpreter.environment = Environment(self.interpreter.environment)
+            self.interpreter.environment = Environment(
+                self.interpreter.environment)
         res = self.interpreter.lookup_variable(token, expr)
         self.assertTrue(res == "Hello World!")
 
@@ -109,7 +113,8 @@ class InterpreterTests(Base):
         body.children = [fim_ast.NoOp()]
         ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
+            fim_ast.Var(Token(
+                'Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
             {},
@@ -118,7 +123,8 @@ class InterpreterTests(Base):
         self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
         self.assertTrue('A' in self.interpreter.environment._values)
-        self.assertTrue(isinstance(self.interpreter.environment._values['A'], FimClass))
+        self.assertTrue(isinstance(self.interpreter.environment._values['A'],
+                                   FimClass))
         self.assertTrue(self.interpreter.environment._values['A'].name == 'A')
 
     def testVisitGet(self):
@@ -164,11 +170,15 @@ class InterpreterTests(Base):
         self.interpreter.visit_VariableDeclaration(
             fim_ast.VariableDeclaration(applejack, None, fim_ast.Var(pony)))
 
-        set = fim_ast.Set(fim_ast.Var(applejack), hat, fim_ast.String(Token('value', Literals.ID, None, None, None, None)))
+        set = fim_ast.Set(fim_ast.Var(applejack),
+                          hat,
+                          fim_ast.String(Token(
+                              'value', Literals.ID, None, None, None, None)))
         res = self.interpreter.visit_Set(set)
 
         self.assertTrue(res == 'value')
-        self.assertTrue(self.interpreter.environment.get('Pony').fields['hat'] == 'value')
+        self.assertTrue(
+            self.interpreter.environment.get('Pony').fields['hat'] == 'value')
 
     def testClassMethods(self):
         body = fim_ast.Compound()
@@ -181,7 +191,8 @@ class InterpreterTests(Base):
         body.children = [method]
         ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
+            fim_ast.Var(Token(
+                'Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             body,
             {'func': method},
@@ -192,7 +203,9 @@ class InterpreterTests(Base):
         self.interpreter.environment._values['A'].methods['func'] = method
 
     def testClassSuperclassPrincessCelestia(self):
-        self.assertTrue(isinstance(self.interpreter.globals.get('Princess Celestia'), FimClass))
+        self.assertTrue(
+            isinstance(self.interpreter.globals.get('Princess Celestia'),
+                       FimClass))
         ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
             fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
@@ -203,7 +216,12 @@ class InterpreterTests(Base):
             Token('Programmer Name', Literals.ID, None, None, None, None))
         self.interpreter.environment.define(ast_class.name.value, ast_class)
         self.interpreter.visit_Class(ast_class)
-        self.assertTrue(self.interpreter.environment._values['A'].superclass.name == 'Princess Celestia')
+        self.assertTrue(
+            self.interpreter
+            .environment
+            ._values['A']
+            .superclass
+            .name == 'Princess Celestia')
 
     def testClassInheritFromNotAClass(self):
         self.interpreter.globals.define('A', 'I am totally not a class')

@@ -47,6 +47,44 @@ class TestLexerInterfaceMethods(Base):
         self.assertTrue(str(token.type) == 'PRINT' and token.value == 'I said')
         self.assertTrue(len(self.lexer.tokens) == tokens_len)
 
+    def assertGetNewLinePositions(self, program, expected):
+        self.lexer.set_source(program)
+        self.lexer.lex()
+        res = self.lexer._get_new_line_positions()
+        self.assertTrue(res == expected, f"expected {expected}, but got {res}")
+
+    def testGetNewLinePositions(self):
+        self.assertGetNewLinePositions('', [])
+        self.assertGetNewLinePositions('\n', [0])
+        self.assertGetNewLinePositions('\n\n', [0, 1])
+        self.assertGetNewLinePositions('\n\n\n', [0, 1, 2])
+        self.assertGetNewLinePositions('I said nothing!\n', [15])
+        self.assertGetNewLinePositions('I said 1!\nI said 2!\n', [9, 19])
+
+    def assertAddNewLinePositions(self, program,
+                                  res_line_expected,  res_in_line_pos_expected):
+        self.lexer.set_source(program)
+        self.lexer.lex()
+        self.lexer.add_line_count_to_tokens()
+        res_line_count = list(map(lambda x: x.line, self.lexer.tokens))
+        self.assertTrue(res_line_count == res_line_expected,
+                        f"expected {res_line_expected},"
+                        f" but got {res_line_count}")
+        res_in_line_pos = list(map(lambda x: x.column, self.lexer.tokens))
+        self.assertTrue(res_in_line_pos == res_in_line_pos_expected,
+                        f"expected {res_in_line_pos_expected},"
+                        f" but got {res_in_line_pos}")
+
+    def testAddNewLinePositions(self):
+        self.assertAddNewLinePositions('', [0], [0])
+        self.assertAddNewLinePositions('\n', [1], [0])
+        self.assertAddNewLinePositions('\n\n', [2], [0])
+        self.assertAddNewLinePositions('I said nothing!\n',
+                                       [0, 0, 0, 1], [0, 7, 14, 0])
+        self.assertAddNewLinePositions('I said 1!\nI said 2!\n',
+                                       [0, 0, 0, 1, 1, 1, 2],
+                                       [0, 7, 8, 0, 7, 8, 0])
+
 
 def tokens_are(tokens, tuples):
     try:
@@ -939,7 +977,8 @@ class TestOther(Base):
                            ('ID', 'ciders'))
 
     def testInsideStrings(self):
-        self.assert_tokens('I sang "Take one down and pass it around, "ciders" jugs of cider on the wall."!',
+        self.assert_tokens('I sang "Take one down and pass it around,'
+                           ' "ciders" jugs of cider on the wall."!',
                            ('PRINT', 'I sang'),
                            ('STRING', "Take one down and pass it around, "),
                            ('ID', 'ciders'),

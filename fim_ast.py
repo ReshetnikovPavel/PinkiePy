@@ -99,7 +99,7 @@ class String(AST):
 
     @property
     def value(self):
-        if self.token.value[0] in ['"', '”', '“']\
+        if self.token.value[0] in ['"', '”', '“'] \
                 and self.token.value[-1] in ['"', '”', '“']:
             return self.token.value[1:-1]
         return self.token.value
@@ -113,7 +113,14 @@ class NoOp(AST):
 
 
 class Class(AST):
-    def __init__(self, name, superclass, implementations, body, methods, fields, programmer):
+    def __init__(self,
+                 name,
+                 superclass,
+                 implementations,
+                 body,
+                 methods,
+                 fields,
+                 programmer):
         self.name = name
         self.superclass = superclass
         self.implementations = implementations
@@ -246,6 +253,7 @@ class ArrayElementAssignment(AST):
     def array_name(self):
         return self.left.token.value
 
+
 class ArrayElement(AST):
     def __init__(self, name, index):
         self.name = name
@@ -264,7 +272,6 @@ class For(AST):
                   Block.NONE, Suffix.NONE,
                   self.to_value.token.start, self.to_value.token.end),
             self.to_value)
-
 
 
 class ForIter(AST):

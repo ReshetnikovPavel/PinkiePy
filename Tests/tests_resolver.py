@@ -1,18 +1,15 @@
 import copy
 import unittest
 
-import fim_resolver
-from fim_resolver import Resolver, ResolverException, FunctionType, interpret
-from fim_interpreter import Interpreter
-from fim_parser import Parser
-from fim_lexer import Lexer
-from fim_lexer import Token
-from fim_lexer import Literals
-from fim_lexer import Keywords
-from fim_lexer import Suffix
-from fim_lexer import Block
-from node_visitor import NodeVisitor
 import fim_ast
+from fim_interpreter import Interpreter
+from fim_lexer import Keywords
+from fim_lexer import Lexer
+from fim_lexer import Literals
+from fim_lexer import Token
+from fim_parser import Parser
+from fim_resolver import Resolver, ResolverException
+from node_visitor import NodeVisitor
 
 
 class Base(unittest.TestCase):
@@ -123,7 +120,7 @@ class ResolverTests(Base):
 
     def testVisitVariableExprGoodBecauseEmpty(self):
         self.resolver.scopes = []
-        node = fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
+        fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
         self.assertTrue(self.resolver.scopes == [])
 
     def testVisitVariableExprBadBecauseNotDefined(self):
@@ -223,27 +220,6 @@ class ResolverTests(Base):
                 [],
                 Token('Programmer Name', Literals.ID, None, None, None, None)))
 
-    # def testVisitClassWithMethod(self):
-    #     self.resolver.begin_scope()
-    #     body = fim_ast.Compound()
-    #     method = fim_ast.Function(
-    #         fim_ast.Var(Token('func', Literals.ID, None, None, None, None)),
-    #         [],
-    #         [],
-    #         fim_ast.Compound(),
-    #         False)
-    #     body.children = [method]
-    #     self.resolver.visit_Class(fim_ast.Class(
-    #         Token('A', Literals.ID, None, None, None, None),
-    #         Token('Princess Celestia', Literals.ID, None, None, None, None),
-    #         [],
-    #         body,
-    #         [method],
-    #         [],
-    #         Token('Programmer Name', Literals.ID, None, None, None, None)))
-    #     self.assertTrue('func' in self.resolver.scopes[-1])
-    #     self.assertTrue(self.resolver.scopes[-1]['func'] is True)
-
 
 class TypeCheckerTests(Base):
 
@@ -259,7 +235,6 @@ class TypeCheckerTests(Base):
                               '"adorable"')
         self.assertConversion('99', None, '99')
         self.assertConversion('the number', Literals.NUMBER, 'the number')
-        #   self.assertConversion('Princess Celestia 2', 'Princess Celestia', '2')
 
     def testVariableDeclaration(self):
         self.resolver.begin_scope()
@@ -305,35 +280,6 @@ class TypeCheckerTests(Base):
                       None))))
         self.assertTrue(
             self.resolver.scopes_for_typechecking[-1]['b'] == Literals.NUMBER)
-
-    # def testFunctionDeclaration4(self):
-    #     self.resolver.begin_scope()
-    #     body = fim_ast.Compound()
-    #     body.children = [fim_ast.Function(
-    #         fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
-    #         Literals.NUMBER,
-    #         [],
-    #         fim_ast.Compound(),
-    #         False)]
-    #     self.resolver.visit_Class(fim_ast.Class(
-    #         fim_ast.Var(Token('A', Literals.ID, None, None, None, None)),
-    #         fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
-    #         [],
-    #         body,
-    #         [],
-    #         [],
-    #         Token('Programmer Name', Literals.ID, None, None, None, None)))
-    #
-    #     self.resolver.visit_VariableDeclaration(fim_ast.VariableDeclaration(
-    #         fim_ast.Var(Token('b', Literals.ID, None, None, None, None)),
-    #         Token('is', Keywords.EQUAL, None, None, None, None),
-    #         fim_ast.Get(
-    #             fim_ast.Var(Token('A', Literals.ID, None, None, None,
-    #                               None)),
-    #             Token('number a', Literals.ID, None, None, None, None),
-    #             False)))
-    #     self.assertTrue(
-    #         self.resolver.scopes_for_typechecking[-1]['b'] == Literals.NUMBER)
 
 
 if __name__ == '__main__':

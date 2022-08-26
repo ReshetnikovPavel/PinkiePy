@@ -51,11 +51,15 @@ class Resolver(NodeVisitor):
         self.main_was_initialized = False
         self.interfaces_to_be_checked = {}
         self.builtin_type_names = {
-            Literals.NUMBER: r'^(?:(?:a )|(?:the ))?number',
-            Literals.CHAR: r'^(?:(?:a )|(?:the ))?(?:(?:letter)|(?:character))',
-            Literals.STRING: r'^(?:(?:a )|(?:the ))?'
-                             r'(?:(?:sentence)|(?:phrase)|(?:quote)|(?:word)|(?:name))',
-            Literals.BOOL: r'^(?:(?:(?:the )?logic)|(?:(?:an )|(?:the ))?argument)'}
+            Literals.NUMBER:
+                r'^(?:(?:a )|(?:the ))?number',
+            Literals.CHAR:
+                r'^(?:(?:a )|(?:the ))?(?:(?:letter)|(?:character))',
+            Literals.STRING:
+                r'^(?:(?:a )|(?:the ))?'
+                r'(?:(?:sentence)|(?:phrase)|(?:quote)|(?:word)|(?:name))',
+            Literals.BOOL:
+                r'^(?:(?:(?:the )?logic)|(?:(?:an )|(?:the ))?argument)'}
         self.new_type_names = {}
         for type_name, regex in self.builtin_type_names.items():
             self.builtin_type_names[type_name] = re.compile(regex)
@@ -158,12 +162,16 @@ class Resolver(NodeVisitor):
         for i in reversed(range(len(self.scopes_for_typechecking))):
             if name in self.scopes_for_typechecking[i]:
                 return self.scopes_for_typechecking[i][name]
-        if self.current_class is not None and \
-                name in map(lambda x: x.name.value, self.current_class.methods.values()):
+
+        if self.current_class is not None \
+                and name in map(lambda x: x.name.value,
+                                self.current_class.methods.values()):
+
             return_type_token = self.current_class.methods[name].return_type
             if return_type_token is not None:
                 return_type, token = self.separate_type(return_type_token)
                 return return_type
+
         if name in self.globals_for_typechecking:
             return self.globals_for_typechecking[name]
         return None
@@ -200,6 +208,9 @@ class Resolver(NodeVisitor):
         for method in node.methods.values():
             declaration = FunctionType.METHOD
             self.resolve_function(method, declaration)
+
+        for field in node.fields.values():
+            self.resolve(field)
 
         self.current_class = None
         self.end_scope()
@@ -283,7 +294,8 @@ class Resolver(NodeVisitor):
         if isinstance(type, tuple) and type[0] == Literals.ARRAY:
             if type[1] != variable_type:
                 raise ResolverException(
-                    f"{node.init.left.token.value} is not an instance of {type[1]}")
+                    f"{node.init.left.token.value}"
+                    f" is not an instance of {type[1]}")
         self.resolve(node.body)
 
     def visit_Increment(self, node):

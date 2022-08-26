@@ -109,35 +109,60 @@ class TestOperators(Base):
 
 
 class TestPrograms(Base):
-    def testMaximumMinimum(self):
+    def testMath(self):
         self.assert_printed("""
 Dear Princess Celestia: Math!
 
-   I learned how to find maximum using first number and second number!
+    Did you know that Pi is number 3.14159265359?
+    Did you know that e is number 2.71828182846?
+    
+   I learned maximum to get a number using first number and second number!
        Did you know that maximum was nothing?
        If first number is greater than second number, maximum becomes first number.
        Otherwise, maximum becomes second number.
        That's what I would do.
        Then you get maximum!
        
-   That’s all about how to find maximum!
+   That’s all about maximum!
        
-    I learned how to find minimum using first number and second number!
+    I learned minimum to get a number using first number and second number!
         Did you know that minimum was nothing?
         If first number is less than second number, minimum becomes first number.
         Otherwise, minimum becomes second number.
         That's what I would do.
         Then you get minimum!
         
-    That’s all about how to find minimum!
-   
+    That’s all about minimum!
+    
+    I learned absolute value to get a number using the number!
+        Did you know that absolute value was nothing?
+        If the number is less than 0, absolute value becomes the number multiplied with -1.
+        Otherwise, absolute value becomes the number.
+        That's what I would do.
+        Then you get absolute value!
+    That's all about absolute value!
+    
+    I learned sign to get a number using the number!
+        Did you know that a sign was nothing?
+        If the number is less than 0, a sign becomes -1.
+        Otherwise, a sign becomes 1.
+        That's what I would do.
+        Then you get a sign!
+    That's all about sign!   
    
 Your faithful student, Kyli Rouge.
 
-I said Math`s how to find minimum using 42 and 69!
-I said Math`s how to find maximum using 42 and 69!
+I said Math`s minimum using 42 and 69!
+I said Math`s maximum using 42 and 69!
+I said Math`s absolute value using -42!
+I said Math`s absolute value using 42!
+I said Math`s sign using -42!
+I said Math`s sign using 42!
+I said Math`s Pi!
+I said Math`s e!
 """,
-                            '42\n69\n')
+                            '42\n69\n42\n42\n-1\n1\n3.14159265359\n2'
+                            '.71828182846\n')
 
     def testHelloWorld(self):
         self.assert_printed("""Dear Princess Celestia: Hello World!
