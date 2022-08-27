@@ -1,8 +1,7 @@
 import copy
 import special_words
-import utility
-
 from environment import Environment
+from fim_exception import FimRuntimeException
 
 
 class FimCallable:
@@ -98,7 +97,9 @@ class FimInstance:
         if method is not None:
             return method.bind(self)
 
-        raise RuntimeError(f'{self.fim_class.name} has no field {token.value}')
+        raise FimRuntimeException(
+            token,
+            f'{self.fim_class.name} has no field {token.value}')
 
     def set(self, token, value):
         self.fields[token.value] = value

@@ -1,32 +1,28 @@
 import sys
 import traceback
-from contextlib import contextmanager
-
 from colorama import Fore, Style
-
-import fim_parser
-import fim_resolver
+from pathlib import Path
 import special_words
-import utility
 
 from fim_lexer import Lexer
 from fim_parser import Parser
 from fim_interpreter import Interpreter
 from fim_resolver import Resolver
+from fim_exception import FimException
 
 
 def handle_errors(function):
     def wrapper(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except utility.FimException as e:
+        except FimException as e:
             print(f'{Fore.RED}{type(e).__name__}:'
                   f' {str(e)}{Style.RESET_ALL}')
         except KeyboardInterrupt:
             print(f'{Fore.RED}Program interrupted by user{Style.RESET_ALL}')
         except Exception as e:
             traceback.print_exc()
-            print(f'{Fore.RED}Oops! There is some bug in interpreter!:'
+            print(f'{Fore.RED}Oops! There is some bug in the interpreter!:'
                   f' {str(e)}{Style.RESET_ALL}')
 
     return wrapper
@@ -44,19 +40,26 @@ def interpret(program):
     interpreter.interpret(tree)
 
 
-def interpret_file(program_file_name):
-    if program_file_name.endswith(special_words.extension):
-        with open(program_file_name, 'r') as program_file:
-            program = program_file.read()
-            interpret(program)
+def interpret_file(absolute_path):
+    if not absolute_path.is_file():
+        print(f'{Fore.RED}File not found{Style.RESET_ALL}')
+        return
+
+    if absolute_path.suffix != special_words.extension:
+        print(f'{Fore.RED}File extension must be {special_words.extension}'
+              f'{Style.RESET_ALL}')
+        return
+
+    with absolute_path.open('r') as program_file:
+        program = program_file.read()
+        interpret(program)
 
 
 def interpret_from_command_line():
-    if len(sys.argv) != 2:
-        print("Usage: fim++.py <filename>")
-        sys.exit(1)
-    interpret_file(sys.argv[1])
+    path = ' '.join(sys.argv[1:])
+    interpret_file(Path(path).absolute())
 
 
 if __name__ == '__main__':
+    # cmd cannot handle unicode characters such as ‘ and ’
     interpret_from_command_line()

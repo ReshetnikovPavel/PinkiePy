@@ -2,9 +2,9 @@ import special_words
 
 import fim_ast
 import utility
-from fim_lexer import Literals
-from fim_lexer import Keywords, Token
+from fim_lexer import Keywords, Literals, Token
 from fim_callable import FimClass, FimCallable
+from fim_exception import FimRuntimeException
 from environment import Environment
 import fim_callable
 from node_visitor import NodeVisitor
@@ -39,45 +39,50 @@ class Interpreter(NodeVisitor):
         self.define_builtin_types()
 
     def visit_BinOp(self, node):
-        if node.op.type == Keywords.ADDITION:
-            return self.visit(node.left) + self.visit(node.right)
-        elif node.op.type == Keywords.SUBTRACTION:
-            return self.visit(node.left) - self.visit(node.right)
-        elif node.op.type == Keywords.MULTIPLICATION:
-            return self.visit(node.left) * self.visit(node.right)
-        elif node.op.type == Keywords.DIVISION:
-            return self.visit(node.left) / self.visit(node.right)
-        elif node.op.type == Keywords.GREATER_THAN:
-            return self.visit(node.left) > self.visit(node.right)
-        elif node.op.type == Keywords.LESS_THAN:
-            return self.visit(node.left) < self.visit(node.right)
-        elif node.op.type == Keywords.GREATER_THAN_OR_EQUAL:
-            return self.visit(node.left) >= self.visit(node.right)
-        elif node.op.type == Keywords.LESS_THAN_OR_EQUAL:
-            return self.visit(node.left) <= self.visit(node.right)
-        elif node.op.type == Keywords.EQUAL:
-            return self.visit(node.left) == self.visit(node.right)
-        elif node.op.type == Keywords.NOT_EQUAL:
-            return self.visit(node.left) != self.visit(node.right)
-        elif node.op.type == Keywords.AND:
-            left = self.visit(node.left)
-            right = self.visit(node.right)
-            if type(left) == float and type(right) == float:
+        left = self.visit(node.left)
+        right = self.visit(node.right)
+        try:
+            if node.op.type == Keywords.ADDITION:
                 return left + right
+            elif node.op.type == Keywords.SUBTRACTION:
+                return left - right
+            elif node.op.type == Keywords.MULTIPLICATION:
+                return left * right
+            elif node.op.type == Keywords.DIVISION:
+                return left / right
+            elif node.op.type == Keywords.GREATER_THAN:
+                return left > right
+            elif node.op.type == Keywords.LESS_THAN:
+                return left < right
+            elif node.op.type == Keywords.GREATER_THAN_OR_EQUAL:
+                return left >= right
+            elif node.op.type == Keywords.LESS_THAN_OR_EQUAL:
+                return left <= right
+            elif node.op.type == Keywords.EQUAL:
+                return left == right
+            elif node.op.type == Keywords.NOT_EQUAL:
+                return left != right
+            elif node.op.type == Keywords.AND:
+                if type(left) == float and type(right) == float:
+                    return left + right
+                else:
+                    return left and right
+            elif node.op.type == Keywords.OR:
+                return left or right
+            elif node.op.type == Keywords.XOR:
+                return left ^ right
+            elif node.op.type == Keywords.CONCAT:
+                return stringify(left) + stringify(right)
+            elif node.op.type == Keywords.MODULO:
+                return left % right
             else:
-                return left and right
-        elif node.op.type == Keywords.OR:
-            return self.visit(node.left) or self.visit(node.right)
-        elif node.op.type == Keywords.XOR:
-            return self.visit(node.left) ^ self.visit(node.right)
-        elif node.op.type == Keywords.CONCAT:
-            left = self.visit(node.left)
-            right = self.visit(node.right)
-            return stringify(left) + stringify(right)
-        elif node.op.type == Keywords.MODULO:
-            return self.visit(node.left) % self.visit(node.right)
-        else:
-            raise Exception(f"Unknown operator: {node.op}")
+                raise FimRuntimeException(node.op,
+                                          f"Unknown operator: {node.op}")
+        except TypeError:
+            raise FimRuntimeException(
+                node.op,
+                f'Cannot perform operation {node.op.value}'
+                f' with {stringify(left)} and {stringify(right)}')
 
     def visit_UnaryOp(self, node):
         op = node.op.type
@@ -160,7 +165,7 @@ class Interpreter(NodeVisitor):
             try:
                 instance = self.environment.get(special_words.this)
                 instance.set(node.left, value)
-            except NameError:
+            except FimRuntimeException:
                 self.globals.assign(node.left, value)
 
         return value
@@ -175,8 +180,11 @@ class Interpreter(NodeVisitor):
             if utility.is_float_and_int(node.index):
                 index = int(node.index)
             else:
-                raise RuntimeError("Index must be an integer")
+                raise FimRuntimeException(
+                    node.token,
+                    f"index {node.index} must be an integer")
             return val.elements[index]
+
         if isinstance(val, fim_callable.FimCallable) and val.arity() == 0:
             return val.call(self, [])
         return val
@@ -189,29 +197,27 @@ class Interpreter(NodeVisitor):
             try:
                 instance = self.environment.get(special_words.this)
                 res = instance.get(token)
-                # if isinstance(res, fim_callable.FimCallable):
-                #     return FunctionWrapper(res)
                 return res
-            except (NameError, RuntimeError):
+            except FimRuntimeException:
                 return self.globals.get(token.value)
 
     def visit_FunctionCall(self, node):
         function = self.visit(node.name)
-        # if isinstance(function, FunctionWrapper):
-        #     function = function.function
 
         arguments = []
         for argument in node.arguments:
             arguments.append(self.visit(argument))
 
         if len(arguments) != function.arity():
-            raise RuntimeError(f"Function '{node}' expected {function.arity()}"
-                               f" arguments, got {len(arguments)}")
+            raise FimRuntimeException(
+                node.name,
+                f"Function '{node}' expected {function.arity()}"
+                f" arguments, got {len(arguments)}")
 
         if isinstance(function, fim_callable.FimCallable):
             return function.call(self, arguments)
         else:
-            raise RuntimeError("{} is not a function".format(node))
+            raise FimRuntimeException(node.name, f"{node} is not a function")
 
     def visit_Return(self, node):
         value = None
@@ -263,7 +269,8 @@ class Interpreter(NodeVisitor):
             superclass = self.visit(superclass)
 
         if not isinstance(superclass, FimClass):
-            raise RuntimeError("{} is not a class".format(superclass))
+            raise FimRuntimeException(node.superclass.token,
+                                      f"{superclass} is not a class")
 
         #   I use assign because it was defined as fim_ast.Class in resolver
         self.environment.assign(node.name, None)
@@ -298,14 +305,17 @@ class Interpreter(NodeVisitor):
             if utility.is_float_and_int(index):
                 index = int(index)
             else:
-                raise RuntimeError("Index must be an integer")
+                raise FimRuntimeException(node.name,
+                                          f"Index {index} must be an integer")
             return array.elements[index]
         if isinstance(obj, fim_callable.FimInstance):
             field = obj.get(node.name)
             if isinstance(field, FimCallable) and not node.has_parameters:
                 return field.call(self, [])
             return field
-        raise RuntimeError(f"{obj} only instances or arrays have properties")
+        raise FimRuntimeException(
+            node.object.token,
+            f"{node.object.token} only instances or arrays have properties")
 
     def visit_Set(self, node):
         obj = self.visit(node.object)
@@ -313,7 +323,9 @@ class Interpreter(NodeVisitor):
             value = self.visit(node.value)
             obj.set(node.name, value)
             return value
-        raise RuntimeError("{} only instances have properties".format(obj))
+        raise FimRuntimeException(
+            node.object.token,
+            f"{node.object.token} only instances have properties")
 
     def visit_Switch(self, node):
         cases = {}

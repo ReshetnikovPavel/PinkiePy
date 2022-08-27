@@ -1,5 +1,4 @@
 import copy
-import re
 from fim_lexer import Literals, Token, Keywords, Block, Suffix
 
 
@@ -145,6 +144,10 @@ class Get(AST):
         self.object = object
         self.name = name
         self.has_parameters = has_parameters
+
+    @property
+    def value(self):
+        return self.name.value
 
 
 class Set(AST):

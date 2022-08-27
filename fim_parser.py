@@ -2,10 +2,7 @@ import special_words
 import utility
 import fim_ast
 from fim_lexer import Literals, Block, Suffix, Keywords, Token
-
-
-class FimParserException(utility.FimException):
-    pass
+from fim_exception import FimParserException
 
 
 class Parser:
@@ -516,7 +513,7 @@ class Parser:
             elif isinstance(expr, fim_ast.Get):
                 get = expr
                 return fim_ast.Set(get.object, get.name, value)
-            raise Exception("Invalid assignment target")
+            self.error("Invalid assignment target")
         elif self.current_token.type == Keywords.EQUAL and \
                 self.current_token.value == 'is':
             self.eat(Keywords.EQUAL, 'Expected "is" as array'

@@ -1,5 +1,8 @@
+from pathlib import Path
+
 import fim_callable
 import special_words
+from fim_exception import FimResolverException
 from fim_interpreter import Interpreter
 from fim_lexer import Lexer, Literals
 from fim_parser import Parser
@@ -19,11 +22,7 @@ def interpret(program):
     resolver.resolve(tree)
     interpreter.interpret(tree)
 
-    return interpreter.globals
-
-
-class FimResolverException(utility.FimException):
-    pass
+    return interpreter.globals, interpreter.locals
 
 
 class FunctionType(Enum):
@@ -122,7 +121,7 @@ class Resolver(NodeVisitor):
         array_index = utility.separate_index(node.value)
         if array_index is not None:
             if len(self.scopes) == 0:
-                is_defined = array_name in self.interpreter.globals._values
+                is_defined = array_name in self.interpreter.globals
             else:
                 is_defined = self.scopes[-1].get(array_name)
             if is_defined \
@@ -209,7 +208,7 @@ class Resolver(NodeVisitor):
         self.resolve(node.superclass)
 
         for interface_token in node.implementations:
-            if interface_token.value in self.interpreter.globals._values:
+            if interface_token.value in self.interpreter.globals:
                 self.check_interface(
                     self.interpreter.globals.get(interface_token.value), node)
             elif interface_token.value in self.interfaces_to_be_checked:
@@ -382,7 +381,8 @@ class Resolver(NodeVisitor):
                                             fim_class.methods.values()):
                 raise FimResolverException(
                     interface.name,
-                    f"{fim_class.name.value} does not implement {method.name.value}")
+                    f"{fim_class.name.value}"
+                    f" does not implement {method.name.value}")
 
     def visit_Switch(self, node):
         self.resolve(node.variable)
@@ -392,21 +392,40 @@ class Resolver(NodeVisitor):
         if node.default is not None:
             self.resolve(node.default)
 
+    @staticmethod
+    def find_module_path(module_name):
+        for path in Path().rglob(f'{module_name}{special_words.extension}'):
+            return path.absolute()
+
+
     def visit_Import(self, node):
-        program_file_name = node.name.value + special_words.extension
-        if program_file_name.endswith(special_words.extension):
-            with open(program_file_name, 'r') as program_file:
-                program = program_file.read()
-                imported = interpret(program)
-                self.interpreter.globals.define(
-                    node.name.value,
-                    self.make_class_from_env(imported, node.name.value))
+        program_file_path = self.find_module_path(node.name.value)
+        if program_file_path is None:
+            raise FimResolverException(
+                node.name,
+                f"Cannot find module {node.name.value}")
+
+        with program_file_path.open('r') as program_file:
+            program = program_file.read()
+            imported_globals, imported_locals = interpret(program)
+            imported_class = self.make_class_from_env(
+                imported_globals, node.name.value)
+
+            if imported_class is None:
+                raise FimResolverException(
+                    node.name,
+                    f"Cannot find class {node.name.value}"
+                    f" in module {node.name.value}")
+
+            self.interpreter.globals.define(node.name.value, imported_class)
+            for name, info in imported_locals.items():
+                self.interpreter.locals[name] = info
 
     @staticmethod
     def make_class_from_env(env, class_name):
         methods = {}
         fields = {}
-        for key, value in env._values.items():
+        for key, value in env.items():
             if isinstance(value, FunctionType):
                 methods[key] = value
             elif key == special_words.base_class_name:
@@ -415,11 +434,13 @@ class Resolver(NodeVisitor):
             #   then we import only this class
             #   to make import work kinda like on wikia page
             elif key == class_name:
-                return env._values[key]
+                return env.get(key)
             else:
                 fields[key] = value
 
-        return fim_callable.FimClass(class_name, None, methods, fields)
+        #   res = fim_callable.FimClass(class_name, None, methods, fields)
+        #   return res
+        return None
 
     def separate_type(self, token):
         for type_name, regex in self.builtin_type_names.items():
