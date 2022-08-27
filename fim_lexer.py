@@ -287,10 +287,10 @@ class Lexer:
             Keywords.CASE, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bConditional conclusion\b',
-            Keywords.DEFAULT, Block.NONE, Suffix.PREFIX),
+            Keywords.DEFAULT, Block.END, Suffix.PREFIX),
         ReservedWord(
             r'\bIf all else fails\b',
-            Keywords.DEFAULT, Block.NONE, Suffix.PREFIX),
+            Keywords.DEFAULT, Block.END, Suffix.PREFIX),
         ReservedWord(
             r'\bToday I learned\b',
             Keywords.MANE_PARAGRAPH, Block.BEGIN, Suffix.PREFIX),

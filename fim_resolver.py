@@ -1,8 +1,7 @@
-import fim_ast
 import fim_callable
 import special_words
 from fim_interpreter import Interpreter
-from fim_lexer import Lexer, Literals, Token, Keywords, Block, Suffix
+from fim_lexer import Lexer, Literals
 from fim_parser import Parser
 from node_visitor import NodeVisitor
 from enum import Enum
@@ -23,9 +22,8 @@ def interpret(program):
     return interpreter.globals
 
 
-class ResolverException(Exception):
-    def __init__(self, message=None):
-        super().__init__(message)
+class FimResolverException(utility.FimException):
+    pass
 
 
 class FunctionType(Enum):
@@ -102,7 +100,8 @@ class Resolver(NodeVisitor):
             return
         scope = self.scopes[-1]
         if name.value in scope:
-            raise ResolverException(f"{name.value} is already defined")
+            raise FimResolverException(name.token,
+                                       f"{name.value} is already defined")
         scope[name.value] = False
 
     def define(self, name):
@@ -119,9 +118,6 @@ class Resolver(NodeVisitor):
         scope[name.value] = type
 
     def visit_Var(self, node):
-        if len(self.scopes) != 0 and self.scopes[-1].get(node.value) is False:
-            raise ResolverException()
-
         array_name = utility.separate_array_name(node.value)
         array_index = utility.separate_index(node.value)
         if array_index is not None:
@@ -141,14 +137,34 @@ class Resolver(NodeVisitor):
         variable_type, variable_token = self.typecheck(node.token)
         node.token = variable_token
 
+        if not self.is_in_scopes(node.value):
+            raise FimResolverException(node.token,
+                                       f"{node.value} is not defined")
+
         self.resolve_local(node, node.token)
 
         return variable_type
 
+    def is_in_scopes(self, name):
+        for scope in self.scopes:
+            if name in scope:
+                return True
+
+        if any(map(lambda x: name in x,
+                   (self.interpreter.globals, self.globals_for_typechecking))):
+            return True
+
+        if self.current_class is not None:
+            if name in self.current_class.fields \
+                    or name in self.current_class.methods:
+                return True
+        return False
+
     def typecheck(self, token):
         variable_type, variable_token = self.separate_type(token)
         if not self.is_instance(variable_type, variable_token):
-            raise ResolverException(
+            raise FimResolverException(
+                token,
                 f"{variable_token.value} is not an instance of {variable_type}")
         return variable_type, variable_token
 
@@ -187,7 +203,8 @@ class Resolver(NodeVisitor):
         self.interpreter.globals.define(node.name.value, node)
 
         if node.name.value == node.superclass.token.value:
-            raise ResolverException(f"A class cannot inherit from itself")
+            raise FimResolverException(node.name,
+                                       "A class cannot inherit from itself")
 
         self.resolve(node.superclass)
 
@@ -234,7 +251,8 @@ class Resolver(NodeVisitor):
     def resolve_function(self, node, function_type):
         if node.is_main:
             if self.main_was_initialized:
-                raise ResolverException(
+                raise FimResolverException(
+                    node.token,
                     f"Cannot have more than one main function")
             self.main_was_initialized = True
 
@@ -263,7 +281,9 @@ class Resolver(NodeVisitor):
 
     def visit_Return(self, node):
         if self.current_function == FunctionType.NONE:
-            raise ResolverException(f"Cannot return from top-level code")
+            raise FimResolverException(
+                node.token,
+                f"Cannot return from top-level code")
 
         if node.value is not None:
             self.resolve(node.value)
@@ -293,7 +313,8 @@ class Resolver(NodeVisitor):
         type = self.get_type(node.iterable.token.value)
         if isinstance(type, tuple) and type[0] == Literals.ARRAY:
             if type[1] != variable_type:
-                raise ResolverException(
+                raise FimResolverException(
+                    node.iterable.token,
                     f"{node.init.left.token.value}"
                     f" is not an instance of {type[1]}")
         self.resolve(node.body)
@@ -359,7 +380,8 @@ class Resolver(NodeVisitor):
         for method in interface.methods:
             if method.name.value not in map(lambda m: m.name.value,
                                             fim_class.methods.values()):
-                raise ResolverException(
+                raise FimResolverException(
+                    interface.name,
                     f"{fim_class.name.value} does not implement {method.name.value}")
 
     def visit_Switch(self, node):
@@ -425,8 +447,8 @@ class Resolver(NodeVisitor):
         if type is None:
             return True
         if token.type != Literals.ID:
-            token_type = Literals.BOOL\
-                if token.type == Literals.TRUE or token.type == Literals.FALSE\
+            token_type = Literals.BOOL \
+                if token.type == Literals.TRUE or token.type == Literals.FALSE \
                 else token.type
             return type == token_type
         else:
@@ -442,19 +464,24 @@ class Resolver(NodeVisitor):
         elif type.endswith('s'):
             type = type[:-1]
         else:
-            raise ResolverException(
+            raise FimResolverException(
+                node.type.token,
                 f"Array type should be in plural form: {type}")
         for key, regex in self.builtin_type_names.items():
             if re.match(regex, type):
                 type = key
                 self.set_type(node.name.token, (Literals.ARRAY, type))
                 return
-        raise ResolverException(f"Cannot make array of this type: {type}")
+        raise FimResolverException(
+            node.type.token,
+            f"Cannot make array of this type: {type}")
 
     def visit_ArrayElementAssignment(self, node):
         expected_type = self.get_type(node.array_name)
         if expected_type[0] != Literals.ARRAY:
-            raise ResolverException(f"{node.array_name} is not an array")
+            raise FimResolverException(
+                node.array_name,
+                f"{node.array_name} is not an array")
         right_type = self.visit(node.right)
         self.visit(node.left)
         if not isinstance(node.index, int):
@@ -462,5 +489,6 @@ class Resolver(NodeVisitor):
         if right_type is None:
             right_type = node.right.token.type
         if expected_type[1] != right_type:
-            raise ResolverException(
+            raise FimResolverException(
+                node.right.token,
                 f"Expected {expected_type} but got {right_type}")

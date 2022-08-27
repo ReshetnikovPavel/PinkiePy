@@ -8,7 +8,7 @@ from fim_lexer import Lexer
 from fim_lexer import Literals
 from fim_lexer import Token
 from fim_parser import Parser
-from fim_resolver import Resolver, ResolverException
+from fim_resolver import Resolver, FimResolverException
 from node_visitor import NodeVisitor
 
 
@@ -93,7 +93,7 @@ class ResolverTests(Base):
     def testDeclareVariableAlreadyExists(self):
         self.resolver.begin_scope()
         self.resolver.declare(Token('a', Literals.ID, None, None, None, None))
-        with self.assertRaises(ResolverException):
+        with self.assertRaises(FimResolverException):
             self.resolver.declare(
                 Token('a', Literals.ID, None, None, None, None))
 
@@ -127,7 +127,7 @@ class ResolverTests(Base):
         self.resolver.begin_scope()
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, 0))
         self.resolver.declare(Token('a', Literals.ID, None, None, None, 0))
-        with self.assertRaises(ResolverException):
+        with self.assertRaises(FimResolverException):
             self.resolver.visit_Var(node)
 
     def testResolveLocalLast0(self):
@@ -184,7 +184,7 @@ class ResolverTests(Base):
         self.assertTrue(self.resolver.scopes[-1]['a'] is True)
 
     def testReturnOutsideOfFunction(self):
-        with self.assertRaises(ResolverException):
+        with self.assertRaises(FimResolverException):
             self.resolver.visit_Return(fim_ast.Return(
                 fim_ast.String(
                     Token('"a"', Literals.STRING, None, None, None, None))))
@@ -210,7 +210,7 @@ class ResolverTests(Base):
         self.resolver.begin_scope()
         body = fim_ast.Compound()
         body.children = [fim_ast.NoOp()]
-        with self.assertRaises(ResolverException):
+        with self.assertRaises(FimResolverException):
             self.resolver.visit_Class(fim_ast.Class(
                 Token('A', Literals.ID, None, None, None, None),
                 fim_ast.Var(Token('A', Literals.ID, None, None, None, None)),

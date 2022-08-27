@@ -1,7 +1,6 @@
 import unittest
 
 import fim_ast
-from fim_callable import FimFunction
 from fim_lexer import Lexer, Literals, Keywords, Token
 from fim_parser import Parser
 

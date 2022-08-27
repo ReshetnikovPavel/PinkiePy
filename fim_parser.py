@@ -4,14 +4,8 @@ import fim_ast
 from fim_lexer import Literals, Block, Suffix, Keywords, Token
 
 
-class FimParserException(Exception):
-    def __init__(self, token, message):
-        self.token = token
-        self.message = message
-
-    def __str__(self):
-        return f'Error at line {self.token.line} column {self.token.column} ' \
-               f'{self.token.value} : {self.message}'
+class FimParserException(utility.FimException):
+    pass
 
 
 class Parser:
@@ -191,8 +185,10 @@ class Parser:
         node = self.expr()
         return node
 
-    def compound_statement(self, end_token_names=None):
-        nodes = self.statement_list(end_token_names=end_token_names)
+    def compound_statement(self, end_token_names=None,
+                           end_token_blocks=(Block.END,)):
+        nodes = self.statement_list(end_token_names=end_token_names,
+                                    end_token_blocks=end_token_blocks)
 
         root = fim_ast.Compound()
         for node in nodes:
@@ -200,7 +196,8 @@ class Parser:
 
         return root
 
-    def statement_list(self, end_token_names=None):
+    def statement_list(self, end_token_names=None,
+                       end_token_blocks=(Block.END,)):
         node = self.statement()
 
         results = [node]
@@ -209,7 +206,7 @@ class Parser:
         while self.current_token.type != 'EOF' \
                 and (end_token_names is None
                      or self.current_token.type not in end_token_names
-                     and self.current_token.block != Block.END):
+                     or self.current_token.block not in end_token_blocks):
             results.append(self.statement())
             self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
 
@@ -310,7 +307,8 @@ class Parser:
                      token_block=Block.END_PARTNER)
             self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
             case_body = self.compound_statement(
-                end_token_names=(Keywords.CASE, Keywords.DEFAULT))
+                end_token_names=(Keywords.CASE, Keywords.DEFAULT),
+                end_token_blocks=(Block.END, Block.BEGIN_PARTNER))
             cases[case_value] = case_body
         default_body = None
         if self.current_token.type == Keywords.DEFAULT:
@@ -318,7 +316,7 @@ class Parser:
                                        'try "If all else fails')
             self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
             default_body = self.compound_statement(
-                end_token_names=(Keywords.SWITCH,))
+                end_token_names=(Keywords.END_LOOP,))
         self.eat(Keywords.END_LOOP,
                  'Expected switch ending, try "That’s what I did"',
                  token_block=Block.END)
