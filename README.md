@@ -1,4 +1,5 @@
 # fim++ interpreter in python
-![fimpp_logo_text1](https://user-images.githubusercontent.com/92433826/186967884-b50bcf3e-fc22-4208-8113-e2b37949311c.png)
+![PinkiePy](https://user-images.githubusercontent.com/92433826/187067728-fe30eea0-b4e9-4f48-8c8a-3e94be6b4303.png)
+
 
 work in progress
