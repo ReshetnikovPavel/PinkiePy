@@ -120,7 +120,8 @@ class Resolver(NodeVisitor):
         array_index = utility.separate_index(node.value)
         if array_index is not None:
             if len(self.scopes) == 0:
-                is_defined = array_name in self.interpreter.globals
+                is_defined = array_name in self.interpreter.globals \
+                             or array_name in self.globals_for_typechecking
             else:
                 is_defined = self.scopes[-1].get(array_name)
             if is_defined \
@@ -396,7 +397,6 @@ class Resolver(NodeVisitor):
         for path in Path().rglob(f'{module_name}{special_words.extension}'):
             return path.absolute()
 
-
     def visit_Import(self, node):
         program_file_path = self.find_module_path(node.name.value)
         if program_file_path is None:
@@ -479,19 +479,21 @@ class Resolver(NodeVisitor):
         self.define(node.name.token)
         self.resolve_local(node, node.name.token)
         type = node.type.token.value
+        possible_type_names = []
         if type.endswith('es'):
-            type = type[:-2]
-        elif type.endswith('s'):
-            type = type[:-1]
+            possible_type_names.append(type[:-2])
+        if type.endswith('s'):
+            possible_type_names.append(type[:-1])
         else:
             raise FimResolverException(
                 node.type.token,
                 f"Array type should be in plural form: {type}")
-        for key, regex in self.builtin_type_names.items():
-            if re.match(regex, type):
-                type = key
-                self.set_type(node.name.token, (Literals.ARRAY, type))
-                return
+        for possible_type_name in possible_type_names:
+            for key, regex in self.builtin_type_names.items():
+                if re.match(regex, possible_type_name):
+                    type = key
+                    self.set_type(node.name.token, (Literals.ARRAY, type))
+                    return
         raise FimResolverException(
             node.type.token,
             f"Cannot make array of this type: {type}")

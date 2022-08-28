@@ -446,9 +446,9 @@ class Lexer:
         ReservedWord(
             r'\bDear\b',
             Keywords.REPORT, Block.BEGIN, Suffix.PREFIX),
-        ReservedWord(
-            r'\bwith\b',
-            Keywords.RETURNED_VARIABLE_TYPE, Block.NONE, Suffix.INFIX),
+        # ReservedWord(
+        #     r'\bwith\b',
+        #     Keywords.RETURNED_VARIABLE_TYPE, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bwere\b',
             Keywords.EQUAL, Block.NONE, Suffix.INFIX),

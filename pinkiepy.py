@@ -62,12 +62,6 @@ def interpret_from_command_line():
     interpret_file(Path(path).absolute())
 
 
-interpret("""
-I learned how to do stuff to get a number result.
-    Then you get 1!
-That's all about how to do stuff.
-""")
-
 
 if __name__ == '__main__':
     # cmd cannot handle unicode characters such as ‘ and ’
