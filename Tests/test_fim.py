@@ -39,7 +39,7 @@ drinking_song = """
 Dear Princess Celestia: Cider Jugs.
 
 Today I learned Applejack's Drinking Song.
-Did you know that Applejack likes the number 99? 
+Did you know that Applejack likes the number 99?
 (Applejack likes a lot of things...)
 I remembered how to sing the drinking song using Applejack.
 That's all about Applejack's Drinking Song!
@@ -80,7 +80,6 @@ class TestOperators(Base):
 
     def testIncrement(self):
         pass
-        #   TODO: Implement increment operator
 
     def testSubtraction(self):
         self.assert_printed('I said subtract 5 and 7.', '-2\n')
@@ -92,7 +91,7 @@ class TestOperators(Base):
         self.assert_printed('I said divide 8 and 2.', '4\n')
 
     def testDivision3(self):
-        self.assert_printed('I wrote divide 2 by 9.', f'{2/9}\n')
+        self.assert_printed('I wrote divide 2 by 9.', f'{2 / 9}\n')
 
     def testOutput(self):
         self.assert_printed('I said “Hello World”!', 'Hello World\n')
@@ -118,7 +117,7 @@ Dear Princess Celestia: Math!
 
     Did you know that Pi is number 3.14159265359?
     Did you know that e is number 2.71828182846?
-    
+
    I learned maximum to get a number using first number and second number!
        Did you know that maximum was nothing?
        If first number is greater than second number,
@@ -126,9 +125,9 @@ Dear Princess Celestia: Math!
        Otherwise, maximum becomes second number.
        That's what I would do.
        Then you get maximum!
-       
+
    That’s all about maximum!
-       
+
     I learned minimum to get a number using first number and second number!
         Did you know that minimum was nothing?
         If first number is less than second number,
@@ -136,9 +135,9 @@ Dear Princess Celestia: Math!
         Otherwise, minimum becomes second number.
         That's what I would do.
         Then you get minimum!
-        
+
     That’s all about minimum!
-    
+
     I learned absolute value to get a number using the number!
         Did you know that absolute value was nothing?
         If the number is less than 0,
@@ -147,15 +146,15 @@ Dear Princess Celestia: Math!
         That's what I would do.
         Then you get absolute value!
     That's all about absolute value!
-    
+
     I learned sign to get a number using the number!
         Did you know that a sign was nothing?
         If the number is less than 0, a sign becomes -1.
         Otherwise, a sign becomes 1.
         That's what I would do.
         Then you get a sign!
-    That's all about sign!   
-   
+    That's all about sign!
+
 Your faithful student, Kyli Rouge.
 
 I said Math`s minimum using 42 and 69!
@@ -275,7 +274,7 @@ Your faithful student, Pavel Reshetnikov.""",
         That's all about how to raise the moon.
 
         Your faithful student, Pavel Reshetnikov.
-        
+
         Princess Luna:
 
         I learned how to fly.
@@ -290,25 +289,25 @@ Your faithful student, Pavel Reshetnikov.""",
         Interface 1:
         I learned method 1!
         Your faithful student, Pavel Reshetnikov.
-        
+
         Interface 2:
         I learned method 2!
         Your faithful student, Pavel Reshetnikov.
-        
+
         Dear Princess Celestia and Interface 1 and Interface 2: Implementation!
         Today I learned Main!
             I would method 1!
             I would method 2!
         That's all about Main.
-        
+
         I learned method 1!
             I said "method 1"!
         That's all about method 1!
-        
+
          I learned method 2!
             I said "method 2"!
         That's all about method 2!
-        
+
         Your faithful student, Pavel Reshetnikov.""", 'method 1\nmethod 2\n')
 
     def testInterface4(self):
@@ -392,7 +391,7 @@ Did you know that the current count was the number 0?
   “the current count” to be a number, and initialize it to 0)
 
 As long as the current count was no more than 100:
- (Start a conditional statement that loops 
+ (Start a conditional statement that loops
  while “the current count” is less than or equal to 100)
 I would add the current count to the sum.
  (Increment “the sum” by the value held in “the current count”)

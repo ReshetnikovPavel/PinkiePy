@@ -10,6 +10,9 @@ $ git clone https://github.com/ReshetnikovPavel/PinkiePy
 
 # change the working directory to PinkiePy
 $ cd PinkiePy
+
+# install the requirements
+$ python3 -m pip install -r requirements.txt
 ```
 
 

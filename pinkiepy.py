@@ -2,7 +2,6 @@ import sys
 import traceback
 from colorama import Fore, Style
 from pathlib import Path
-import special_words
 
 from fim_lexer import Lexer
 from fim_parser import Parser

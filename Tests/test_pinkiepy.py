@@ -4,7 +4,6 @@ import io
 from pathlib import Path
 
 import pinkiepy
-import special_words
 
 
 class Base(unittest.TestCase):
@@ -39,9 +38,7 @@ class Base(unittest.TestCase):
 class PinkiePyTests(Base):
     def testOkProgram(self):
         self.assert_printed(
-            'I said "Hello World"!',
-            "Hello World\n"
-        )
+            'I said "Hello World"!', "Hello World\n")
 
     def testParserException(self):
         self.assert_printed(
@@ -68,7 +65,7 @@ class PinkiePyTests(Base):
                     I remembered function using a.
                 That's what I did.
             That's all about function.
-            
+
             I said function using 1.""",
             "Recursion error"
         )
@@ -78,4 +75,3 @@ class PinkiePyTests(Base):
 
     def testInterpretFileNotFound(self):
         self.assert_printed_path('For Test2.fim', "File not found")
-
