@@ -1,6 +1,5 @@
 from pathlib import Path
 
-import fim_callable
 import special_words
 from fim_exception import FimResolverException
 from fim_interpreter import Interpreter
