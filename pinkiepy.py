@@ -47,11 +47,6 @@ def interpret_file(absolute_path):
         print(f'{Fore.RED}File not found{Style.RESET_ALL}')
         return
 
-    if absolute_path.suffix != special_words.extension:
-        print(f'{Fore.RED}File extension must be {special_words.extension}'
-              f'{Style.RESET_ALL}')
-        return
-
     with absolute_path.open('r') as program_file:
         program = program_file.read()
         interpret(program)
