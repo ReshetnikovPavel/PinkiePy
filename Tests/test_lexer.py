@@ -1,9 +1,7 @@
 import unittest
+
 from fim_lexer import Lexer
-from fim_lexer import Literals
 
-
-# TODO: Tests for indexes
 
 class Base(unittest.TestCase):
     def setUp(self):
@@ -62,7 +60,8 @@ class TestLexerInterfaceMethods(Base):
         self.assertGetNewLinePositions('I said 1!\nI said 2!\n', [9, 19])
 
     def assertAddNewLinePositions(self, program,
-                                  res_line_expected,  res_in_line_pos_expected):
+                                  res_line_expected,
+                                  res_in_line_pos_expected):
         self.lexer.set_source(program)
         self.lexer.lex()
         self.lexer.add_line_count_to_tokens()
@@ -111,7 +110,8 @@ class TestComments(Base):
 
     def testSingleLineComment_MultipleS(self):
         self.assert_tokens('P.P.S. That said, I’m pretty excited!',
-                           ('COMMENT', 'P.P.S. That said, I’m pretty excited!'))
+                           ('COMMENT',
+                            'P.P.S. That said, I’m pretty excited!'))
 
     def testSingleLine_AnotherSInsideCommentedString(self):
         self.assert_tokens(
@@ -148,8 +148,8 @@ class TestComments(Base):
             ('COMMENT', '(replace “something” with the actual variable)'))
 
     # For some reason in documentation for the language
-    # comma is not considered as punctuation, but on wiki it is
-    # so i decided to stick with wiki version
+    # comma is not considered as punctuation, but on wiki it is,
+    # so I decided to stick with wiki version
     def testBlock_InsideCode(self):
         self.assert_tokens(
             'Dear Princess Celestia( and Princess Luna and Princess Cadence): '
@@ -775,7 +775,8 @@ class TestOperators(Base):
 
     def testGreaterThanOrEqual2(self):
         self.assert_tokens(
-            'Chrysalis’ greatness isn’t less than Twilight Sparkle’s greatness',
+            'Chrysalis’ greatness isn’t less than'
+            ' Twilight Sparkle’s greatness',
             ('ID', 'Chrysalis’ greatness'),
             ('GREATER_THAN_OR_EQUAL', 'isn’t less than'),
             ('ID', 'Twilight Sparkle’s greatness'))
@@ -876,7 +877,8 @@ class TestBranchingStatements(Base):
                            ('CASE', 'hoof'),
                            ('PUNCTUATION', '...'),
                            ('PRINT', 'I said'),
-                           ('STRING', 'There must be a scientific explanation'),
+                           ('STRING',
+                            'There must be a scientific explanation'),
                            ('PUNCTUATION', '.'),
                            ('CASE', 'On the'),
                            ('NUMBER', '3'),

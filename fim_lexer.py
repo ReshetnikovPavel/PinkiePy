@@ -446,9 +446,9 @@ class Lexer:
         ReservedWord(
             r'\bDear\b',
             Keywords.REPORT, Block.BEGIN, Suffix.PREFIX),
-        # ReservedWord(
-        #     r'\bwith\b',
-        #     Keywords.RETURNED_VARIABLE_TYPE, Block.NONE, Suffix.INFIX),
+        ReservedWord(
+            r'\bwith\b',
+            Keywords.RETURNED_VARIABLE_TYPE, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bwere\b',
             Keywords.EQUAL, Block.NONE, Suffix.INFIX),
@@ -570,8 +570,8 @@ class Lexer:
                 self._add_keyword_to_stack(stack, keyword)
                 continue
 
-            # if keyword is end_partner with no begin_partner with the same name
-            # then it is probably a name
+            # if keyword is end_partner with no begin_partner
+            # with the same name then it is probably a name
             if keyword.block == Block.END_PARTNER and partner_name_stack \
                     and partner_name_stack[-1] != keyword.type:
                 continue

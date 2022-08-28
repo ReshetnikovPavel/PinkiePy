@@ -38,7 +38,7 @@ class Environment:
             self.enclosing.assign(name, value)
             return
 
-        raise FimRuntimeException('Undefined variable: %s' % name.value)
+        raise FimRuntimeException(name, f'Undefined variable: {name.value}')
 
     def modify(self, name, relate, value):
         return self.assign(name, relate(self.get(name.value), value))

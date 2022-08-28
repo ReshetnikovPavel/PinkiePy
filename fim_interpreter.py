@@ -24,7 +24,7 @@ class Interpreter(NodeVisitor):
         self.locals = {}
 
     def interpret(self, tree):
-        for variable in self.globals._values.values():
+        for variable in self.globals.values():
             if isinstance(variable, fim_ast.AST):
                 self.visit(variable)
         return self.visit(tree)

@@ -133,7 +133,8 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
+            fim_ast.Class(
+                pony, None, [], fim_ast.Compound(), [], [], None), {})
         self.interpreter.environment.define(pony.value, instance)
         self.interpreter.environment.get('Pony').fields['hat'] = \
             fim_ast.String(Token('value', Literals.ID, None, None, None, None))
@@ -150,7 +151,8 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
+            fim_ast.Class(
+                pony, None, [], fim_ast.Compound(), [], [], None), {})
         self.interpreter.environment.define(pony.value, instance)
 
         self.interpreter.visit_VariableDeclaration(
@@ -165,7 +167,8 @@ class InterpreterTests(Base):
         applejack = Token('Applejack', Literals.ID, None, None, None, None)
         hat = Token('hat', Literals.ID, None, None, None, None)
         instance = FimInstance(
-            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None), {})
+            fim_ast.Class(pony, None, [], fim_ast.Compound(), [], [], None),
+            {})
         self.interpreter.environment.define(pony.value, instance)
 
         self.interpreter.visit_VariableDeclaration(
@@ -209,7 +212,8 @@ class InterpreterTests(Base):
                        FimClass))
         ast_class = fim_ast.Class(
             Token('A', Literals.ID, None, None, None, None),
-            fim_ast.Var(Token('Princess Celestia', Literals.ID, None, None, None, None)),
+            fim_ast.Var(Token(
+                'Princess Celestia', Literals.ID, None, None, None, None)),
             [],
             fim_ast.Compound(),
             {},
@@ -238,11 +242,5 @@ class InterpreterTests(Base):
             self.interpreter.visit_Class(ast_class)
 
 
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()
-

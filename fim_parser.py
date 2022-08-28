@@ -171,7 +171,8 @@ class Parser:
         return self.function_declaration(is_main=True)
 
     def return_statement(self):
-        self.eat(Keywords.RETURN, 'Expected return keyword, try "Then you get"')
+        self.eat(Keywords.RETURN,
+                 'Expected return keyword, try "Then you get"')
         value = self.expr()
         node = fim_ast.Return(value)
         return node
@@ -633,7 +634,8 @@ class Parser:
             elif token.type == Keywords.LESS_THAN_OR_EQUAL:
                 self.eat(Keywords.LESS_THAN_OR_EQUAL,
                          'Expected less than or equal operator, '
-                         'try anything from "[no/not/n’t] [more/greater] than"',
+                         'try anything from'
+                         ' "[no/not/n’t] [more/greater] than"',
                          token_suffix=Suffix.INFIX)
             elif token.type == Keywords.LESS_THAN:
                 self.eat(Keywords.LESS_THAN, 'Expected less than operator, '
@@ -742,9 +744,11 @@ class Parser:
     def call(self):
         expr = self.concatenation()
         while True:
-            if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
-                self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS,
-                         'Expected keyword "using" to list function parameters')
+            if self.current_token.type == \
+                    Keywords.LISTING_PARAGRAPH_PARAMETERS:
+                self.eat(
+                    Keywords.LISTING_PARAGRAPH_PARAMETERS,
+                    'Expected keyword "using" to list function parameters')
                 self.is_currently_parsing_call_arguments_count += 1
                 expr = self.finish_call(expr)
                 self.is_currently_parsing_call_arguments_count -= 1

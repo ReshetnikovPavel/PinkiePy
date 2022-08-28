@@ -164,7 +164,8 @@ class Resolver(NodeVisitor):
         if not self.is_instance(variable_type, variable_token):
             raise FimResolverException(
                 token,
-                f"{variable_token.value} is not an instance of {variable_type}")
+                f"{variable_token.value}"
+                f" is not an instance of {variable_type}")
         return variable_type, variable_token
 
     def resolve_local(self, node, name):
@@ -296,7 +297,8 @@ class Resolver(NodeVisitor):
         self.resolve(node.condition)
 
     def visit_For(self, node):
-        variable_type, variable_token = self.separate_type(node.init.left.token)
+        variable_type, variable_token = self.separate_type(
+            node.init.left.token)
         node.token = variable_token
         self.set_type(node.init.left.token, variable_type)
         self.resolve(node.init)
@@ -304,7 +306,8 @@ class Resolver(NodeVisitor):
         self.resolve(node.body)
 
     def visit_ForIter(self, node):
-        variable_type, variable_token = self.separate_type(node.init.left.token)
+        variable_type, variable_token = self.separate_type(
+            node.init.left.token)
         node.token = variable_token
         self.set_type(node.init.left.token, variable_type)
         self.resolve(node.init)
@@ -468,7 +471,7 @@ class Resolver(NodeVisitor):
             return True
         if token.type != Literals.ID:
             token_type = Literals.BOOL \
-                if token.type == Literals.TRUE or token.type == Literals.FALSE \
+                if token.type in (Literals.TRUE, Literals.FALSE) \
                 else token.type
             return type == token_type
         else:

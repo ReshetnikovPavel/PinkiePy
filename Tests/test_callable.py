@@ -1,11 +1,10 @@
 import unittest
-import fim_ast
+
 import fim_exception
 import special_words
-
 from fim_callable import FimClass, FimFunction, FimCallable, FimInstance
 from fim_interpreter import Interpreter
-from fim_lexer import Lexer, Literals, Keywords, Token
+from fim_lexer import Lexer, Literals, Token
 from fim_parser import Parser
 from fim_resolver import Resolver
 
@@ -66,7 +65,6 @@ class ClassTests(Base):
             {})
         res = class_b.find_method('method')
         self.assertTrue(res == fim_function)
-
 
 
 class InstanceTests(Base):

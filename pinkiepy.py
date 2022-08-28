@@ -62,7 +62,5 @@ def interpret_from_command_line():
     interpret_file(Path(path).absolute())
 
 
-
 if __name__ == '__main__':
-    # cmd cannot handle unicode characters such as ‘ and ’
     interpret_from_command_line()

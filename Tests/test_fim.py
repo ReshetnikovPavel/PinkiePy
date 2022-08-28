@@ -39,7 +39,8 @@ drinking_song = """
 Dear Princess Celestia: Cider Jugs.
 
 Today I learned Applejack's Drinking Song.
-Did you know that Applejack likes the number 99? (Applejack likes a lot of things...)
+Did you know that Applejack likes the number 99? 
+(Applejack likes a lot of things...)
 I remembered how to sing the drinking song using Applejack.
 That's all about Applejack's Drinking Song!
 
@@ -47,8 +48,11 @@ I learned how to sing the drinking song using ciders.
 As long as ciders were more than 1.
 I sang ciders" jugs of cider on the wall, "ciders" jugs of cider,".
 There was one less ciders.
-When ciders had more than 1, I sang "Take one down and pass it around, "ciders" jugs of cider on the wall."!
-Otherwise, I sang "Take one down and pass it around, 1 jug of cider on the wall."!
+When ciders had more than 1,
+ I sang "Take one down and pass it around, "ciders
+ " jugs of cider on the wall."!
+Otherwise,
+ I sang "Take one down and pass it around, 1 jug of cider on the wall."!
 That's what I would do, That's what I did.
 
 I sang "1 jug of cider on the wall, 1 jug of cider.
@@ -59,8 +63,6 @@ Go to the celler, get some more, 99 jugs of cider on the wall.".
 That's all about how to sing the drinking song!
 
 Your faithful student, Twilight Sparkle.
-
-P.S. Twilight's drunken state truly frightened me, so I couldn't disregard her order to send you this letter. Who would have thought her first reaction to hard cider would be this... explosive? I need your advice, your help, everything, on how to deal with her drunk... self. -Spike
 """
 
 
@@ -99,7 +101,8 @@ class TestOperators(Base):
         self.assert_printed('I wrote 99.', '99\n')
 
     def testOutput4(self):
-        self.assert_printed('I said “Hello”! I said “World”.', 'Hello\nWorld\n')
+        self.assert_printed('I said “Hello”! I said “World”.',
+                            'Hello\nWorld\n')
 
     def testXor(self):
         self.assert_printed('I said either false or false.', 'false\n')
@@ -118,7 +121,8 @@ Dear Princess Celestia: Math!
     
    I learned maximum to get a number using first number and second number!
        Did you know that maximum was nothing?
-       If first number is greater than second number, maximum becomes first number.
+       If first number is greater than second number,
+        maximum becomes first number.
        Otherwise, maximum becomes second number.
        That's what I would do.
        Then you get maximum!
@@ -127,7 +131,8 @@ Dear Princess Celestia: Math!
        
     I learned minimum to get a number using first number and second number!
         Did you know that minimum was nothing?
-        If first number is less than second number, minimum becomes first number.
+        If first number is less than second number,
+         minimum becomes first number.
         Otherwise, minimum becomes second number.
         That's what I would do.
         Then you get minimum!
@@ -136,7 +141,8 @@ Dear Princess Celestia: Math!
     
     I learned absolute value to get a number using the number!
         Did you know that absolute value was nothing?
-        If the number is less than 0, absolute value becomes the number multiplied with -1.
+        If the number is less than 0,
+         absolute value becomes the number multiplied with -1.
         Otherwise, absolute value becomes the number.
         That's what I would do.
         Then you get absolute value!
@@ -228,7 +234,8 @@ Your faithful student, Kyli Rouge.
 Dear Princess Celestia and Princess Luna: Interface Name!
 
 Today I learned how to do a lot of things!
-    I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
+    I remembered how to fly,
+     I remembered how to do magic, I remembered how to raise the moon!
 That's all about how to do a lot of things.
 
 I learned how to fly.
@@ -243,14 +250,16 @@ I learned how to raise the moon.
     I said "cnreicofnouqefcnf".
 That's all about how to raise the moon.
 
-Your faithful student, Pavel Reshetnikov.""", 'I can fly now\nShazam\ncnreicofnouqefcnf\n')
+Your faithful student, Pavel Reshetnikov.""",
+                            'I can fly now\nShazam\ncnreicofnouqefcnf\n')
 
     def testInterface2(self):
         self.assert_printed("""
         Dear Princess Celestia and Princess Luna: Interface Name!
 
         Today I learned how to do a lot of things!
-            I remembered how to fly, I remembered how to do magic, I remembered how to raise the moon!
+            I remembered how to fly,
+             I remembered how to do magic, I remembered how to raise the moon!
         That's all about how to do a lot of things.
 
         I learned how to fly.
@@ -326,7 +335,8 @@ I learned how to raise the moon.
     I said "cnreicofnouqefcnf".
 That's all about how to raise the moon.
 
-Your faithful student, Pavel Reshetnikov.""", 'I can fly now\ncnreicofnouqefcnf\n')
+Your faithful student, Pavel Reshetnikov.""",
+                                'I can fly now\ncnreicofnouqefcnf\n')
 
     def testArrays(self):
         self.assert_printed("""
@@ -350,7 +360,8 @@ Today I learned how to make arrays!
     I said cake`s carrot. (Index 3)
 
     (With initialized values)
-    Did you know that Apples has words "Gala" and "Red Delicious" and "Mcintosh" and "Honeycrisp"?
+    Did you know that Apples has words "Gala" and
+     "Red Delicious" and "Mcintosh" and "Honeycrisp"?
 
     I said Apples 1.
 
@@ -361,18 +372,30 @@ Your faithful student, Vinyla Jaezmien Gael.""", 'Banana Cake\nMcintosh\n')
 
     def testTheSumOfEverythingFromTo(self):
         self.assert_printed("""
-        Dear Princess Celestia: Numbers are fun! (Start the class, naming it and its superclass)
+        Dear Princess Celestia: Numbers are fun!
+         (Start the class, naming it and its superclass)
 
-Today I learned some math. (Start the mane method. This is the first part that runs)
-I wrote the sum of everything from 1 to 100. (Run the “the sum of all the numbers from 1 to 100” method and print the return value)
+Today I learned some math.
+ (Start the mane method. This is the first part that runs)
+I wrote the sum of everything from 1 to 100.
+ (Run the “the sum of all the numbers from 1 to 100” method
+  and print the return value)
 That’s all about some math. (and now the program has finished running)
 
-I learned the sum of everything from 1 to 100 to get a number. (start of a new method)
-Did you know that the sum was the number 0? (Declare a new variable named “the sum” to be a number, and initialize it to 0)
-Did you know that the current count was the number 0? (Declare a new variable named “the current count” to be a number, and initialize it to 0)
+I learned the sum of everything from 1 to 100 to get a number.
+ (start of a new method)
+Did you know that the sum was the number 0?
+ (Declare a new variable named “the sum” to be a number,
+  and initialize it to 0)
+Did you know that the current count was the number 0?
+ (Declare a new variable named
+  “the current count” to be a number, and initialize it to 0)
 
-As long as the current count was no more than 100: (Start a conditional statement that loops while “the current count” is less than or equal to 100)
-I would add the current count to the sum. (Increment “the sum” by the value held in “the current count”)
+As long as the current count was no more than 100:
+ (Start a conditional statement that loops 
+ while “the current count” is less than or equal to 100)
+I would add the current count to the sum.
+ (Increment “the sum” by the value held in “the current count”)
 the current count got one more. (Increment “the current count” by 1)
 That’s what I did. (End of the loop)
 
