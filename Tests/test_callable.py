@@ -1,5 +1,6 @@
 import unittest
 import fim_ast
+import fim_exception
 import special_words
 
 from fim_callable import FimClass, FimFunction, FimCallable, FimInstance
@@ -107,7 +108,7 @@ class InstanceTests(Base):
             'class name', FimClass('Princess Celestia', None, {}, {}), {}, {})
         instance = FimInstance(fim_class, {})
         token = Token('method', Literals.ID, None, None, None, None)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(fim_exception.FimRuntimeException):
             instance.get(token)
 
     def testSet(self):

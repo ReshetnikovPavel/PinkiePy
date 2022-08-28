@@ -20,6 +20,8 @@ def handle_errors(function):
                   f' {str(e)}{Style.RESET_ALL}')
         except KeyboardInterrupt:
             print(f'{Fore.RED}Program interrupted by user{Style.RESET_ALL}')
+        except RecursionError:
+            print(f'{Fore.RED}Recursion error{Style.RESET_ALL}')
         except Exception as e:
             traceback.print_exc()
             print(f'{Fore.RED}Oops! There is some bug in the interpreter!:'
@@ -58,6 +60,13 @@ def interpret_file(absolute_path):
 def interpret_from_command_line():
     path = ' '.join(sys.argv[1:])
     interpret_file(Path(path).absolute())
+
+
+interpret("""
+I learned how to do stuff to get a number result.
+    Then you get 1!
+That's all about how to do stuff.
+""")
 
 
 if __name__ == '__main__':

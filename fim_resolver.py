@@ -99,7 +99,7 @@ class Resolver(NodeVisitor):
             return
         scope = self.scopes[-1]
         if name.value in scope:
-            raise FimResolverException(name.token,
+            raise FimResolverException(name,
                                        f"{name.value} is already defined")
         scope[name.value] = False
 
@@ -146,7 +146,7 @@ class Resolver(NodeVisitor):
 
     def is_in_scopes(self, name):
         for scope in self.scopes:
-            if name in scope:
+            if name in scope and scope[name] is True:
                 return True
 
         if any(map(lambda x: name in x,
@@ -281,7 +281,7 @@ class Resolver(NodeVisitor):
     def visit_Return(self, node):
         if self.current_function == FunctionType.NONE:
             raise FimResolverException(
-                node.token,
+                node.value,
                 f"Cannot return from top-level code")
 
         if node.value is not None:

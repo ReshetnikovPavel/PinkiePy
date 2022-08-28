@@ -1,6 +1,7 @@
 import unittest
 
 import fim_ast
+import fim_exception
 from fim_callable import FimFunction
 from fim_interpreter import Interpreter
 from fim_lexer import Lexer, Literals, Keywords, Token
@@ -233,7 +234,7 @@ class InterpreterTests(Base):
             [],
             [],
             Token('Programmer Name', Literals.ID, None, None, None, None))
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(fim_exception.FimRuntimeException):
             self.interpreter.visit_Class(ast_class)
 
 
