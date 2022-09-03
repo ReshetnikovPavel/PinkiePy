@@ -65,8 +65,7 @@ class Interpreter(NodeVisitor):
             elif node.op.type == Keywords.AND:
                 if type(left) == float and type(right) == float:
                     return left + right
-                else:
-                    return left and right
+                return left and right
             elif node.op.type == Keywords.OR:
                 return left or right
             elif node.op.type == Keywords.XOR:

@@ -48,7 +48,7 @@ class TestLexerInterfaceMethods(Base):
     def assertGetNewLinePositions(self, program, expected):
         self.lexer.set_source(program)
         self.lexer.lex()
-        res = self.lexer._get_new_line_positions()
+        res = list(self.lexer._get_new_line_positions())
         self.assertTrue(res == expected, f"expected {expected}, but got {res}")
 
     def testGetNewLinePositions(self):

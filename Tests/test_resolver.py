@@ -45,7 +45,7 @@ class ResolverTests(Base):
 
     def testBeginScope(self):
         scopes_number_before = len(self.resolver.scopes)
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         scopes_number_after = len(self.resolver.scopes)
         self.assertTrue(scopes_number_after == scopes_number_before + 1)
         self.assertTrue(isinstance(self.resolver.scopes[-1], dict))
@@ -55,13 +55,13 @@ class ResolverTests(Base):
         self.resolver.scopes.append(scope)
         self.resolver.scopes_for_typechecking.append({'a': None})
         scopes_number_before = len(self.resolver.scopes)
-        self.resolver.end_scope()
+        self.resolver._end_scope()
         scopes_number_after = len(self.resolver.scopes)
         self.assertTrue(scopes_number_after == scopes_number_before - 1)
         self.assertFalse(scope in self.resolver.scopes)
 
     def testVarDeclarationScope(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.visit_VariableDeclaration(fim_ast.VariableDeclaration(
             fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
             Token('is', Keywords.EQUAL, None, None, None, None),
@@ -78,7 +78,7 @@ class ResolverTests(Base):
         self.assertTrue(len(self.resolver.scopes) == 0)
 
     def testDeclareScopesNotEmpty(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.declare(Token('a', Literals.ID, None, None, None, None))
         self.assertTrue('a' in self.resolver.scopes[-1])
         self.assertTrue(self.resolver.scopes[-1]['a'] is False)
@@ -91,14 +91,14 @@ class ResolverTests(Base):
         self.assertEqual(self.resolver.scopes, scopes_before)
 
     def testDeclareVariableAlreadyExists(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.declare(Token('a', Literals.ID, None, None, None, None))
         with self.assertRaises(FimResolverException):
             self.resolver.declare(
                 Token('a', Literals.ID, None, None, None, None))
 
     def testDefineScopesNotEmpty(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.define(Token('a', Literals.ID, None, None, None, None))
         self.assertTrue('a' in self.resolver.scopes[-1])
         self.assertTrue(self.resolver.scopes[-1]['a'] is True)
@@ -111,7 +111,7 @@ class ResolverTests(Base):
         self.assertEqual(self.resolver.scopes, scopes_before)
 
     def testVisitVariableExprGood(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.scopes[-1]['a'] = True
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
         self.resolver.visit_Var(node)
@@ -124,14 +124,14 @@ class ResolverTests(Base):
         self.assertTrue(self.resolver.scopes == [])
 
     def testVisitVariableExprBadBecauseNotDefined(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, 0))
         self.resolver.declare(Token('a', Literals.ID, None, None, None, 0))
         with self.assertRaises(FimResolverException):
             self.resolver.visit_Var(node)
 
     def testResolveLocalLast0(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.scopes[-1]['a'] = True
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
         self.resolver.resolve_local(node, node.token)
@@ -140,7 +140,7 @@ class ResolverTests(Base):
 
     def testResolveLocalLast3(self):
         for i in range(3):
-            self.resolver.begin_scope()
+            self.resolver._begin_scope()
         self.resolver.scopes[-1]['a'] = True
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
         self.resolver.resolve_local(node, node.token)
@@ -149,7 +149,7 @@ class ResolverTests(Base):
 
     def testResolveLocal2(self):
         for i in range(3):
-            self.resolver.begin_scope()
+            self.resolver._begin_scope()
         self.resolver.scopes[0]['a'] = True
         node = fim_ast.Var(Token('a', Literals.ID, None, None, None, None))
         self.resolver.resolve_local(node, node.token)
@@ -157,7 +157,7 @@ class ResolverTests(Base):
                         f'locals[node] is {self.interpreter.locals[node]}')
 
     def testVisitAssign(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.visit_VariableDeclaration(fim_ast.VariableDeclaration(
             fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
             Token('is', Keywords.EQUAL, None, None, None, None),
@@ -173,7 +173,7 @@ class ResolverTests(Base):
                         f'locals[node] is {self.interpreter.locals[var_node]}')
 
     def testFunction(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         compound = fim_ast.Compound()
         compound.children = [fim_ast.NoOp()]
         self.resolver.visit_Function(fim_ast.Function(
@@ -190,7 +190,7 @@ class ResolverTests(Base):
                     Token('"a"', Literals.STRING, None, None, None, None))))
 
     def testVisitClass(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         body = fim_ast.Compound()
         body.children = [fim_ast.NoOp()]
         self.resolver.visit_Class(fim_ast.Class(
@@ -207,7 +207,7 @@ class ResolverTests(Base):
         self.assertTrue(self.resolver.scopes[-1]['A'] is True)
 
     def testSuperclassIsTheSameAsClass(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         body = fim_ast.Compound()
         body.children = [fim_ast.NoOp()]
         with self.assertRaises(FimResolverException):
@@ -237,7 +237,7 @@ class TypeCheckerTests(Base):
         self.assertConversion('the number', Literals.NUMBER, 'the number')
 
     def testVariableDeclaration(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.visit_VariableDeclaration(fim_ast.VariableDeclaration(
             fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
             Token('is', Keywords.EQUAL, None, None, None, None),
@@ -248,7 +248,7 @@ class TypeCheckerTests(Base):
             self.resolver.scopes_for_typechecking[-1]['a'] == Literals.NUMBER)
 
     def testVariableDeclaration2(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.visit_VariableDeclaration(fim_ast.VariableDeclaration(
             fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
             Token('is', Keywords.EQUAL, None, None, None, None),
@@ -265,7 +265,7 @@ class TypeCheckerTests(Base):
             self.resolver.scopes_for_typechecking[-1]['b'] == Literals.NUMBER)
 
     def testFunctionDeclaration3(self):
-        self.resolver.begin_scope()
+        self.resolver._begin_scope()
         self.resolver.visit_Function(fim_ast.Function(
             fim_ast.Var(Token('a', Literals.ID, None, None, None, None)),
             Literals.NUMBER,

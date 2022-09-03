@@ -1,3 +1,4 @@
+import contextlib
 from pathlib import Path
 
 import special_words
@@ -61,9 +62,22 @@ class Resolver(NodeVisitor):
             self.builtin_type_names[type_name] = re.compile(regex)
 
     def visit_Compound(self, node):
-        self.begin_scope()
-        self.resolve_statements(node.children)
-        self.end_scope()
+        with self.scope():
+            self.resolve_statements(node.children)
+
+    @contextlib.contextmanager
+    def scope(self):
+        self._begin_scope()
+        yield
+        self._end_scope()
+
+    def _begin_scope(self):
+        self.scopes.append({})
+        self.scopes_for_typechecking.append({})
+
+    def _end_scope(self):
+        self.scopes.pop()
+        self.scopes_for_typechecking.pop()
 
     def visit_Root(self, node):
         self.resolve_statements(node.children)
@@ -77,14 +91,6 @@ class Resolver(NodeVisitor):
             self.resolve_statements(node)
             return
         self.visit(node)
-
-    def begin_scope(self):
-        self.scopes.append({})
-        self.scopes_for_typechecking.append({})
-
-    def end_scope(self):
-        self.scopes.pop()
-        self.scopes_for_typechecking.pop()
 
     def visit_VariableDeclaration(self, node):
         self.declare(node.left)
@@ -205,9 +211,12 @@ class Resolver(NodeVisitor):
         if node.name.value == node.superclass.token.value:
             raise FimResolverException(node.name,
                                        "A class cannot inherit from itself")
-
         self.resolve(node.superclass)
 
+        self._handle_class_interface_implementations(node)
+        self.resolve_class_body(node)
+
+    def _handle_class_interface_implementations(self, node):
         for interface_token in node.implementations:
             if interface_token.value in self.interpreter.globals:
                 self.check_interface(
@@ -218,19 +227,19 @@ class Resolver(NodeVisitor):
             else:
                 self.interfaces_to_be_checked[interface_token.value] = [node]
 
-        self.begin_scope()
-        self.scopes[-1][special_words.this] = True
-        self.current_class = node
+    def resolve_class_body(self, node):
+        with self.scope():
+            self.scopes[-1][special_words.this] = True
+            self.current_class = node
 
-        for method in node.methods.values():
-            declaration = FunctionType.METHOD
-            self.resolve_function(method, declaration)
+            for method in node.methods.values():
+                declaration = FunctionType.METHOD
+                self.resolve_function(method, declaration)
 
-        for field in node.fields.values():
-            self.resolve(field)
+            for field in node.fields.values():
+                self.resolve(field)
 
-        self.current_class = None
-        self.end_scope()
+            self.current_class = None
 
     def visit_Get(self, node):
         type = self.get_type(node.object.value)
@@ -259,16 +268,18 @@ class Resolver(NodeVisitor):
         enclosing_function = self.current_function
         self.current_function = function_type
 
-        self.begin_scope()
+        with self.scope():
+            self.resolve_function_parameters(node)
+            self.resolve(node.body)
+        self.current_function = enclosing_function
+
+    def resolve_function_parameters(self, node):
         for param in node.params:
             variable_type, variable_token = self.separate_type(param)
             param = variable_token
             self.set_type(param, variable_type)
             self.declare(param)
             self.define(param)
-        self.resolve(node.body)
-        self.end_scope()
-        self.current_function = enclosing_function
 
     def visit_If(self, node):
         self.resolve(node.condition)
@@ -481,16 +492,9 @@ class Resolver(NodeVisitor):
         self.declare(node.name.token)
         self.define(node.name.token)
         self.resolve_local(node, node.name.token)
+        possible_type_names = self.get_possible_array_type_names(
+            node.type.token)
         type = node.type.token.value
-        possible_type_names = []
-        if type.endswith('es'):
-            possible_type_names.append(type[:-2])
-        if type.endswith('s'):
-            possible_type_names.append(type[:-1])
-        else:
-            raise FimResolverException(
-                node.type.token,
-                f"Array type should be in plural form: {type}")
         for possible_type_name in possible_type_names:
             for key, regex in self.builtin_type_names.items():
                 if re.match(regex, possible_type_name):
@@ -500,6 +504,21 @@ class Resolver(NodeVisitor):
         raise FimResolverException(
             node.type.token,
             f"Cannot make array of this type: {type}")
+
+    @staticmethod
+    def get_possible_array_type_names(type_token):
+        possible_type_names = []
+        type = type_token.value
+        if type.endswith('es'):
+            possible_type_names.append(type[:-2])
+        if type.endswith('s'):
+            possible_type_names.append(type[:-1])
+        else:
+            raise FimResolverException(
+                type_token,
+                f"Array type should be in plural form: {type}")
+
+        return possible_type_names
 
     def visit_ArrayElementAssignment(self, node):
         expected_type = self.get_type(node.array_name)

@@ -18,6 +18,9 @@ class Parser:
     def error(self, message):
         raise FimParserException(self.current_token, message)
 
+    def next_token(self):
+        return self.lexer.peek()
+
     def eat(self, token_name, message, token_block=None, token_suffix=None):
         if self.current_token.type == token_name \
                 and ((token_block is None) or (
@@ -36,7 +39,7 @@ class Parser:
         if self.current_token.type == Keywords.MANE_PARAGRAPH:
             return self.main_function_declaration()
         if self.current_token.type == Literals.ID \
-                and self.lexer.peek().type == Keywords.PUNCTUATION:
+                and self.next_token().type == Keywords.PUNCTUATION:
             return self.interface_declaration()
         if self.current_token.type == Keywords.IMPORT:
             return self.import_declaration()
@@ -71,6 +74,21 @@ class Parser:
         return fim_ast.Interface(name, methods, programmer_name)
 
     def class_declaration(self):
+        superclass = self._handle_superclass()
+        implementations = self._handle_implementations()
+        class_token = self._handle_class_name()
+        self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
+
+        body = self.compound_statement(end_token_names=(Keywords.REPORT,))
+        methods, fields = self._divide_methods_from_fields(body)
+
+        programmer_token = self._handle_class_ending()
+
+        return fim_ast.Class(
+            class_token, superclass, implementations, body,
+            methods, fields, programmer_token)
+
+    def _handle_superclass(self):
         self.eat(Keywords.REPORT, 'Expected report (class) declaration, '
                                   'try "Dear" '
                                   'followed by addressee (superclass) name',
@@ -80,6 +98,9 @@ class Parser:
                  'Expected addressee (superclass) name. '
                  f'try "{special_words.base_class_name}"')
 
+        return superclass
+
+    def _handle_implementations(self):
         implementations = []
         while self.current_token.type == Keywords.AND:
             self.eat(Keywords.AND, 'Expected "and" as '
@@ -88,12 +109,16 @@ class Parser:
             self.eat(Literals.ID, 'Expected interface name')
         self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
 
+        return implementations
+
+    def _handle_class_name(self):
         class_token = self.current_token
         self.eat(Literals.ID, 'Expected report (class) name')
 
-        self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
-        body = self.compound_statement(end_token_names=(Keywords.REPORT,))
+        return class_token
 
+    @staticmethod
+    def _divide_methods_from_fields(body):
         methods = {}
         fields = {}
         for child in body.children:
@@ -103,6 +128,9 @@ class Parser:
             elif isinstance(child, fim_ast.VariableDeclaration):
                 fields[child.left.value] = child
 
+        return methods, fields
+
+    def _handle_class_ending(self):
         self.eat(Keywords.REPORT, 'Expected report (class) ending,'
                                   ' try "Your faithful student,"'
                                   ' followed by programmer name',
@@ -111,9 +139,7 @@ class Parser:
         self.eat(Literals.ID, 'Expected programmer name')
         self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
 
-        return fim_ast.Class(
-            class_token, superclass, implementations, body,
-            methods, fields, programmer_token)
+        return programmer_token
 
     def function_declaration(self, is_main=False):
         function = self.function_declaration_without_body(is_main)
@@ -121,6 +147,11 @@ class Parser:
         body = self.compound_statement(end_token_names=(Keywords.PARAGRAPH,))
         function.body = body
 
+        self._handle_function_ending(function)
+
+        return function
+
+    def _handle_function_ending(self, function):
         self.eat(Keywords.PARAGRAPH,
                  'Expected paragraph (function) ending,'
                  ' try "That\'s all about" followed by paragraph name',
@@ -130,8 +161,6 @@ class Parser:
             self.error('Paragraph (function) name in the ending must be the '
                        'same as at the beginning of the paragraph')
         self.eat(Literals.ID, 'Expected paragraph (function) name')
-
-        return function
 
     def function_declaration_without_body(self, is_main=False):
         if is_main:
@@ -152,6 +181,11 @@ class Parser:
             return_type = self.current_token
             self.eat(Literals.ID, 'Expected returned type name')
 
+        parameters = self._handle_function_parameters()
+
+        return fim_ast.Function(name, return_type, parameters, None, is_main)
+
+    def _handle_function_parameters(self):
         parameters = []
         if self.current_token.type == Keywords.LISTING_PARAGRAPH_PARAMETERS:
             self.eat(Keywords.LISTING_PARAGRAPH_PARAMETERS,
@@ -165,7 +199,7 @@ class Parser:
                 self.eat(Literals.ID, 'Expected parameter name')
         self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
 
-        return fim_ast.Function(name, return_type, parameters, None, is_main)
+        return parameters
 
     def main_function_declaration(self):
         return self.function_declaration(is_main=True)
@@ -220,7 +254,7 @@ class Parser:
         elif self.current_token.type == Keywords.DECREMENT:
             node = self.decrement_statement()
         elif self.current_token.type == Literals.ID \
-                and self.lexer.peek().suffix == Suffix.POSTFIX:
+                and self.next_token().suffix == Suffix.POSTFIX:
             node = self.postfix_statement()
         elif self.current_token.type == Literals.ID:
             node = self.assignment()
@@ -235,8 +269,8 @@ class Parser:
             node = self.do_while_statement()
         elif self.current_token.type == Keywords.FOR \
                 and self.current_token.block == Block.BEGIN_PARTNER \
-                and self.lexer.peek().type == Keywords.FROM \
-                and self.lexer.peek().block == Block.BEGIN_PARTNER:
+                and self.next_token().type == Keywords.FROM \
+                and self.next_token().block == Block.BEGIN_PARTNER:
             node = self.for_statement()
         elif self.current_token.type == Keywords.FOR:
             node = self.for_iter_statement()
@@ -261,23 +295,8 @@ class Parser:
     def if_statement(self):
         self.eat(Keywords.IF, 'Expected if keyword, try "If" or "When"')
         condition = self.expr()
-        if self.current_token.type == Keywords.THEN:
-            self.eat(Keywords.THEN, 'Expected then keyword, try "then"')
-            self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
-        elif self.current_token.type == Keywords.PUNCTUATION:
-            self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
-        else:
-            self.error("Expected punctuation or then keyword,"
-                       " try punctuation or 'then'")
-
-        then_branch = self.compound_statement(end_token_names=(
-            Keywords.IF, Keywords.ELSE))
-        else_branch = None
-        if self.current_token.type == Keywords.ELSE:
-            self.eat(Keywords.ELSE, 'Expected else keyword, try "Otherwise"')
-            self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
-            else_branch = self.compound_statement(
-                end_token_names=(Keywords.IF,))
+        then_branch = self._handle_then_branch()
+        else_branch = self._handle_else_branch()
 
         self.eat(Keywords.IF,
                  'Expected if ending, try "That\'s what I would do"',
@@ -285,29 +304,71 @@ class Parser:
 
         return fim_ast.If(condition, then_branch, else_branch)
 
+    def _handle_then_branch(self):
+        if self.current_token.type == Keywords.THEN:
+            self.eat(Keywords.THEN, 'Expected then keyword, try "then"')
+        if self.current_token.type == Keywords.PUNCTUATION:
+            self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
+        else:
+            self.error("Expected punctuation or then keyword,"
+                       " try punctuation or 'then'")
+
+        then_branch = self.compound_statement(end_token_names=(
+            Keywords.IF, Keywords.ELSE))
+
+        return then_branch
+
+    def _handle_else_branch(self):
+        else_branch = None
+        if self.current_token.type == Keywords.ELSE:
+            self.eat(Keywords.ELSE, 'Expected else keyword, try "Otherwise"')
+            self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
+            else_branch = self.compound_statement(
+                end_token_names=(Keywords.IF,))
+
+        return else_branch
+
     def switch_statement(self):
         self.eat(Keywords.SWITCH, 'Expected switch keyword,'
                                   ' try "In regards to"')
         variable = self.variable()
         self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
+        cases = self._handle_cases()
+        default_body = self._handle_default()
+        self.eat(Keywords.END_LOOP,
+                 'Expected switch ending, try "That’s what I did"',
+                 token_block=Block.END)
+
+        return fim_ast.Switch(variable, cases, default_body)
+
+    def _handle_cases(self):
         cases = {}
         while self.current_token.type == Keywords.CASE \
                 and self.current_token.block == Block.BEGIN_PARTNER:
-            self.eat(Keywords.CASE,
-                     'Expected case keywords,'
-                     ' try "On the" followed by value and ordinal indicator'
-                     ' followed by "hoof"', token_block=Block.BEGIN_PARTNER)
-            case_value = self.expr()
-            self.eat(Keywords.CASE,
-                     'Expected case keywords,'
-                     ' try "On the" followed by value and ordinal indicator'
-                     ' followed by "hoof"',
-                     token_block=Block.END_PARTNER)
+            case_value = self._handle_case_value()
             self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
             case_body = self.compound_statement(
                 end_token_names=(Keywords.CASE, Keywords.DEFAULT),
                 end_token_blocks=(Block.END, Block.BEGIN_PARTNER))
             cases[case_value] = case_body
+
+        return cases
+
+    def _handle_case_value(self):
+        self.eat(Keywords.CASE,
+                 'Expected case keywords,'
+                 ' try "On the" followed by value and ordinal indicator'
+                 ' followed by "hoof"', token_block=Block.BEGIN_PARTNER)
+        case_value = self.expr()
+        self.eat(Keywords.CASE,
+                 'Expected case keywords,'
+                 ' try "On the" followed by value and ordinal indicator'
+                 ' followed by "hoof"',
+                 token_block=Block.END_PARTNER)
+
+        return case_value
+
+    def _handle_default(self):
         default_body = None
         if self.current_token.type == Keywords.DEFAULT:
             self.eat(Keywords.DEFAULT, 'Expected default keyword,'
@@ -315,10 +376,8 @@ class Parser:
             self.eat(Keywords.PUNCTUATION, 'Expected punctuation')
             default_body = self.compound_statement(
                 end_token_names=(Keywords.END_LOOP,))
-        self.eat(Keywords.END_LOOP,
-                 'Expected switch ending, try "That’s what I did"',
-                 token_block=Block.END)
-        return fim_ast.Switch(variable, cases, default_body)
+
+        return default_body
 
     def while_statement(self):
         self.eat(Keywords.WHILE, 'Expected while keyword,'
@@ -390,14 +449,14 @@ class Parser:
             iterable, body)
 
     def postfix_statement(self):
-        if self.lexer.peek().suffix == Suffix.POSTFIX:
-            if self.lexer.peek().type == Keywords.INCREMENT:
+        if self.next_token().suffix == Suffix.POSTFIX:
+            if self.next_token().type == Keywords.INCREMENT:
                 variable = self.variable()
                 self.eat(Keywords.INCREMENT, 'Expected increment keyword,'
                                              ' try "got one more"',
                          token_suffix=Suffix.POSTFIX)
                 return fim_ast.Increment(variable)
-            elif self.lexer.peek().type == Keywords.DECREMENT:
+            elif self.next_token().type == Keywords.DECREMENT:
                 variable = self.variable()
                 self.eat(Keywords.DECREMENT, 'Expected decrement keyword,'
                                              ' try "got one less"',
@@ -493,7 +552,6 @@ class Parser:
 
     @staticmethod
     def empty():
-        """An empty production"""
         return fim_ast.NoOp()
 
     def expr(self):
@@ -502,35 +560,42 @@ class Parser:
     def assignment(self):
         expr = self.term()
         if self.current_token.type == Keywords.ASSIGN:
-            self.eat(Keywords.ASSIGN, 'Expected assignment operator, '
-                                      'try anything from'
-                                      ' [is/are] now'
-                                      '/now [like/likes]/become/becomes')
-            value = self.assignment()
-
-            if isinstance(expr, fim_ast.Var):
-                name = expr
-                return fim_ast.Assign(name, value)
-            elif isinstance(expr, fim_ast.Get):
-                get = expr
-                return fim_ast.Set(get.object, get.name, value)
-            self.error("Invalid assignment target")
+            return self.assign_or_set(expr)
         elif self.current_token.type == Keywords.EQUAL and \
                 self.current_token.value == 'is':
             self.eat(Keywords.EQUAL, 'Expected "is" as array'
                                      ' element assignment keyword')
-            value = self.assignment()
-
-            if isinstance(expr, fim_ast.Var):
-                array_name = utility.separate_array_name(expr.value)
-                index = utility.separate_index(expr.value)
-                expr.token.value = array_name
-                return fim_ast.ArrayElementAssignment(expr, index, value)
-            elif isinstance(expr, fim_ast.Get):
-                get = expr
-                return fim_ast.ArrayElementAssignment(get.object, get.name,
-                                                      value)
+            return self.array_element_assignment(expr)
         return expr
+
+    def assign_or_set(self, expr):
+        self.eat(Keywords.ASSIGN, 'Expected assignment operator, '
+                                  'try anything from'
+                                  ' [is/are] now'
+                                  '/now [like/likes]/become/becomes')
+        value = self.assignment()
+
+        if isinstance(expr, fim_ast.Var):
+            name = expr
+            return fim_ast.Assign(name, value)
+        elif isinstance(expr, fim_ast.Get):
+            get = expr
+            return fim_ast.Set(get.object, get.name, value)
+        self.error("Invalid assignment target")
+
+    def array_element_assignment(self, expr):
+        value = self.assignment()
+        if isinstance(expr, fim_ast.Var):
+            array_name = utility.separate_array_name(expr.value)
+            index = utility.separate_index(expr.value)
+            expr.token.value = array_name
+
+            return fim_ast.ArrayElementAssignment(expr, index, value)
+        elif isinstance(expr, fim_ast.Get):
+            get = expr
+
+            return fim_ast.ArrayElementAssignment(get.object, get.name,
+                                                  value)
 
     def logic(self):
         return self.logic_xor()
@@ -656,80 +721,82 @@ class Parser:
 
     def term(self):
         if self.current_token.type == Keywords.INCREMENT:
-            self.eat(Keywords.INCREMENT, 'Expected increment prefix',
-                     token_suffix=Suffix.PREFIX)
-            value = self.term()
-            self.eat(Keywords.INCREMENT, 'Expected increment infix',
-                     token_block=Block.END_PARTNER)
-            variable = self.variable()
-            node = fim_ast.Increment(variable, value)
-            return node
-        if self.current_token.type in (Keywords.ADDITION,
-                                       Keywords.SUBTRACTION) \
-                and self.current_token.suffix == Suffix.PREFIX:
-            token = self.current_token
-            self.eat(token.type, 'Expected addition or subtraction operator',
-                     token_suffix=Suffix.PREFIX)
-            left = self.term()
-            self.eat(token.type, 'Expected addition or subtraction operator',
-                     token_suffix=Suffix.INFIX)
-            right = self.term()
-            node = fim_ast.BinOp(op=token, left=left, right=right)
-            return node
-        else:
-            node = self.factor()
-            while self.current_token.type in (
-                    Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND) \
-                    and self.current_token.suffix == Suffix.INFIX \
-                    and self.current_token.block == Block.NONE:
-                token = self.current_token
-                if token.type == Keywords.ADDITION:
-                    self.eat(Keywords.ADDITION, 'Expected addition operator',
-                             token_suffix=Suffix.INFIX)
-                elif token.type == Keywords.AND:
+            return self.increment_term()
 
-                    if self.is_currently_parsing_call_arguments_count != 0:
-                        return node
-                    self.eat(Keywords.AND, 'expected addition operator "and"',
-                             token_suffix=Suffix.INFIX)
-                elif token.type == Keywords.SUBTRACTION:
-                    self.eat(Keywords.SUBTRACTION,
-                             'expected subtraction operator',
-                             token_suffix=Suffix.INFIX)
-                node = fim_ast.BinOp(left=node, op=token, right=self.factor())
-            return node
+        operations = (Keywords.ADDITION, Keywords.SUBTRACTION)
+        if self.current_token.type in operations \
+                and self.current_token.suffix == Suffix.PREFIX:
+            return self.prefix_bin_op(operations, self.term)
+
+        node = self.factor()
+        operations = (Keywords.ADDITION, Keywords.SUBTRACTION, Keywords.AND)
+        while self.current_token.type in operations \
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
+            token = self.current_token
+            if token.type == Keywords.ADDITION:
+                self.eat(Keywords.ADDITION, 'Expected addition operator',
+                         token_suffix=Suffix.INFIX)
+            elif token.type == Keywords.AND:
+                if self.is_currently_parsing_call_arguments_count != 0:
+                    return node
+                self.eat(Keywords.AND, 'expected addition operator "and"',
+                         token_suffix=Suffix.INFIX)
+            elif token.type == Keywords.SUBTRACTION:
+                self.eat(Keywords.SUBTRACTION,
+                         'expected subtraction operator',
+                         token_suffix=Suffix.INFIX)
+            node = fim_ast.BinOp(left=node, op=token, right=self.factor())
+        return node
+
+    def prefix_bin_op(self, keywords, bin_op_level_function):
+        token = self.current_token
+        self.eat(token.type,
+                 f'Expected'
+                 f' {self.get_expected_keywords_names_string(keywords)}'
+                 f' operator',
+                 token_suffix=Suffix.PREFIX)
+        left = bin_op_level_function()
+        self.eat(token.type,
+                 f'Expected'
+                 f' {self.get_expected_keywords_names_string(keywords)}'
+                 f' operator',
+                 token_suffix=Suffix.INFIX)
+        right = bin_op_level_function()
+        node = fim_ast.BinOp(op=token, left=left, right=right)
+        return node
+
+    @staticmethod
+    def get_expected_keywords_names_string(keywords):
+        return ' or '.join([keyword.name for keyword in keywords])
+
+    def increment_term(self):
+        self.eat(Keywords.INCREMENT, 'Expected increment prefix',
+                 token_suffix=Suffix.PREFIX)
+        value = self.term()
+        self.eat(Keywords.INCREMENT, 'Expected increment infix',
+                 token_block=Block.END_PARTNER)
+        variable = self.variable()
+        node = fim_ast.Increment(variable, value)
+        return node
 
     def factor(self):
-        if self.current_token.type in (
-                Keywords.MULTIPLICATION, Keywords.DIVISION) \
+        operations = (Keywords.MULTIPLICATION, Keywords.DIVISION)
+        if self.current_token.type in operations \
                 and self.current_token.suffix == Suffix.PREFIX:
+            return self.prefix_bin_op(operations, self.factor)
+        node = self.unary()
+        while self.current_token.type in operations \
+                and self.current_token.suffix == Suffix.INFIX \
+                and self.current_token.block == Block.NONE:
             token = self.current_token
-            self.eat(token.type, 'Expected multiplication or division'
-                                 ' prefix operator',
-                     token_suffix=Suffix.PREFIX,
-                     token_block=Block.BEGIN_PARTNER)
-            left = self.factor()
-            self.eat(token.type, 'Expected multiplication or division'
-                                 ' prefix operator',
-                     token_suffix=Suffix.INFIX,
-                     token_block=Block.END_PARTNER)
-            right = self.factor()
-            node = fim_ast.BinOp(op=token, left=left, right=right)
-            return node
-        else:
-            node = self.unary()
-            while self.current_token.type in (
-                    Keywords.MULTIPLICATION, Keywords.DIVISION) \
-                    and self.current_token.suffix == Suffix.INFIX \
-                    and self.current_token.block == Block.NONE:
-                token = self.current_token
-                if token.type == Keywords.MULTIPLICATION:
-                    self.eat(Keywords.MULTIPLICATION,
-                             'Expected multiplication operator')
-                elif token.type == Keywords.DIVISION:
-                    self.eat(Keywords.DIVISION, 'Expected division operator')
-                node = fim_ast.BinOp(left=node, op=token, right=self.unary())
-            return node
+            if token.type == Keywords.MULTIPLICATION:
+                self.eat(Keywords.MULTIPLICATION,
+                         'Expected multiplication operator')
+            elif token.type == Keywords.DIVISION:
+                self.eat(Keywords.DIVISION, 'Expected division operator')
+            node = fim_ast.BinOp(left=node, op=token, right=self.unary())
+        return node
 
     def unary(self):
         token = self.current_token
@@ -766,9 +833,8 @@ class Parser:
         return expr
 
     def concatenation(self):
-        next_token = self.lexer.peek()
-        if (self.current_token.type in (Literals.STRING, Literals.ID)) \
-                and (next_token.type in (Literals.STRING, Literals.ID)):
+        next_token = self.next_token()
+        if self._is_concatenation():
             left = self.primary()
             right = self.expr()
 
@@ -783,6 +849,12 @@ class Parser:
                 right)
         else:
             return self.primary()
+
+    def _is_concatenation(self):
+        possible_tokens = (Literals.STRING, Literals.ID)
+        current_is_good = self.current_token.type in possible_tokens
+        next_is_good = self.next_token().type in possible_tokens
+        return current_is_good and next_is_good
 
     def primary(self):
         token = self.current_token
