@@ -1,4 +1,3 @@
-import copy
 import re
 from enum import Enum
 
@@ -133,6 +132,8 @@ class Lexer:
         self.source = source
         self.tokens = []
         self._compile_reserved_words()
+        self.stack = []
+        self.partner_name_stack = []
 
     punctuation_pattern = r'(?:(?:\.\.\.)|[!?‽…:,]|(?:(?!\d)\.(?!\d)))'
     any_allowed_char_pattern = r'(?:.|[,\s])'
@@ -284,7 +285,7 @@ class Lexer:
             r'\bAs long as\b',
             Keywords.WHILE, Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
-            r'\b(?:(?:nd)|(?:rd)|(?:st)|(?:th))? hoof\b',
+            r'(?:(?:nd)|(?:rd)|(?:st)|(?:th))? hoof\b',
             Keywords.CASE, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bConditional conclusion\b',
@@ -499,10 +500,10 @@ class Lexer:
             Keywords.IF, Block.BEGIN, Suffix.PREFIX),
         ReservedWord(
             r'\bor\b',
-            Keywords.OR, Block.NONE, Suffix.INFIX),
+            Keywords.XOR, Block.END_PARTNER, Suffix.INFIX),
         ReservedWord(
             r'\bor\b',
-            Keywords.XOR, Block.END_PARTNER, Suffix.INFIX),
+            Keywords.OR, Block.NONE, Suffix.INFIX),
         ReservedWord(
             r'\bis\b',
             Keywords.VAR, Block.END_PARTNER, Suffix.INFIX),
@@ -535,150 +536,112 @@ class Lexer:
 
     def lex(self):
         keywords = match_reserved_words(self.keywords, self.source)
-        stack = []
-        partner_name_stack = []
-
-        self._handle_edge_cases_in_lex(stack, keywords)
-        for index, keyword in enumerate(keywords):
-            # if stack is empty
-            if len(stack) == 0:
-                if keyword.block == Block.BEGIN_PARTNER:
-                    partner_name_stack.append(keyword.type)
-                self._add_keyword_to_stack(stack, keyword)
+        for keyword_index, keyword in enumerate(keywords):
+            if self._collides_with_previous(keyword):
                 continue
-
-            # if keyword is end_partner with no begin_partner
-            # with the same name then it is probably a name
-            if keyword.block == Block.END_PARTNER and partner_name_stack:
-                if partner_name_stack[-1] != keyword.type:
+            if keyword.start != 0:
+                self._add_literals_before(keyword)
+            if self._is_wrong_end_partner(keyword):
+                if keywords[keyword_index + 1].value == keyword.value:
                     continue
-                if stack[-1].value == keyword.value:
-                    stack.pop()
-                    partner_name_stack.pop()
-                    self._add_keyword_to_stack(stack, keyword)
+                elif self.stack[-1].type == Literals.ID:
+                    self._merge(self.stack[-1], keyword)
                     continue
-
-            # if it crosses a previous one
-            if keyword.start < stack[-1].end:
-                continue
-            else:
-                pattern = self.source[stack[-1].end:keyword.start].strip()
-                # if previous was a name, merge
-                if stack[-1].type == Literals.ID and pattern != '':
-                    stack[-1].value += ' ' + pattern
-                    stack[-1].end = keyword.start
-                # else add a new one
-                elif pattern != '':
-                    self._add_literals_to_stack(
-                        stack, self._create_id_token(
-                            pattern, stack[-1].end + 1, keyword.start))
-            # if begin partner
-            if keyword.block == Block.BEGIN_PARTNER:
-                partner_name_stack.append(keyword.type)
-                self._add_keyword_to_stack(stack, keyword)
-                continue
-            # if end partner
-            elif keyword.block == Block.END_PARTNER:
-                # if it is the right partner
-                if partner_name_stack \
-                        and partner_name_stack[-1] == keyword.type:
-                    partner_name_stack.pop()
-                    self._add_keyword_to_stack(stack, keyword)
-                    continue
-                # if it is the wrong partner,
-                # we merge it with the previous name,
-                # or it is a standalone name
                 else:
-                    if keywords[index + 1].value == keyword.value:
-                        continue
-                    if stack[-1].type == Literals.ID:
-                        stack[-1].value += ' ' + keyword.value
-                        stack[-1].end = keyword.end
-                    else:
-                        self._add_literals_to_stack(
-                            stack, self._create_id_token(
-                                keyword.value, keyword.start, keyword.end))
+                    keyword.type = Literals.ID
+            self._add_to_stack(keyword)
+        self._finish_lex()
+        return self.tokens
 
-            # if it is a normal keyword
-            if keyword.start >= stack[-1].end:
-                self._add_keyword_to_stack(stack, keyword)
+    def _collides_with_previous(self, token):
+        if token.start == 0 and len(self.stack) == 0:
+            return False
+        return self._get_latest_token_end() > token.start
+
+    def _add_literals_before(self, token):
+        start_offset = self._get_latest_token_end()
+        between_tokens = self.source[start_offset:token.start]
+        literals = match_reserved_words(self.literals, between_tokens)
+        if len(literals) == 0:
+            self._add_id_before(token, include_token=False)
+        for literal in literals:
+            literal.start += start_offset
+            literal.end += start_offset
+            if self._collides_with_previous(literal):
                 continue
+            if self._add_id_before(literal):
+                break
+            self._add_to_stack(literal)
+        self._add_id_before(token)
 
-        if len(stack) > 0 and stack[-1].end != len(self.source):
-            self._add_literals_to_stack(stack, self._create_id_token(
-                self.source[stack[-1].end:], stack[-1].end, len(self.source)))
+    def _get_latest_token_end(self):
+        if len(self.stack) == 0:
+            return 0
+        return self.stack[-1].end
 
-        self.tokens = stack
-        stack.append(self._create_token_eof())
-        self.add_line_count_to_tokens()
+    def _add_id_before(self, token, include_token=True):
+        end = token.end if include_token else token.start
+        id = self.source[self._get_latest_token_end():token.start].strip()
+        if id != '' or self._can_be_merged(token):
+            id = self._create_id_from_to(self._get_latest_token_end(), end)
+            id.value = id.value.strip()
+            self._merge_with_previous_id_or_add_to_stack(id)
+            return True
+        return False
 
-        return stack
+    def _can_be_merged(self, token):
+        return len(self.stack) != 0 \
+               and self.stack[-1].type == Literals.ID \
+               and isinstance(token.type, Literals) \
+               and token.type != Literals.STRING
 
-    def _handle_edge_cases_in_lex(self, stack, keywords):
-        if len(keywords) == 0:
-            self._add_literals_to_stack(
-                stack, self._create_id_token(self.source, 0, len(self.source)))
-        elif keywords[0].start != 0:
-            pattern = self.source[0:keywords[0].start].strip()
-            if pattern != '':
-                self._add_literals_to_stack(
-                    stack,
-                    self._create_id_token(pattern, 0, keywords[0].start))
+    def _create_id_from_to(self, start_pos, end_pos):
+        value = self.source[start_pos:end_pos].strip()
+        return self._create_id_token(value, start_pos, end_pos)
+
+    def _merge_with_previous_id_or_add_to_stack(self, id_token):
+        if len(self.stack) != 0 and self.stack[-1].type == Literals.ID:
+            self._merge(self.stack[-1], id_token)
+        else:
+            self._add_to_stack(id_token)
+
+    def _get_between_tokens(self, token1, token2):
+        return self.source[token1.end:token2.start]
+
+    def _is_wrong_end_partner(self, token):
+        if token.block != Block.END_PARTNER:
+            return False
+        if len(self.partner_name_stack) == 0:
+            return True
+        if self.partner_name_stack[-1].type == token.type:
+            self.partner_name_stack.pop()
+            return False
+        return True
+
+    def _merge(self, token_to_change, token_to_add):
+        token_to_change.value += ' ' + token_to_add.value
+        token_to_change.end = token_to_add.end
+
+    def _add_to_stack(self, token):
+        if token.block == Block.BEGIN_PARTNER:
+            self.partner_name_stack.append(token)
+        self.stack.append(token)
 
     @staticmethod
     def _create_id_token(value, start, end):
         return Token(value, Literals.ID, Block.NONE, Suffix.NONE, start, end)
 
+    def _finish_lex(self):
+        eof = self._create_token_eof()
+        self._add_literals_before(eof)
+        self._add_to_stack(eof)
+        self.tokens = self.stack
+        self.stack = []
+        self.add_line_count_to_tokens()
+
     def _create_token_eof(self):
         return Token('EOF', 'EOF', Block.NONE, Suffix.NONE,
                      len(self.source), len(self.source))
-
-    def _add_keyword_to_stack(self, stack, keyword):
-        stack.append(keyword)
-
-    def _add_literals_to_stack(self, stack, regex_info):
-        if regex_info.value != '':
-            tokens = self._find_literals_in_token(regex_info)
-            for token in tokens:
-                stack.append(token)
-
-    def _find_literals_in_token(self, token):
-        literals = match_reserved_words(self.literals, token.value)
-        if len(literals) == 0:
-            name = token.value.strip()
-            if name != '':
-                yield token
-            return
-        start_index = 0
-        previous = None
-        for literal in literals:
-            if previous is not None and literal.start < previous.end:
-                continue
-            name = token.value[start_index:literal.start].strip()
-            if name != '':
-                previous = self._make_id_from_index_to_end(token, start_index)
-                yield previous
-                break
-            else:
-                previous = self._offset_token_indexes(literal, token.start)
-                yield previous
-
-    @staticmethod
-    def _make_id_from_index_to_end(token, index):
-        id_token = copy.copy(token)
-        name = token.value[index:]
-        id_token.value = name
-        id_token.start += index
-
-        return id_token
-
-    @staticmethod
-    def _offset_token_indexes(literal, offset):
-        literal_correct = copy.copy(literal)
-        literal_correct.start += offset
-        literal_correct.end += offset
-
-        return literal_correct
 
     def add_line_count_to_tokens(self):
         new_line_positions = list(self._get_new_line_positions())

@@ -1,6 +1,6 @@
 import unittest
 
-from fim_lexer import Lexer
+from fim_lexer import Lexer, Token, Keywords, Block, Suffix
 
 
 class Base(unittest.TestCase):
@@ -83,6 +83,25 @@ class TestLexerInterfaceMethods(Base):
         self.assertAddNewLinePositions('I said 1!\nI said 2!\n',
                                        [0, 0, 0, 1, 1, 1, 2],
                                        [0, 7, 8, 0, 7, 8, 0])
+
+    def testCrosses(self):
+        self.lexer.stack.append(Token('I said', Keywords.PRINT,
+                                      Block.NONE, Suffix.NONE, 0, 5))
+        self.assertTrue(
+            self.lexer._collides_with_previous(
+                Token('nothing', Keywords.PRINT,
+                      Block.NONE, Suffix.NONE,
+                      0, 5)))
+
+        self.assertTrue(self.lexer._collides_with_previous(
+                Token('nothing', Keywords.PRINT,
+                      Block.NONE, Suffix.NONE,
+                      4, 5)))
+
+        self.assertFalse(self.lexer._collides_with_previous(
+            Token('nothing', Keywords.PRINT,
+                  Block.NONE, Suffix.NONE,
+                  5, 7)))
 
 
 def tokens_are(tokens, tuples):
