@@ -14,7 +14,7 @@ class Debugger(Interpreter):
         if self.should_stop(node.line):
             print(f'{Fore.YELLOW}Line {node.line}:{Style.RESET_ALL}'
                   f' {self.lines[node.line]}')
-            self.handle_commands()
+            self.handle_commands(node.line)
         self.current_line = node.line
         return super().visit(node)
 
@@ -25,7 +25,7 @@ class Debugger(Interpreter):
             return False
         return line != self.current_line
 
-    def handle_commands(self):
+    def handle_commands(self, line):
         self.command = input(f'{Fore.YELLOW}command::: {Style.RESET_ALL}')
         while self.command != 'n':
             if self.command == 'q':
@@ -44,7 +44,7 @@ class Debugger(Interpreter):
             elif self.command == 'c':
                 return
             elif self.command == 'p':
-                self.print_program()
+                self.print_program(line)
             else:
                 print(f'{Fore.RED}Invalid command{Style.RESET_ALL}')
                 self.print_help()
@@ -83,10 +83,10 @@ class Debugger(Interpreter):
             print(f'{Fore.RED}Invalid breakpoint:'
                   f' should be int {Style.RESET_ALL}')
 
-    def print_program(self):
+    def print_program(self, cur_line):
         print(f'{Fore.YELLOW}Program: {Style.RESET_ALL}')
         for i, line in enumerate(self.lines):
-            line_color = Fore.GREEN if i - 1 == self.current_line else Fore.WHITE
+            line_color = Fore.GREEN if i == cur_line else Fore.WHITE
             number_color = Fore.RED if i in self.breakpoints else Fore.YELLOW
             print(f'{number_color}{i}{Style.RESET_ALL} '
                   f'{line_color}{line}{Style.RESET_ALL}')

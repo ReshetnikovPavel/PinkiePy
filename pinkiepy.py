@@ -45,7 +45,7 @@ def interpret(program):
 
 
 @handle_errors
-def interpret_by_line(program):
+def debug(program):
     lexer = Lexer(program)
     lexer.lex()
     parser = Parser(lexer)
@@ -69,9 +69,9 @@ def interpret_file(absolute_path, interpret_function=interpret):
 def interpret_from_command_line():
     args = parse_args()
     path = args.path
-    line_by_line = args.line_by_line
-    if line_by_line:
-        interpret_file(Path(path).absolute(), interpret_by_line)
+    is_debug = args.debug
+    if is_debug:
+        interpret_file(Path(path).absolute(), debug)
     else:
         interpret_file(Path(path).absolute())
 
@@ -84,9 +84,9 @@ def parse_args():
 
 def add_args(parser):
     parser.add_argument('path', type=str, help='Path to file')
-    parser.add_argument('-l', '--line-by-line',
+    parser.add_argument('-d', '--debug',
                         action='store_true',
-                        help='Run interpreter line by line')
+                        help='debug')
 
 
 if __name__ == '__main__':
