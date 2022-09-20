@@ -224,7 +224,8 @@ class Parser:
 
         root = fim_ast.Compound()
         for node in nodes:
-            root.children.append(node)
+            if not isinstance(node, fim_ast.NoOp):
+                root.children.append(node)
 
         return root
 

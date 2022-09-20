@@ -204,8 +204,9 @@ class Increment(AST):
 
 
 class Decrement(AST):
-    def __init__(self, variable):
+    def __init__(self, variable, value=1):
         self.variable = variable
+        self.value = value
 
 
 class If(AST):

@@ -26,3 +26,7 @@ class FimEnvironmentException(FimRuntimeException):
 
     def __str__(self):
         return f'{self.message}'
+
+
+class FimCSharpTranslatorException(FimException):
+    pass
