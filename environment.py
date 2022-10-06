@@ -66,7 +66,13 @@ class Environment:
         return self._values.items()
 
     def __str__(self):
-        return str(self._values)
+        return "{" + "\n".join("{!r}: {!r},".format(k, v)
+                              for k, v in self._values.items()) + "}"
+
+    def str_all(self):
+        if self.enclosing is not None:
+            return str(self) + '\n' + self.enclosing.str_all() + '\n'
+        return str(self)
 
     def __contains__(self, key):
         return key in self._values

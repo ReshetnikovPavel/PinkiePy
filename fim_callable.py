@@ -17,6 +17,9 @@ class FimFunction(FimCallable):
         self.closure = closure
         self.declaration = declaration
 
+    def __repr__(self):
+        return f"<function {self.declaration.name}>"
+
     def call(self, interpreter, arguments):
         environment = Environment(self.closure)
         for i in range(len(self.declaration.params)):
@@ -52,6 +55,9 @@ class FimClass(FimCallable):
 
     def __str__(self):
         return self.name
+
+    def __repr__(self):
+        return f"<class {self.name}>"
 
     def arity(self):
         return 0
@@ -89,6 +95,9 @@ class FimInstance:
     def __str__(self):
         return f'{self.fim_class.name} instance'
 
+    def __repr__(self):
+        return f'<{self.fim_class.name}: {self.fields}>'
+
     def get(self, token):
         if token.value in self.fields:
             return self.fields[token.value]
@@ -108,6 +117,9 @@ class FimInstance:
 class FimArray:
     def __init__(self, elements):
         self.elements = elements
+
+    def __repr__(self):
+        return f'<{self.__str__()}>'
 
     def __iter__(self):
         return iter(self.elements)

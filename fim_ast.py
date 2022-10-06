@@ -10,10 +10,18 @@ class Root(AST):
     def __init__(self, children):
         self.children = children
 
+    @property
+    def line(self):
+        return self.children[0].line
+
 
 class Compound(AST):
     def __init__(self):
         self.children = []
+
+    @property
+    def line(self):
+        return self.children[0].line
 
 
 class Assign(AST):
@@ -21,10 +29,18 @@ class Assign(AST):
         self.left = left
         self.right = right
 
+    @property
+    def line(self):
+        return self.left.token.line
+
 
 class Print(AST):
     def __init__(self, expr):
         self.expr = expr
+
+    @property
+    def line(self):
+        return self.expr.line
 
 
 class Var(AST):
@@ -34,6 +50,10 @@ class Var(AST):
     @property
     def value(self):
         return self.token.value
+
+    @property
+    def line(self):
+        return self.token.line
 
     def __repr__(self):
         return f"Var({self.token})"
@@ -45,11 +65,19 @@ class BinOp(AST):
         self.token = self.op = op
         self.right = right
 
+    @property
+    def line(self):
+        return self.left.line
+
 
 class UnaryOp(AST):
     def __init__(self, op, expr):
         self.token = self.op = op
         self.expr = expr
+
+    @property
+    def line(self):
+        return self.expr.line
 
 
 class Number(AST):
@@ -59,6 +87,10 @@ class Number(AST):
     @property
     def value(self):
         return self.token.value
+
+    @property
+    def line(self):
+        return self.token.line
 
 
 class Char(AST):
@@ -70,6 +102,10 @@ class Char(AST):
         if self.token.value[0] == "'" and self.token.value[-1] == "'":
             return self.token.value[1:-1]
         return self.token.value
+
+    @property
+    def line(self):
+        return self.token.line
 
 
 class Bool(AST):
@@ -85,11 +121,19 @@ class Bool(AST):
         else:
             raise NameError(repr(self.token.type))
 
+    @property
+    def line(self):
+        return self.token.line
+
 
 class Null(AST):
     def __init__(self, token):
         self.token = token
         self.value = None
+
+    @property
+    def line(self):
+        return self.token.line
 
 
 class String(AST):
@@ -102,6 +146,10 @@ class String(AST):
                 and self.token.value[-1] in ['"', '”', '“']:
             return self.token.value[1:-1]
         return self.token.value
+
+    @property
+    def line(self):
+        return self.token.line
 
     def __iter__(self):
         return iter(self.value)
@@ -128,6 +176,13 @@ class Class(AST):
         self.fields = fields
         self.programmer = programmer
 
+    @property
+    def line(self):
+        return self.name.line
+
+    def __repr__(self):
+        return f'<class {self.name.value}>'
+
 
 class Interface(AST):
     def __init__(self, name, methods, programmer):
@@ -137,6 +192,10 @@ class Interface(AST):
 
     def __str__(self):
         raise Exception("Cannot print interface")
+
+    @property
+    def line(self):
+        return self.name.line
 
 
 class Get(AST):
@@ -149,12 +208,20 @@ class Get(AST):
     def value(self):
         return self.name.value
 
+    @property
+    def line(self):
+        return self.name.line
+
 
 class Set(AST):
     def __init__(self, object, name, value):
         self.object = object
         self.name = name
         self.value = value
+
+    @property
+    def line(self):
+        return self.name.line
 
 
 class Function(AST):
@@ -166,10 +233,18 @@ class Function(AST):
         self.body = body
         self.is_main = is_main
 
+    @property
+    def line(self):
+        return self.name.line
+
 
 class Return(AST):
     def __init__(self, value):
         self.value = value
+
+    @property
+    def line(self):
+        return self.value.line
 
 
 class FunctionCall(AST):
@@ -177,16 +252,28 @@ class FunctionCall(AST):
         self.name = name
         self.arguments = arguments
 
+    @property
+    def line(self):
+        return self.name.line
+
 
 class Read(AST):
     def __init__(self, variable):
         self.variable = variable
+
+    @property
+    def line(self):
+        return self.variable.line
 
 
 class Prompt(AST):
     def __init__(self, read_node, expr):
         self.read_node = read_node
         self.expr = expr
+
+    @property
+    def line(self):
+        return self.expr.line
 
 
 class VariableDeclaration(AST):
@@ -196,17 +283,29 @@ class VariableDeclaration(AST):
         self.right = right
         self.is_const = is_const
 
+    @property
+    def line(self):
+        return self.left.line
+
 
 class Increment(AST):
     def __init__(self, variable, value=1):
         self.variable = variable
         self.value = value
 
+    @property
+    def line(self):
+        return self.variable.line
+
 
 class Decrement(AST):
     def __init__(self, variable, value=1):
         self.variable = variable
         self.value = value
+
+    @property
+    def line(self):
+        return self.variable.line
 
 
 class If(AST):
@@ -215,6 +314,10 @@ class If(AST):
         self.then_branch = then_branch
         self.else_branch = else_branch
 
+    @property
+    def line(self):
+        return self.condition.line
+
 
 class Switch(AST):
     def __init__(self, variable, cases, default):
@@ -222,11 +325,19 @@ class Switch(AST):
         self.cases = cases
         self.default = default
 
+    @property
+    def line(self):
+        return self.variable.line
+
 
 class While(AST):
     def __init__(self, condition, body):
         self.condition = condition
         self.body = body
+
+    @property
+    def line(self):
+        return self.condition.line
 
 
 class DoWhile(AST):
@@ -234,10 +345,18 @@ class DoWhile(AST):
         self.condition = condition
         self.body = body
 
+    @property
+    def line(self):
+        return self.condition.line
+
 
 class Import(AST):
     def __init__(self, name):
         self.name = name
+
+    @property
+    def line(self):
+        return self.name.line
 
 
 class Array(AST):
@@ -245,6 +364,10 @@ class Array(AST):
         self.name = name
         self.type = type
         self.elements = elements
+
+    @property
+    def line(self):
+        return self.name.line
 
 
 class ArrayElementAssignment(AST):
@@ -257,11 +380,19 @@ class ArrayElementAssignment(AST):
     def array_name(self):
         return self.left.token.value
 
+    @property
+    def line(self):
+        return self.left.line
+
 
 class ArrayElement(AST):
     def __init__(self, name, index):
         self.name = name
         self.index = index
+
+    @property
+    def line(self):
+        return self.name.line
 
 
 class For(AST):
@@ -277,9 +408,17 @@ class For(AST):
                   self.to_value.token.start, self.to_value.token.end),
             self.to_value)
 
+    @property
+    def line(self):
+        return self.init.line
+
 
 class ForIter(AST):
     def __init__(self, init, iterable, body):
         self.init = init
         self.iterable = iterable
         self.body = body
+
+    @property
+    def line(self):
+        return self.init.line
