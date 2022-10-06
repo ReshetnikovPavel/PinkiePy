@@ -156,12 +156,13 @@ class TestTranslator(Base):
             I said c.
             That’s what I did.
             """,
-            'using System;\n'
-            'var Berry_Punch = "Cheerwine";\n'
-            'foreach (var c in Berry_Punch)\n'
-            '{\n'
-            'Console.WriteLine(c);\n'
-            '}\n;')
+            ('using System;\n'
+ 'var Berry_Punch = "the phrase “Cheerwine”";\n'
+ 'foreach (var c in Berry_Punch)\n'
+ '{\n'
+ 'Console.WriteLine(c);\n'
+ '}\n'
+ ';'))
 
     def test_visit_StatementList(self):
         pass
@@ -314,41 +315,41 @@ class TestTranslator(Base):
         Pinkies Tail got one more!
     That's what I did.
         """,
-            """using System;
-var Pinkies_Tail = 1d;
-while ((Pinkies_Tail) <= (5d))
-{
-switch (Pinkies_Tail)
-{
-case 1d:
-{
-Console.WriteLine("That's impossible!");
-}
-break;
-case 2d:
-{
-Console.WriteLine("There must be a scientific explanation");
-}
-break;
-case 3d:
-{
-Console.WriteLine("There must be an explanation");
-}
-break;
-case 4d:
-{
-Console.WriteLine("Why does this happen?!");
-}
-break;
-default:
-{
-Console.WriteLine("She's just being Pinkie Pie.");
-}
-break;
-};
-(Pinkies_Tail)++;
-}
-;"""
+            ('using System;\n'
+ 'var Pinkies_Tail = the number 1d;\n'
+ 'while ((Pinkies_Tail) <= (5d))\n'
+ '{\n'
+ 'switch (Pinkies_Tail)\n'
+ '{\n'
+ 'case 1d:\n'
+ '{\n'
+ 'Console.WriteLine("That\'s impossible!");\n'
+ '}\n'
+ 'break;\n'
+ 'case 2d:\n'
+ '{\n'
+ 'Console.WriteLine("There must be a scientific explanation");\n'
+ '}\n'
+ 'break;\n'
+ 'case 3d:\n'
+ '{\n'
+ 'Console.WriteLine("There must be an explanation");\n'
+ '}\n'
+ 'break;\n'
+ 'case 4d:\n'
+ '{\n'
+ 'Console.WriteLine("Why does this happen?!");\n'
+ '}\n'
+ 'break;\n'
+ 'default:\n'
+ '{\n'
+ 'Console.WriteLine("She\'s just being Pinkie Pie.");\n'
+ '}\n'
+ 'break;\n'
+ '};\n'
+ '(Pinkies_Tail)++;\n'
+ '}\n'
+ ';')
         )
 
     def test_visit_Import(self):
