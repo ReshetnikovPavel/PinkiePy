@@ -2,15 +2,15 @@ import copy
 import re
 
 import fim_ast
-from fim_lexer import Keywords, Token
+from fim_lexer import Keywords, Token, Literals
 from node_visitor import NodeVisitor
 from fim_exception import FimCSharpTranslatorException
 
 
 class CSharpTranslator(NodeVisitor):
-    def __init__(self, tree, interpreter):
+    def __init__(self, tree, resolver):
         self.tree = tree
-        self.interpreter = interpreter
+        self.resolver = resolver
 
     def translate(self):
         return 'using System;\n' \
@@ -52,8 +52,8 @@ class CSharpTranslator(NodeVisitor):
         elif node.op.type == Keywords.MODULO:
             return f'({left}) % ({right})'
         else:
-            raise FimCSharpTranslatorException(node.op,
-                                               f"Unknown operator: {node.op}")
+            raise FimCSharpTranslatorException(
+                node.op, f"Unknown operator: {node.op}")
 
     def visit_UnaryOp(self, node):
         return f'!({self.visit(node.expr)})'
@@ -130,19 +130,34 @@ class CSharpTranslator(NodeVisitor):
         return ''
 
     def visit_Assign(self, node):
-        return f'{node.left.value} = {self.visit(node.right)}'
+        type, name = self.convert_type(node.left)
+        return f'{self.convert_spaces_to_underscores(name)}' \
+               f' = {self.visit(node.right)}'
 
     def visit_VariableDeclaration(self, node):
-        return f'var {node.left.value} = {self.visit(node.right)}'
+        type_left, name_left = self.convert_type(node.left)
+        if type_left == 'object':
+            type_left = 'var'
+        return f'{type_left} {self.convert_spaces_to_underscores(name_left)}' \
+               f' = {self.visit(node.right)}'
 
     def visit_Var(self, node):
-        variable_name = re.sub(r"['\s]", '_', node.value)
-        if self.interpreter.lookup_variable(node.token, node):
-            pass
+        type, name = self.convert_type(node.token)
+        variable_name = self.convert_spaces_to_underscores(name)
         return variable_name
 
+    @staticmethod
+    def convert_spaces_to_underscores(string):
+        return re.sub(r"['\s]", '_', string)
+
     def visit_FunctionCall(self, node):
-        pass
+        res = f'{self.visit(node.name)}'
+        res += '('
+        for argument in node.arguments[:-1]:
+            res += f'{self.visit(argument)}, '
+        res += f'{self.visit(node.arguments[-1])}'
+        res += ')'
+        return res
 
     def visit_Return(self, node):
         return f'return {self.visit(node.value)}'
@@ -164,15 +179,40 @@ class CSharpTranslator(NodeVisitor):
         return f'{node.variable.value} = Console.ReadLine()'
 
     def visit_Function(self, node):
-        return_type = self.visit(node.return_type) if node.return_type \
-            else 'object'
-        result = f'public static {return_type} {node.name.value}()'
+        return_type, name = self.convert_type(node.return_type) if node.return_type \
+            else ('object', '')
+        result = f'public static {return_type} {node.name.value}'
+        result += '('
+        for argument in node.params[:-1]:
+            type, name = self.convert_type(argument)
+            result += f'{type}' \
+                      f' {self.convert_spaces_to_underscores(name)}, '
+        if node.params:
+            type, name = self.convert_type(node.params[-1])
+            result += f'{type}' \
+                      f' {name}'
+        result += ')'
         if return_type == 'object':
             node.body.children.append(
                 fim_ast.Return(
                     fim_ast.Null(Token(None, None, None, None, None, None))))
         result += self.visit(node.body)
         return result
+
+    def convert_type(self, token):
+        type, name = self.resolver.separate_type_str(token)
+        if type == Literals.NUMBER:
+            return 'double', name
+        elif type == Literals.STRING:
+            return 'string', name
+        elif type == Literals.CHAR:
+            return 'char', name
+        elif type == Literals.BOOL:
+            return 'bool', name
+        elif type == Literals.NULL:
+            return 'object'
+        return 'object', name
+
 
     def visit_Class(self, node):
         pass
@@ -187,7 +227,17 @@ class CSharpTranslator(NodeVisitor):
         pass
 
     def visit_Switch(self, node):
-        pass
+        res = f'switch ({self.visit(node.variable)})\n'
+        res += '{\n'
+        for case, body in node.cases.items():
+            res += f'case {self.visit(case)}:'
+            res += self.visit(body)
+            res += 'break;\n'
+        res += 'default:'
+        res += self.visit(node.default)
+        res += 'break;\n'
+        res += '}'
+        return res
 
     def visit_Import(self, node):
         return f'using {self.visit(node.name)};'
