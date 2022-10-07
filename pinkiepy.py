@@ -1,8 +1,11 @@
 import sys
 import traceback
+import argparse
+
 from colorama import Fore, Style
 from pathlib import Path
 
+from fim_debugger import Debugger
 from fim_lexer import Lexer
 from fim_parser import Parser
 from fim_interpreter import Interpreter
@@ -41,19 +44,49 @@ def interpret(program):
     interpreter.interpret(tree)
 
 
-def interpret_file(absolute_path):
+@handle_errors
+def debug(program):
+    lexer = Lexer(program)
+    lexer.lex()
+    parser = Parser(lexer)
+    interpreter = Debugger(parser, program)
+    tree = parser.parse()
+    resolver = Resolver(interpreter)
+    resolver.resolve(tree)
+    interpreter.interpret(tree)
+
+
+def interpret_file(absolute_path, interpret_function=interpret):
     if not absolute_path.is_file():
         print(f'{Fore.RED}File not found{Style.RESET_ALL}')
         return
 
     with absolute_path.open('r') as program_file:
         program = program_file.read()
-        interpret(program)
+        interpret_function(program)
 
 
 def interpret_from_command_line():
-    path = ' '.join(sys.argv[1:])
-    interpret_file(Path(path).absolute())
+    args = parse_args()
+    path = args.path
+    is_debug = args.debug
+    if is_debug:
+        interpret_file(Path(path).absolute(), debug)
+    else:
+        interpret_file(Path(path).absolute())
+
+
+def parse_args():
+    parser = argparse.ArgumentParser()
+    add_args(parser)
+    return parser.parse_args()
+
+
+def add_args(parser):
+    parser.add_argument('path', type=str, help='Path to file')
+    parser.add_argument('-d', '--debug',
+                        action='store_true',
+                        help='debug')
 
 
 if __name__ == '__main__':
