@@ -466,18 +466,6 @@ class Resolver(NodeVisitor):
                     return type_name, token
                 token.value = value
                 return type_name, token
-        return self.get_type(token.value), token.value
-
-    def separate_type_str(self, token):
-        for type_name, regex in self.builtin_type_names.items():
-            match = re.match(regex, token.value)
-            if match:
-                value = str.removeprefix(token.value,
-                                         match.group(0)).strip()
-                if value == "" or value == 'nothing':
-                    token.value = str.removesuffix(token.value,
-                                                   value).strip()
-                return type_name, value
         # for name in self.interpreter.globals._values:
         #     if isinstance(self.interpreter.globals._values.get(name),
         #                   fim_callable.FimClass):
@@ -487,6 +475,19 @@ class Resolver(NodeVisitor):
         #                 return None, token
         #             token.value = value
         #             return name, token
+        return self.get_type(token.value), token
+
+    def separate_type_str(self, token):
+        for type_name, regex in self.builtin_type_names.items():
+            if isinstance(token.value, str):
+                match = re.match(regex, token.value)
+                if match:
+                    value = str.removeprefix(token.value,
+                                             match.group(0)).strip()
+                    if value == "" or value == 'nothing':
+                        token.value = str.removesuffix(token.value,
+                                                       value).strip()
+                    return type_name, value
         return self.get_type(token.value), token.value
 
     def is_instance(self, type, token):

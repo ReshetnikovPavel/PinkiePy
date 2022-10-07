@@ -21,7 +21,7 @@ class Base(unittest.TestCase):
         self.lexer.lex()
         self.parser.current_token = self.lexer.get_next_token()
         tree = self.parser.parse()
-        #self.resolver.resolve(tree)
+        # self.resolver.resolve(tree)
 
         return tree
 
@@ -57,7 +57,6 @@ class TestTranslator(Base):
         I said not correct.""",
             'using System;\n'
             'Console.WriteLine(!(true));')
-
 
     def test_visit_Number(self):
         token = Token('1', Literals.NUMBER, None, None, None, None)
@@ -156,13 +155,12 @@ class TestTranslator(Base):
             I said c.
             That’s what I did.
             """,
-            ('using System;\n'
- 'var Berry_Punch = "the phrase “Cheerwine”";\n'
- 'foreach (var c in Berry_Punch)\n'
- '{\n'
- 'Console.WriteLine(c);\n'
- '}\n'
- ';'))
+            'using System;\n'
+            'string Berry_Punch = "Cheerwine";\n'
+            'foreach (var c in Berry_Punch)\n'
+            '{\n'
+            'Console.WriteLine(c);\n'
+            '}\n;')
 
     def test_visit_StatementList(self):
         pass
@@ -204,11 +202,11 @@ class TestTranslator(Base):
             I learned Function using number one:
             I said "Hello World!".
             That's all about Function.
-            
+
             I remembered Function using 1.
             """,
             'using System;\n'
-            'public static object Function(double one)\n'
+            'public object Function(double one)\n'
             '{\n'
             'Console.WriteLine("Hello World!");\n'
             'return null;\n'
@@ -260,7 +258,7 @@ class TestTranslator(Base):
             That's all about Function.
             """,
             'using System;\n'
-            'public static object Function()\n'
+            'public object Function()\n'
             '{\n'
             'Console.WriteLine("Hello World!");\n'
             'return null;\n'
@@ -275,17 +273,42 @@ class TestTranslator(Base):
             That's all about Function.
             """,
             'using System;\n'
-            'public static double Function()\n'
+            'public double Function()\n'
             '{\n'
             'return 1d;\n'
             '}\n;\n'
             ';')
 
     def test_visit_Class(self):
-        pass
+        self.assert_csharp_program_from_fim(
+            """
+            Dear Princess Celestia and IInterface1 and IInterface2: Class!
+            Did you know that x is number 0?
+            Your faithful student, Pavel Reshetnikov.
+            """, (('using System;\n'
+                   'public class Class : IInterface1, IInterface2\n'
+                   '{\n'
+                   'double x = 0d;\n'
+                   '}\n'
+                   ';')))
 
     def test_visit_Interface(self):
-        pass
+        self.assert_csharp_program_from_fim(
+            """
+            Princess Luna:
+            
+            I learned how to fly.
+            I learned how to do magic.
+            I learned how to raise the moon.
+            Your faithful student, Kyli Rouge.""",
+            'using System;\n'
+            'public interface Princess_Luna\n'
+            '{\n'
+            'object how_to_fly();\n'
+            'object how_to_do_magic();\n'
+            'object how_to_raise_the_moon();\n'
+            '}\n'
+            ';')
 
     def test_visit_Get(self):
         pass
@@ -295,67 +318,67 @@ class TestTranslator(Base):
 
     def test_visit_Switch(self):
         self.assert_csharp_program_from_fim(
-        """
-        Did you know that Pinkies Tail is the number 1?
-
-    As long as Pinkies Tail had no more than 5...
-        In regards to Pinkies Tail:
-            On the 1st hoof...
-                I said "That's impossible!".
-            On the 2nd hoof...
-                I said "There must be a scientific explanation".
-            On the 3rd hoof...
-                I said "There must be an explanation".
-            On the 4th hoof...
-                I said "Why does this happen?!".
-            If all else fails...
-                I said "She's just being Pinkie Pie.".
+            """
+            Did you know that Pinkies Tail is the number 1?
+    
+        As long as Pinkies Tail had no more than 5...
+            In regards to Pinkies Tail:
+                On the 1st hoof...
+                    I said "That's impossible!".
+                On the 2nd hoof...
+                    I said "There must be a scientific explanation".
+                On the 3rd hoof...
+                    I said "There must be an explanation".
+                On the 4th hoof...
+                    I said "Why does this happen?!".
+                If all else fails...
+                    I said "She's just being Pinkie Pie.".
+            That's what I did.
+    
+            Pinkies Tail got one more!
         That's what I did.
-
-        Pinkies Tail got one more!
-    That's what I did.
-        """,
-            ('using System;\n'
- 'var Pinkies_Tail = the number 1d;\n'
- 'while ((Pinkies_Tail) <= (5d))\n'
- '{\n'
- 'switch (Pinkies_Tail)\n'
- '{\n'
- 'case 1d:\n'
- '{\n'
- 'Console.WriteLine("That\'s impossible!");\n'
- '}\n'
- 'break;\n'
- 'case 2d:\n'
- '{\n'
- 'Console.WriteLine("There must be a scientific explanation");\n'
- '}\n'
- 'break;\n'
- 'case 3d:\n'
- '{\n'
- 'Console.WriteLine("There must be an explanation");\n'
- '}\n'
- 'break;\n'
- 'case 4d:\n'
- '{\n'
- 'Console.WriteLine("Why does this happen?!");\n'
- '}\n'
- 'break;\n'
- 'default:\n'
- '{\n'
- 'Console.WriteLine("She\'s just being Pinkie Pie.");\n'
- '}\n'
- 'break;\n'
- '};\n'
- '(Pinkies_Tail)++;\n'
- '}\n'
- ';')
+            """,
+            """using System;
+double Pinkies_Tail = 1d;
+while ((Pinkies_Tail) <= (5d))
+{
+switch (Pinkies_Tail)
+{
+case 1d:
+{
+Console.WriteLine("That's impossible!");
+}
+break;
+case 2d:
+{
+Console.WriteLine("There must be a scientific explanation");
+}
+break;
+case 3d:
+{
+Console.WriteLine("There must be an explanation");
+}
+break;
+case 4d:
+{
+Console.WriteLine("Why does this happen?!");
+}
+break;
+default:
+{
+Console.WriteLine("She's just being Pinkie Pie.");
+}
+break;
+};
+(Pinkies_Tail)++;
+}
+;"""
         )
 
     def test_visit_Import(self):
         self.assert_csharp_program_from_node(
             fim_ast.Import(fim_ast.Var(Token('System', Literals.STRING,
-                                                None, None, None, None))),
+                                             None, None, None, None))),
             'using System;')
 
     def test_visit_Array(self):

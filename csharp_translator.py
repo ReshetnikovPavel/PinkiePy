@@ -2,6 +2,7 @@ import copy
 import re
 
 import fim_ast
+import special_words
 from fim_lexer import Keywords, Token, Literals
 from node_visitor import NodeVisitor
 from fim_exception import FimCSharpTranslatorException
@@ -59,13 +60,20 @@ class CSharpTranslator(NodeVisitor):
         return f'!({self.visit(node.expr)})'
 
     def visit_Number(self, node):
+        self.convert_type_of_node(node)
         return f'{node.value}d'
 
     def visit_String(self, node):
+        self.convert_type_of_node(node)
         return f'"{node.value}"'
 
     def visit_Char(self, node):
+        self.convert_type_of_node(node)
         return f"'{node.value}'"
+
+    def convert_type_of_node(self, node):
+        type, name = self.convert_type(node.token)
+        node.token.value = name
 
     def visit_Bool(self, node):
         if node.value is True:
@@ -138,7 +146,12 @@ class CSharpTranslator(NodeVisitor):
         type_left, name_left = self.convert_type(node.left)
         if type_left == 'object':
             type_left = 'var'
-        return f'{type_left} {self.convert_spaces_to_underscores(name_left)}' \
+        type_right, name_right = self.convert_type(node.right)
+        if type_right != 'object':
+            type = type_right
+        else:
+            type = type_left
+        return f'{type} {self.convert_spaces_to_underscores(name_left)}' \
                f' = {self.visit(node.right)}'
 
     def visit_Var(self, node):
@@ -179,24 +192,30 @@ class CSharpTranslator(NodeVisitor):
         return f'{node.variable.value} = Console.ReadLine()'
 
     def visit_Function(self, node):
-        return_type, name = self.convert_type(node.return_type) if node.return_type \
+        return_type, name = self.convert_type(
+            node.return_type) if node.return_type \
             else ('object', '')
-        result = f'public static {return_type} {node.name.value}'
+        result = f'public {return_type}' \
+                 f' {self.convert_spaces_to_underscores(node.name.value)}'
         result += '('
         for argument in node.params[:-1]:
             type, name = self.convert_type(argument)
+            name = self.convert_spaces_to_underscores(name)
             result += f'{type}' \
                       f' {self.convert_spaces_to_underscores(name)}, '
         if node.params:
             type, name = self.convert_type(node.params[-1])
+            name = self.convert_spaces_to_underscores(name)
             result += f'{type}' \
                       f' {name}'
         result += ')'
         if return_type == 'object':
-            node.body.children.append(
-                fim_ast.Return(
-                    fim_ast.Null(Token(None, None, None, None, None, None))))
-        result += self.visit(node.body)
+            if node.body:
+                node.body.children.append(
+                    fim_ast.Return(
+                        fim_ast.Null(Token(None, None, None, None, None, None))))
+        if node.body:
+            result += self.visit(node.body)
         return result
 
     def convert_type(self, token):
@@ -213,18 +232,39 @@ class CSharpTranslator(NodeVisitor):
             return 'object'
         return 'object', name
 
-
     def visit_Class(self, node):
-        pass
+        result = f'public class' \
+                 f' {self.convert_spaces_to_underscores(node.name.value)}'
+        if node.superclass.value != special_words.base_class_name:
+            name = self.convert_spaces_to_underscores(node.superclass.value)
+            result += f' : {name}'
+            for interface in node.implementations:
+                name = self.convert_spaces_to_underscores(interface.value)
+                result += f', {name}'
+        else:
+            if node.implementations:
+                result += f' : {node.implementations[0].value}'
+                for interface in node.implementations[1:]:
+                    result += f', {interface.value}'
+        result += self.visit(node.body)
+        return result
 
     def visit_Interface(self, node):
-        pass
+        result = f'public interface' \
+                 f' {self.convert_spaces_to_underscores(node.name.value)}'
+        result += '\n{'
+        for method in node.methods:
+            result += '\n'
+            result += str.removeprefix(self.visit(method), 'public ')
+            result += ';'
+        result += '\n}\n'
+        return result
 
     def visit_Get(self, node):
-        pass
+        raise NotImplementedError
 
     def visit_Set(self, node):
-        pass
+        raise NotImplementedError
 
     def visit_Switch(self, node):
         res = f'switch ({self.visit(node.variable)})\n'
@@ -243,7 +283,7 @@ class CSharpTranslator(NodeVisitor):
         return f'using {self.visit(node.name)};'
 
     def visit_Array(self, node):
-        pass
+        raise NotImplementedError
 
     def visit_ArrayElementAssignment(self, node):
-        pass
+        raise NotImplementedError
