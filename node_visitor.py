@@ -1,4 +1,4 @@
-class NodeVisitor(object):
+class NodeVisitor:
     def visit(self, node):
         method_name = 'visit_' + type(node).__name__
         visitor = getattr(self, method_name, self.generic_visit)
