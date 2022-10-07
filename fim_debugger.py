@@ -64,13 +64,21 @@ class Debugger(Interpreter):
 
     def set_breakpoint(self):
         breakpoint = input(f'{Fore.YELLOW}set breakpoint::: {Style.RESET_ALL}')
-        if breakpoint.isdigit():
+        if self._is_breakpoint_valid(breakpoint):
             self.breakpoints.add(int(breakpoint))
             print(f'{Fore.YELLOW}Breakpoints: {Style.RESET_ALL}'
                   f'{self.breakpoints}')
-        else:
+
+    def _is_breakpoint_valid(self, breakpoint):
+        if not breakpoint.isdigit():
             print(f'{Fore.RED}Invalid breakpoint:'
                   f' should be int {Style.RESET_ALL}')
+            return False
+        if int(breakpoint) < 0 or int(breakpoint) >= len(self.lines):
+            print(f'{Fore.RED}Invalid breakpoint: out of range'
+                  f' {Style.RESET_ALL}')
+            return False
+        return True
 
     def remove_breakpoint(self):
         breakpoint = input(f'{Fore.YELLOW}remove breakpoint::: '

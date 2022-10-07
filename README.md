@@ -18,10 +18,16 @@ $ python3 -m pip install -r requirements.txt
 
 # Usage
 
+## Interpreter
 ```
-python pinkiepy.py full or relative path to file/File Name.fim
+python pinkiepy.py 'full or relative path to file/File Name.fim'
 ```
 
+## Debugger
+
+```
+python pinkiepy.py -d 'full or relative path to file/File Name.fim'
+```
 
 # Language documentation
 For main features read [FiM++ 1.0 (Sparkle) language specification](https://docs.google.com/document/d/1gU-ZROmZu0Xitw_pfC1ktCDvJH5rM85TxxQf5pg_xmg/edit#), but keep in mind that it has some inconsistencies in examples.
