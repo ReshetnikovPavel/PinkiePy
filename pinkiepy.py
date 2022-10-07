@@ -5,6 +5,7 @@ import argparse
 from colorama import Fore, Style
 from pathlib import Path
 
+from csharp_translator import CSharpTranslator
 from fim_debugger import Debugger
 from fim_lexer import Lexer
 from fim_parser import Parser
@@ -56,6 +57,17 @@ def debug(program):
     interpreter.interpret(tree)
 
 
+def translate_to_csharp(program):
+    lexer = Lexer(program)
+    lexer.lex()
+    parser = Parser(lexer)
+    interpreter = Debugger(parser, program)
+    tree = parser.parse()
+    resolver = Resolver(interpreter)
+    translator = CSharpTranslator(tree, resolver)
+    print(translator.translate())
+
+
 def interpret_file(absolute_path, interpret_function=interpret):
     if not absolute_path.is_file():
         print(f'{Fore.RED}File not found{Style.RESET_ALL}')
@@ -70,8 +82,11 @@ def interpret_from_command_line():
     args = parse_args()
     path = args.path
     is_debug = args.debug
+    is_translate = args.translate
     if is_debug:
         interpret_file(Path(path).absolute(), debug)
+    elif is_translate:
+        interpret_file(Path(path).absolute(), translate_to_csharp)
     else:
         interpret_file(Path(path).absolute())
 
@@ -87,6 +102,9 @@ def add_args(parser):
     parser.add_argument('-d', '--debug',
                         action='store_true',
                         help='debug')
+    parser.add_argument('-t', '--translate',
+                        action='store_true',
+                        help='translate to c#')
 
 
 if __name__ == '__main__':
